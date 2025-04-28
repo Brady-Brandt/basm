@@ -92,14 +92,14 @@ def write_nmemonics_strings(f, nmemonics):
 
 
 
-
+#pack the values more
 instr_struct = """
 typedef struct {
     uint16_t instr;
     uint8_t rex;
-    OperandType one;
-    OperandType two; 
-    OperandType three; 
+    OperandType op1;
+    OperandType op2; 
+    OperandType op3; 
     uint8_t bytes[4];
     uint8_t size;
     int8_t digit;
@@ -107,6 +107,25 @@ typedef struct {
     uint8_t r; 
 } Instruction;\n
 """
+
+
+
+
+def write_instruction_debug(nmemonic_file):
+    nmemonic_file.write("static void print_instruction(Instruction* instr){\n")
+    nmemonic_file.write("    printf(\"%s: \", NMEMONIC_TABLE[instr->instr]);\n")
+    nmemonic_file.write("    for(int i = 0; i < instr->size; i++) printf(\"%02x \", instr->bytes[i]);\n")
+    nmemonic_file.write("    printf(\"\\nOperand 1: %s\\n\", operand_to_string(instr->op1));\n")
+    nmemonic_file.write("    printf(\"Operand 2: %s\\n\", operand_to_string(instr->op2));\n")
+    nmemonic_file.write("    printf(\"Operand 3: %s\\n\", operand_to_string(instr->op3));\n")
+    nmemonic_file.write("    printf(\"Opcode Extension: %i\\n\", instr->digit);\n")
+    nmemonic_file.write("    printf(\"Immediate Byte: %i\\n\", instr->ib);\n")
+    nmemonic_file.write("    printf(\"Modrm contains Reg: %s\\n\", ((instr->r & 0x1) != 0) ? \"true\" : \"false\");\n")
+    nmemonic_file.write("    printf(\"Add Register to Opcode: %s\\n\", ((instr->r & 0x2) != 0) ? \"true\" : \"false\");\n")
+    nmemonic_file.write("    printf(\"Rex Prefix: %i\\n\", instr->rex);\n}\n")
+    
+
+
 
 
 class Instruction:
@@ -313,6 +332,14 @@ operand_types["EAX"] = 252
 operand_types["RAX"] = 253
 
 
+
+
+
+
+
+
+
+
 # when parsing the file the super scripts didn't get parsed as such 
 # we need to be extra careful about that
 def check_operand_superscript(op):
@@ -436,7 +463,8 @@ with open("instructions.dat", "r") as f:
 
 
 
-
+    operand_enum = []
+    
     nmemonic_file.write("typedef enum {\n")
     for op_type in operand_types:
         op_name = op_type
@@ -448,26 +476,57 @@ with open("instructions.dat", "r") as f:
             op_name = op_name = "STI"
 
         field_name = "OPERAND_" + op_name.upper()
+        operand_enum.append(field_name)
         nmemonic_file.write(field_name + " = " + str(operand_types[op_type]) + ",\n")
 
     nmemonic_file.write("}OperandType;\n")
 
     nmemonic_file.write(instr_struct)
 
+    # DEBUG FUNCTIONS FOR Instruction struct and enum
+    nmemonic_file.write("#ifdef DEBUG\n#include<stdio.h>\n")
+    nmemonic_file.write("static const char* operand_to_string(OperandType type){\n")
+    nmemonic_file.write("    switch(type){\n")
+
+    for operand_field in operand_enum:
+        # cl has the same enum value as another
+        if operand_field == "OPERAND_CL":
+            continue
+        nmemonic_file.write(f"    case {operand_field}: return \"{operand_field}\";\n")
+        
+    nmemonic_file.write("    default: return \"INVALID OPERAND\";\n}}\n")
+    
+    write_instruction_debug(nmemonic_file)
+
+
+
+    nmemonic_file.write("#else\nstatic void print_instruction(Instruction* instr){}\n")
+    nmemonic_file.write("static const char* operand_to_string(OperandType type){return 0;}\n")
+    
+    nmemonic_file.write("#endif\n")
+
+
     nmemonic_file.write("static const Instruction INSTRUCTION_TABLE[] = {\n")
 
 
     instr_variant_lookup = []
     current_index = 0
+    instruction_table_size = 0
     for i, instr in enumerate(sorted_instructions):
         instr_variant_lookup.append(current_index)
         for instr_variant in instructions[instr]:
             instr_variant.instr = i
             nmemonic_file.write(instr_variant.to_c_struct() + '\n')
             current_index += 1
+            instruction_table_size += 1
 
 
     nmemonic_file.write("};\n")
+
+
+    
+    nmemonic_file.write(f"#define INSTRUCTION_TABLE_SIZE {instruction_table_size}\n")
+
 
     nmemonic_file.write("static const uint16_t INSTRUCTION_TABLE_LOOK_UP[] = {\n")
     for index in instr_variant_lookup:
