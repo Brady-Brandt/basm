@@ -1,4 +1,4 @@
-#include "nmemonics.h"
+#include "x86/nmemonics.h"
 #include <stdint.h>
 #include <ctype.h>
 #include <stdint.h>
@@ -9,7 +9,9 @@
 #include <stdnoreturn.h>
 #include <stdarg.h>
 #include <setjmp.h>
-#include <sys/types.h>
+
+
+
 
 /*
 digit — A digit between 0 and 7 indicates that the ModR/M byte of the instruction uses only the r/m (register
@@ -97,27 +99,6 @@ REX.W + 03 /r 	ADD r64, r/m64 	RM 	Valid 	N.E. 	Add r/m64 to r64.
 
 
 
-
-
-typedef enum{
-    OP_REG32,
-    OP_REG64,
-    OP_MEM32,
-    OP_MEM64,
-
-
-    OP_MEM8 = 0,
-    OP_IMM8,
-    OP_IMM32,
-    OP_IMM64,
-
-    OP_SYM,
-    OP_NONE,
-} OperandType;
-
-
-
-
 /*instructions 
 mov
 1260
@@ -168,20 +149,6 @@ typedef enum {
     TOK_MAX,
 } TokenType;
 
-
-/*
-static inline bool is_instruction(TokenType type){
-    return type > TOK_BEGIN_INSTRUCTION && type < TOK_END_INSTRUCTION;
-}
-
-static inline bool is_register(TokenType type){
-    return type >= TOK_RAX && type <= TOK_R15;
-}
-
-static inline bool is_extended_reg(TokenType type){
-    return type > TOK_RDI && type < TOK_R15;
-}
-*/
 
 /*
 0 AL AX EAX RAX
@@ -288,10 +255,10 @@ typedef enum {
 
 
 static inline bool is_extended_reg(RegisterType type){
-    return type >= REG_R8 && type <= REG_R15 || \
-        type >= REG_R8D && type <= REG_R15D || \
-        type >= REG_R8W && type <= REG_R15W || \
-        type >= REG_R8B;
+    return (type >= REG_R8 && type <= REG_R15) || \
+        (type >= REG_R8D && type <= REG_R15D) || \
+        (type >= REG_R8W && type <= REG_R15W) || \
+        (type >= REG_R8B);
 }
 
 
@@ -445,6 +412,9 @@ static char peek_char(FILE* f){
     return c;
 
 }
+
+
+
 
 
 //determines if c is a valid start to an identifier
@@ -775,6 +745,28 @@ static inline void parser_expect_consume_token(Parser *p, TokenType expected){
 
 
 
+bool __match(Parser *p, ...){
+    va_list list;
+    va_start(list, p);
+
+    while(true){
+        TokenType current = va_arg(list, TokenType);
+        if(current == TOK_MAX) break;
+
+        if(current == p->currentToken.type){ 
+            va_end(list);
+            return true;
+        }
+    }
+    va_end(list);
+    return false;
+}
+
+
+#define match(p,...) __match(p, __VA_ARGS__, TOK_MAX)
+
+
+
 static inline uint64_t string_to_uint(char* string){
     int base = 10;
 
@@ -843,7 +835,6 @@ static inline void check_section_size(Section* section, uint64_t bytes_to_add){
 
 typedef struct {
     OperandType type;
-    uint8_t rex;
     union {
         uint8_t reg;
         uint8_t imm8;
@@ -855,32 +846,18 @@ typedef struct {
 } Operand;
 
 
-typedef struct {
-    Operand op1;
-    Operand op2;
-} OperandPair;
-
 
 
 static Operand parse_operand(Parser* p){
-    Token op = parser_next_token(p);
-    uint8_t w = 0,r = 0,x = 0,b = 0;
     Operand result = {0};
 
     //assume 64 bit reg size
-    if(op.type == TOK_REG){
-        result.type = OP_REG64;
-        result.reg = op.type;
-        w = 1;
-       if(is_extended_reg(op.reg)){
-            b = 1;
-            result.reg -= op.reg;
-            while(result.reg > 7) result.reg--;
-        }
-        result.rex = REX_PREFIX(w, r, x, b);
+    if(p->currentToken.type == TOK_REG){
+        result.type = OPERAND_R64;
+        result.reg = p->currentToken.type;
         return result;
-    } else if(op.type == TOK_UINT){
-        uint64_t imm = string_to_uint(op.literal);
+    } else if(p->currentToken.type == TOK_UINT){
+        uint64_t imm = string_to_uint(p->currentToken.literal);
         Operand result;
 
         /*
@@ -890,48 +867,58 @@ static Operand parse_operand(Parser* p){
         }
         */
         if(imm <= UINT32_MAX){
-            result.type = OP_IMM32;
+            result.type = OPERAND_IMM32;
             result.imm32 = (uint32_t)imm;
         } else{
-            result.type = OP_IMM64;
+            result.type = OPERAND_IMM64;
             result.imm64 = (uint64_t)imm;
-            w = 1;
         }
-        result.rex = REX_PREFIX(w, r, x, b);
         return result;
     } else{
-        progam_fatal_error("Operand Type not supported yet: %s\n",token_to_string(op.type));
+        progam_fatal_error("Operand Type not supported yet: %s\n",token_to_string(p->currentToken.type));
     }
 }
 
 
 
-static OperandPair parse_operands(Parser* p){
-    TokenType instruction = p->currentToken.type;
-    Operand op1 = parse_operand(p);
+//converts an instruction of operand type register or memory to operand type RM 
+#define TO_RM(input_instr, reg8_or_m8) (input_instr + (OPERAND_RM8 - reg8_or_m8))
 
-    // I don't know of any instruction (with two operands) that allows an 
-    // immediate as the first operand
-    if(op1.type > OP_MEM64){
-        progam_fatal_error("Invalid Operand for instruction: %s\n", token_to_string(instruction));
+static bool check_operand_type(OperandType table_instr, OperandType input_instr){
+    if(table_instr == input_instr) return true;
+
+    //these instructions either take a memory location or registers
+    if(table_instr >= OPERAND_RM8 && table_instr <= OPERAND_RM64){
+        if(table_instr == TO_RM(input_instr, OPERAND_R8) || table_instr == TO_RM(input_instr, OPERAND_M8)){
+            return true;
+        }
     }
-
-    parser_next_token(p);
-    parser_expect_token(p, TOK_COMMA);
-
-
-    Operand op2 = parse_operand(p);
-   
-
-    if(!REX_CHECK_OP_SIZE(op2.rex)){
-        op1.rex = REX_CLEAR_OP_SIZE(op1.rex); 
-    }
-
-    parser_next_token(p);
-    parser_expect_consume_token(p, TOK_NEW_LINE);
-
-    return (OperandPair){op1, op2};
+    return false;
 }
+
+static Instruction* find_instruction(uint64_t instr, Operand operand[3]){
+    uint64_t op_table_index = INSTRUCTION_TABLE_LOOK_UP[instr];    
+    Instruction instruct = INSTRUCTION_TABLE[op_table_index];
+
+    while(instr == instruct.instr){
+
+        bool op1_bool = check_operand_type(instruct.op1, operand[0].type);
+        bool op2_bool = check_operand_type(instruct.op2, operand[1].type); 
+        bool op3_bool = check_operand_type(instruct.op3, operand[2].type);
+
+        if(op1_bool && op2_bool && op3_bool){
+            return (Instruction*)&INSTRUCTION_TABLE[op_table_index];
+        }
+
+        //TODO: CREATE A MACRO FOR INSTRUCTION_TABLE SIZE AND CHECK TO SEE IF WE REACH THE END
+        instruct = INSTRUCTION_TABLE[++op_table_index];
+    }
+
+    return NULL;
+}
+
+
+
 
 
 
@@ -948,30 +935,9 @@ B8+ rd id         -> MOV r32, imm32
 C7 /0 id          -> MOV r/m32, imm32 
 */
 
+
+
     
-static void move(OperandPair *pair){
-    if(REX_CHECK_OP_SIZE(pair->op1.rex)){
-
-
-    } else{
-        if(pair->op1.rex != 64){
-            if(pair->op1.type == OP_REG32 || pair->op1.type == OP_REG64 && pair->op2.type == OP_IMM32){
-                uint8_t rex = pair->op1.rex;
-                uint8_t byte_one = 0xB8 + pair->op1.reg;
-                uint32_t imm = LITTLE_ENDIAN_32(pair->op2.imm32);
-                printf("0x%x 0x%x 0x%x\n", rex, byte_one, imm);
-            }
-            
-        } else{
-            if(pair->op1.type == OP_REG32 || pair->op1.type == OP_REG64 && pair->op2.type == OP_IMM32){
-                uint8_t byte_one = 0xB8 + pair->op1.reg;
-                uint32_t imm = LITTLE_ENDIAN_32(pair->op2.imm32);
-                printf("0x%x 0x%x\n", byte_one, imm);
-            } 
-        }
-    }
-}
-
 
 static void parse_text_section(Parser* p){
     program.text.size = 0;
@@ -990,34 +956,35 @@ static void parse_text_section(Parser* p){
             parser_next_token(p);
             symbol_table_add(id.literal, program.text.size, TOK_TEXT);
         } else if (p->currentToken.type == TOK_INSTRUCTION) {
-            switch (p->currentToken.instruction) {
-                case 198: {
-                        OperandPair pair = parse_operands(p);
-                        move(&pair);
-                         
+                Operand operands[3] = {0};
+                int operand_count = 0;
+
+                uint64_t instr = p->currentToken.instruction; 
+                while(p->currentToken.type != TOK_NEW_LINE){
+                    Token op = parser_next_token(p);
+                    if(op.type == TOK_NEW_LINE) break;
+                    operands[operand_count++] = parse_operand(p);
+
+                    parser_next_token(p);
+                    if(!match(p, TOK_COMMA, TOK_NEW_LINE)){
+                        parser_fatal_error(p, "Expected comma or new line after operand\n");
 
                     }
-                    break;
 
-                case 317: 
-                    printf("0x0f 0x05\n");
-                    parser_next_token(p);
-                    parser_expect_consume_token(p, TOK_NEW_LINE);
-                    break;
-                case 272:
-                    printf("0xc3\n");
-                    parser_next_token(p);
-                    parser_expect_consume_token(p, TOK_NEW_LINE);
-                    break;
+                }
 
+                if(operand_count == 2 && operands[0].type == OPERAND_R64 && operands[1].type == OPERAND_IMM32){
+                    operands[0].type = OPERAND_R32;
+                }
 
-                default:
-                    if(p->currentToken.type == TOK_INSTRUCTION){
-                        progam_fatal_error("Instruction %s not implemented\n", NMEMONIC_TABLE[p->currentToken.instruction]);
-                    } else{
-                        progam_fatal_error("%s not implemented\n", token_to_string(p->currentToken.type));
-                    } 
-            }    
+                Instruction* found_instruction = find_instruction(instr, operands);
+                
+                if(found_instruction == NULL){
+                    parser_fatal_error(p,"Couldn't find instruction for nmemonic: %s\n", NMEMONIC_TABLE[instr]);
+
+                } else{
+                    print_instruction(found_instruction);
+                }
 
         }
 
