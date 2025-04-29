@@ -1,4 +1,5 @@
 #include "x86/nmemonics.h"
+#include <stddef.h>
 #include <stdint.h>
 #include <ctype.h>
 #include <stdint.h>
@@ -46,12 +47,6 @@ B   0   Extension of the ModR/M r/m field, SIB base field, or Opcode reg field
 #define REX_CHECK_OP_SIZE(prefix) (prefix & 16)
 
 
-#define LITTLE_ENDIAN_32(num)((num>>24)&0xff) | \
-                    ((num<<8)&0xff0000) | \
-                    ((num>>8)&0xff00) | \
-                    ((num<<24)&0xff000000); 
-
-
 /*
 add BYTE PTR [r12+r13*1],0x1
 43 80 04 2c 01
@@ -73,58 +68,11 @@ lower 3 bits 100 indicate a SIB follows
 
 addr = scale * index + base
 */
-/*
-80 /0 ib 	ADD r/m8, imm8 	MI 	Valid 	Valid 	Add imm8 to r/m8.
-REX + 80 /0 ib 	ADD r/m8*, imm8 	MI 	Valid 	N.E. 	Add sign-extended imm8 to r/m8.
-81 /0 iw 	ADD r/m16, imm16 	MI 	Valid 	Valid 	Add imm16 to r/m16.
-81 /0 id 	ADD r/m32, imm32 	MI 	Valid 	Valid 	Add imm32 to r/m32.
-REX.W + 81 /0 id 	ADD r/m64, imm32 	MI 	Valid 	N.E. 	Add imm32 sign-extended to 64-bits to r/m64.
-83 /0 ib 	ADD r/m16, imm8 	MI 	Valid 	Valid 	Add sign-extended imm8 to r/m16.
-83 /0 ib 	ADD r/m32, imm8 	MI 	Valid 	Valid 	Add sign-extended imm8 to r/m32.
-REX.W + 83 /0 ib 	ADD r/m64, imm8 	MI 	Valid 	N.E. 	Add sign-extended imm8 to r/m64.
-00 /r 	ADD r/m8, r8 	MR 	Valid 	Valid 	Add r8 to r/m8.
-REX + 00 /r 	ADD r/m8*, r8* 	MR 	Valid 	N.E. 	Add r8 to r/m8.
-01 /r 	ADD r/m16, r16 	MR 	Valid 	Valid 	Add r16 to r/m16.
-01 /r 	ADD r/m32, r32 	MR 	Valid 	Valid 	Add r32 to r/m32.
-REX.W + 01 /r 	ADD r/m64, r64 	MR 	Valid 	N.E. 	Add r64 to r/m64.
-02 /r 	ADD r8, r/m8 	RM 	Valid 	Valid 	Add r/m8 to r8.
-REX + 02 /r 	ADD r8*, r/m8* 	RM 	Valid 	N.E. 	Add r/m8 to r8.
-03 /r 	ADD r16, r/m16 	RM 	Valid 	Valid 	Add r/m16 to r16.
-03 /r 	ADD r32, r/m32 	RM 	Valid 	Valid 	Add r/m32 to r32.
-REX.W + 03 /r 	ADD r64, r/m64 	RM 	Valid 	N.E. 	Add r/m64 to r64.
-*/
 
 
 
 
-
-
-/*instructions 
-mov
-1260
-89 /r             -> MOV r/m32, r32 
-REX.W + 89 /r     -> MOV r/m64, r64 
-8B /r             -> MOV r32, r/m32 RM 
-REX.W + 8B /r     -> MOV r64, r/m64 
-B8+ rd id         -> MOV r32, imm32 
-REX.W + B8+ rd io -> MOV r64, imm64
-C7 /0 id          -> MOV r/m32, imm32 
-REX.W + C7 /0 id  -> MOV r/m64, imm32
-
-
-syscall -> 0F 05
-je ->  0F 84 cd
-jne -> 0F 85 cd 
-call -> E8 (addr relative to the next instruction)
-ret -> C3
-
-
-add
-sub
-lea
-cmp
-*/
-
+//call -> E8 (addr relative to the next instruction)
 
 
 typedef enum {
@@ -262,6 +210,13 @@ static inline bool is_extended_reg(RegisterType type){
 }
 
 
+
+#define is_r64(reg) (reg >= REG_RAX && reg <= REG_R15)
+#define is_r32(reg) (reg >= REG_EAX && reg <= REG_R15D)
+#define is_r16(reg) (reg >= REG_AX && reg <= REG_R15W)
+#define is_r8(reg) (reg >= REG_AL && reg <= REG_R15B)
+
+
 typedef struct {
     TokenType type;
     union{
@@ -383,15 +338,17 @@ char* scratch_buffer_fmt(const char* fmt, ...){
     va_list list;
     va_start(list, fmt);
     uint32_t max_size = SCRATCH_BUFFER_SIZE - scratch_buffer.offset;
-    vsnprintf(scratch_buffer.data + scratch_buffer.offset, max_size, fmt, list);
+    size_t size = vsnprintf(scratch_buffer.data + scratch_buffer.offset, max_size, fmt, list);
     va_end(list);
+    scratch_buffer.offset += size;
     return scratch_buffer.data;
 }
 
 
 char* scratch_buffer_vfmt(const char* fmt, va_list list){
     uint32_t max_size = SCRATCH_BUFFER_SIZE - scratch_buffer.offset;
-    vsnprintf(scratch_buffer.data + scratch_buffer.offset, max_size, fmt, list);
+    size_t size = vsnprintf(scratch_buffer.data + scratch_buffer.offset, max_size, fmt, list);
+    scratch_buffer.offset += size;
     return scratch_buffer.data;
 }
 
@@ -775,7 +732,7 @@ static inline uint64_t string_to_uint(char* string){
     if(temp != NULL && temp == string){
         base = 16;
     }
-    return strtoll(string, NULL, base);
+    return strtoull(string, NULL, base);
 }
 
 
@@ -825,19 +782,28 @@ static void section_realloc(Section* section){
 }
 
 
-static inline void check_section_size(Section* section, uint64_t bytes_to_add){
-    if(section->size + bytes_to_add >= section->capacity){
-        section_realloc(section);
-    }
+
+
+#define check_section_size(section_ptr, bytes_to_add)\
+    if(section->size + bytes_to_add >= section->capacity) section_realloc(section)
+    
+
+
+static inline void section_add_data(Section* section, void* data, size_t size){
+    check_section_size(section, size);
+    memcpy(section->data + section->size,data,size);  
+    section->size += size;
 }
-
-
 
 typedef struct {
     OperandType type;
     union {
-        uint8_t reg;
+        struct {
+            uint8_t registerIndex;
+            uint8_t rex;
+        } reg;
         uint8_t imm8;
+        uint16_t imm16;
         uint32_t imm32;
         uint64_t imm64;
         uint32_t mem32;
@@ -847,32 +813,39 @@ typedef struct {
 
 
 
-
 static Operand parse_operand(Parser* p){
     Operand result = {0};
-
-    //assume 64 bit reg size
+    // TODO: CHECK FOR UNSIGNED INTEGERS
     if(p->currentToken.type == TOK_REG){
-        result.type = OPERAND_R64;
-        result.reg = p->currentToken.type;
+        uint8_t w = 0,b = 0;
+
+        if(is_r64(p->currentToken.reg)){
+            w = 1;
+            result.type = OPERAND_R64;
+            result.reg.registerIndex = p->currentToken.reg;
+        } else if(is_r32(p->currentToken.reg)){
+            result.type = OPERAND_R32;
+            result.reg.registerIndex = p->currentToken.reg - REG_EAX;
+        } else if(is_r16(p->currentToken.reg)){
+            result.type = OPERAND_R16;
+            result.reg.registerIndex = p->currentToken.reg - REG_AX;
+        } else{
+            result.type = OPERAND_R8;
+            result.reg.registerIndex = p->currentToken.reg - REG_AL;
+        }
+
+        if(is_extended_reg(p->currentToken.reg)){
+            b = 1;
+            result.reg.registerIndex -= REG_R8; 
+        }
+
+        result.reg.rex = REX_PREFIX(w, 0, 0, b);
         return result;
     } else if(p->currentToken.type == TOK_UINT){
         uint64_t imm = string_to_uint(p->currentToken.literal);
         Operand result;
-
-        /*
-        if(imm <= UINT8_MAX){
-            result.type = OP_IMM8;
-            result.imm8 = (uint8_t)imm;
-        }
-        */
-        if(imm <= UINT32_MAX){
-            result.type = OPERAND_IMM32;
-            result.imm32 = (uint32_t)imm;
-        } else{
-            result.type = OPERAND_IMM64;
-            result.imm64 = (uint64_t)imm;
-        }
+        result.type = OPERAND_IMM64;
+        result.imm64 = imm; 
         return result;
     } else{
         progam_fatal_error("Operand Type not supported yet: %s\n",token_to_string(p->currentToken.type));
@@ -896,6 +869,8 @@ static bool check_operand_type(OperandType table_instr, OperandType input_instr)
     return false;
 }
 
+
+
 static Instruction* find_instruction(uint64_t instr, Operand operand[3]){
     uint64_t op_table_index = INSTRUCTION_TABLE_LOOK_UP[instr];    
     Instruction instruct = INSTRUCTION_TABLE[op_table_index];
@@ -910,7 +885,7 @@ static Instruction* find_instruction(uint64_t instr, Operand operand[3]){
             return (Instruction*)&INSTRUCTION_TABLE[op_table_index];
         }
 
-        //TODO: CREATE A MACRO FOR INSTRUCTION_TABLE SIZE AND CHECK TO SEE IF WE REACH THE END
+        if(op_table_index == INSTRUCTION_TABLE_SIZE - 1) break;
         instruct = INSTRUCTION_TABLE[++op_table_index];
     }
 
@@ -919,25 +894,144 @@ static Instruction* find_instruction(uint64_t instr, Operand operand[3]){
 
 
 
+static void emit_instruction(Instruction* instruction, Operand operand[3]){
+    uint8_t rex = instruction->rex;
+
+    uint8_t opcode[4] = {0};
+    memcpy(opcode, instruction->bytes, instruction->size);
+
+    uint8_t mod_field = 0;
+    bool uses_mod_field = false;
+
+
+    //indicate opcode extension in the reg portion of modrm
+    if(instruction->digit != -1){
+       mod_field |= instruction->digit; 
+       uses_mod_field = true;
+    }
+
+    // Instruction takes no operands
+    if(operand[0].type == OPERAND_NOP){
+        section_add_data(&program.text, opcode, instruction->size); 
+        return;
+    }
+
+    if(operand[0].type >= OPERAND_R8 && operand[0].type <= OPERAND_R64){
+        rex |= operand[0].reg.rex;
+
+        //indicates we add register to the opcode
+        if((instruction->r & 0x2)){
+            opcode[instruction->size - 1] += operand[0].reg.registerIndex;
+
+        } else if ((instruction->r & 0x1)) { 
+            progam_fatal_error("MODRM TABLE NOT IMPLEMENTED YET\n");
+        }
+    }
+
+
+    if(rex != 0x40) section_add_data(&program.text, &rex, 1);
+    section_add_data(&program.text, opcode, instruction->size); 
+    if(uses_mod_field) section_add_data(&program.text, &mod_field, 1);
+
+
+    //indicates an immediate
+    //for now immediates will only be in operand 2
+    switch (instruction->ib) {
+        //no immediate
+        case -1:
+            break;
+        case 1: 
+            section_add_data(&program.text, &operand[1].imm8, 1);
+            break;
+        case 2: {
+            section_add_data(&program.text, &operand[1].imm16, 2);
+            break;
+        }
+        case 4: {
+            section_add_data(&program.text, &operand[1].imm32, 4);
+            break;
+        }
+
+        case 8: {
+            section_add_data(&program.text, &operand[1].imm64, 8);
+            break;
+        }
+        case 10:
+            progam_fatal_error("10 byte immediate offsets not supported\n");
+            break;
+        default:
+            progam_fatal_error("Unreachable\n");
+        
+    }
+        
+}
 
 
 
-/*
- *
-REX.W + C7 /0 id  -> MOV r/m64, imm32
-REX.W + 89 /r     -> MOV r/m64, r64 
-REX.W + 8B /r     -> MOV r64, r/m64 
-REX.W + B8+ rd io -> MOV r64, imm64
+static void match_operand_pairs(Operand* op1, Operand *op2){
+    switch (op1->type) {
+        case OPERAND_R64:
+            if(op2->type == OPERAND_IMM64){
+                //default to 32 bit values if we can
+                if(op2->type == OPERAND_IMM64 && op2->imm64 <= UINT32_MAX){
+                    op1->type = OPERAND_R32; 
+                    op1->reg.rex = REX_CLEAR_OP_SIZE(op1->reg.rex);
+                    op2->type = OPERAND_IMM32;
+                    op2->imm32 = (uint32_t)op2->imm64;
+                }
+            }
+            break;
+        case OPERAND_R32:
+            if(op2->type == OPERAND_IMM64){
+                if(!(op2->imm64 <= UINT32_MAX)) progam_fatal_error("Can't put 64 bit operand in 32 bit register\n");
+                else{
+                    op2->type = OPERAND_IMM32;
+                    op2->imm32 = (uint32_t)op2->imm64;
+                }
+            }
+            break;
 
-8B /r             -> MOV r32, r/m32 RM 
-B8+ rd id         -> MOV r32, imm32 
-89 /r             -> MOV r/m32, r32 
-C7 /0 id          -> MOV r/m32, imm32 
-*/
+        case OPERAND_R16:
+            if(op2->type == OPERAND_IMM64){
+                if(!(op2->imm64 <= UINT16_MAX)) progam_fatal_error("Value larger than 16 bits going in 16 bit register");
+                else{
+                    uint16_t operand_override_prefix = 0x66;
+                    section_add_data(&program.text,&operand_override_prefix, 1);
+                    op2->type = OPERAND_IMM16;
+                    op2->imm16 = (uint16_t)op2->imm64;
+                }
+            }
+            break;
+
+        case OPERAND_R8:
+            if(op2->type == OPERAND_IMM64){
+                if(!(op2->imm64 <= UINT8_MAX)) progam_fatal_error("Value larger than 8 bits going in 8 bit register");
+                else{
+                    op2->type = OPERAND_IMM8;
+                    op2->imm8 = (uint8_t)op2->imm64;
+                }
+            }
+            break;
+
+        
+        default:
+            progam_fatal_error("Operand not supported yet: %s\n", operand_to_string(op1->type));
+ 
+    }
+
+
+}
 
 
 
-    
+
+//temp function
+static void print_text_section(){
+    for(int i = 0; i < program.text.size; i++){
+        printf("%02x ", program.text.data[i]);
+    }
+}
+
 
 static void parse_text_section(Parser* p){
     program.text.size = 0;
@@ -958,7 +1052,6 @@ static void parse_text_section(Parser* p){
         } else if (p->currentToken.type == TOK_INSTRUCTION) {
                 Operand operands[3] = {0};
                 int operand_count = 0;
-
                 uint64_t instr = p->currentToken.instruction; 
                 while(p->currentToken.type != TOK_NEW_LINE){
                     Token op = parser_next_token(p);
@@ -973,23 +1066,23 @@ static void parse_text_section(Parser* p){
 
                 }
 
-                if(operand_count == 2 && operands[0].type == OPERAND_R64 && operands[1].type == OPERAND_IMM32){
-                    operands[0].type = OPERAND_R32;
-                }
+                if(operand_count == 2)match_operand_pairs(&operands[0], &operands[1]);
 
                 Instruction* found_instruction = find_instruction(instr, operands);
                 
                 if(found_instruction == NULL){
-                    parser_fatal_error(p,"Couldn't find instruction for nmemonic: %s\n", NMEMONIC_TABLE[instr]);
-
+                    for(int i = 0; i < operand_count; i++){
+                        scratch_buffer_fmt("%s ", operand_to_string(operands[i].type));
+                    }
+                    char* temp = scratch_buffer_as_str();
+                    parser_fatal_error(p,"Couldn't find instruction for nmemonic: %s %s", NMEMONIC_TABLE[instr], temp); 
                 } else{
-                    print_instruction(found_instruction);
+                    emit_instruction(found_instruction, operands);
                 }
 
         }
 
     }
-            
 }
 
 
@@ -1000,6 +1093,7 @@ static void parse_tokens(ArrayList* tokens){
  
     while(p.tokenIndex < p.tokens->size){
         if(setjmp(p.jmp) == 1){
+            print_text_section();        
             break;
         }
 
