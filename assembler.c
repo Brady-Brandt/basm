@@ -79,6 +79,8 @@ typedef enum {
     TOK_INSTRUCTION,
     TOK_REG,
   
+    TOK_OPENING_BRACKET,
+    TOK_CLOSING_BRACKET,
     TOK_COMMA,
     TOK_COLON,
     TOK_NEW_LINE,
@@ -202,13 +204,11 @@ typedef enum {
 
 
 
-static inline bool is_extended_reg(RegisterType type){
-    return (type >= REG_R8 && type <= REG_R15) || \
+#define is_extended_reg(type) \
+    (type >= REG_R8 && type <= REG_R15) || \
         (type >= REG_R8D && type <= REG_R15D) || \
         (type >= REG_R8W && type <= REG_R15W) || \
-        (type >= REG_R8B);
-}
-
+        (type >= REG_R8B)
 
 
 #define is_r64(reg) (reg >= REG_RAX && reg <= REG_R15)
@@ -224,6 +224,8 @@ typedef struct {
         char* literal;  
         uint64_t instruction;
     };
+    int line_number;
+    int col;
 } Token;
 
 
@@ -239,13 +241,14 @@ const char* token_to_string(TokenType type) {
         case TOK_GLOBAL: return "TOK_GLOBAL";
         case TOK_RESB: return "TOK_RESB";
         case TOK_SECTION: return "TOK_SECTION";
-        case TOK_MAX: return "TOK_MAX";
         case TOK_BSS: return "TOK_BSS";
         case TOK_TEXT: return "TOK_TEXT";
         case TOK_DATA: return "TOK_DATA";
         case TOK_INSTRUCTION: return "TOK_INSTRUCTION";
         case TOK_REG: return "TOK_REG";
-        default: return "UNKNOWN_TOKEN";
+        case TOK_MAX: return "TOK_UNKNOWN";
+        case TOK_OPENING_BRACKET: return "TOK_OPENING_BRACKET";
+        case TOK_CLOSING_BRACKET: return "TOK_CLOSING_BRACKET";
     }
 }
 
@@ -372,15 +375,6 @@ static char peek_char(FILE* f){
 
 
 
-
-
-//determines if c is a valid start to an identifier
-static inline bool is_id_alpha(char c){
-    return isalpha(c) || c == '_' || c == '.';
-}
-
-
-
 static int string_cmp_lower(const void* a, const void* b) {
     const char* s1 = (const char*)a;
     const char* s2 = (const char*)b; 
@@ -462,49 +456,117 @@ static Token id_or_kw(FILE* file){
     }
 
     
-    if(string_cmp_lower("section", str) == 0) return (Token){TOK_SECTION, 0};
-    if(string_cmp_lower("resb", str) == 0) return (Token){TOK_RESB, 0};
-    if(string_cmp_lower("global", str) == 0) return (Token){TOK_GLOBAL, 0};
-    if(string_cmp_lower(".bss", str) == 0) return (Token){TOK_BSS, 0};
-    if(string_cmp_lower(".data", str) == 0) return (Token){TOK_DATA, 0};
-    if(string_cmp_lower(".text", str) == 0) return (Token){TOK_TEXT, 0};
+    if(string_cmp_lower("section", str) == 0) return (Token){TOK_SECTION, 0,0,0};
+    if(string_cmp_lower("resb", str) == 0) return (Token){TOK_RESB, 0,0,0};
+    if(string_cmp_lower("global", str) == 0) return (Token){TOK_GLOBAL, 0,0,0};
+    if(string_cmp_lower(".bss", str) == 0) return (Token){TOK_BSS, 0,0,0};
+    if(string_cmp_lower(".data", str) == 0) return (Token){TOK_DATA, 0,0,0};
+    if(string_cmp_lower(".text", str) == 0) return (Token){TOK_TEXT, 0,0,0};
 
    
-    return (Token){TOK_IDENTIFIER, 0};
+    return (Token){TOK_IDENTIFIER, 0,0, 0};
 }
 
 
+static char* file_get_line(FILE* file, int line){
+
+    //save file pos in case we aren't done tokenizing
+    fpos_t pos;
+    fgetpos(file, &pos);
+
+    rewind(file);
+
+    char c;
+
+    int current_line = 1;
+    while(current_line != line){
+        c = fgetc(file);
+        if(c == '\n') current_line++;
+    }
+
+    scratch_buffer_clear();
+    c = 0;
+    while(true){
+        c = fgetc(file);
+        if(feof(file) || c == '\n' || c == ';') break; 
+        scratch_buffer_append_char(c);
+    }
+    fsetpos(file, &pos);
+    return scratch_buffer_as_str();
+}
+
+
+
+
 static ArrayList tokenize_file(FILE* file){
-   init_scratch_buffer(); 
+    init_scratch_buffer(); 
 
     ArrayList tokens;
     array_list_create_cap(tokens, Token, 256);
 
+    int line_number = 1;
+    int col = 1;
+
     while(!feof(file)){
         char c = fgetc(file);  
+         
         while(isspace(c) && c != '\n'){
+            col++;
             c = fgetc(file);
         }
+
+
         if(feof(file)) break;
 
         Token token;
         token.type = TOK_MAX;
         token.literal = 0;
+        token.line_number = line_number;
+        token.col = col;
 
         switch (c) {
             case ':':
                 token.type = TOK_COLON;
                 break;
             case '\n':
+                line_number++;
+                col = 1;
                 token.type = TOK_NEW_LINE;
                 break;
             case ',':
                 token.type = TOK_COMMA;
                 break;
+            case '[':
+                token.type = TOK_OPENING_BRACKET;
+                break;
+            case ']':
+                token.type = TOK_CLOSING_BRACKET;
+                break;
+            case ';':
+                while(true){
+                    c = fgetc(file);
+                    if(c == '\n' || feof(file)){
+                        //if there are other tokens on the line 
+                        // we want to put a new line
+                        if(tokens.size > 1){
+                            Token last_token = array_list_get(tokens, Token, tokens.size - 1);
+                            if(last_token.line_number == line_number){
+                                token.type = TOK_NEW_LINE;
+                                array_list_append(tokens, Token, token);
+                            }
+                        }
+                        col = 0;
+                        line_number++;
+                        goto comment;
+                    } 
+                } 
+                break;
             default: {
-                if (is_id_alpha(c)){
+                if (isalpha(c) || c == '_' || c == '.'){
                     scratch_buffer_append_char(c);
                     token = id_or_kw(file);
+                    token.line_number = line_number;
+                    token.col = col;
                     if(token.type != TOK_IDENTIFIER) scratch_buffer_clear();
 
                 }else if(isdigit(c)){
@@ -518,6 +580,7 @@ static ArrayList tokenize_file(FILE* file){
                 }
                 else{
                     //unkown token
+                    printf("%c\n", c);
                     token.type = TOK_MAX;
                 }
             } 
@@ -536,26 +599,31 @@ static ArrayList tokenize_file(FILE* file){
         } 
 
         array_list_append(tokens, Token, token);
+        comment:
         scratch_buffer_clear();
     }
 
-  
-    /*
+ 
+
+    /* 
     for(int i = 0; i < tokens.size; i++){
         Token t = array_list_get(tokens, Token, i);
         if(t.type == TOK_IDENTIFIER || t.type == TOK_UINT || t.type == TOK_INT){
-            printf("%s, %s\n", token_to_string(t.type), t.literal);
+            printf("%s, %s, %d\n", token_to_string(t.type), t.literal, t.line_number);
         } 
-        if(t.type == TOK_REG){
-            printf("%s, %d\n", token_to_string(t.type), t.reg);
+        else if(t.type == TOK_REG){
+            printf("%s, %d, %d\n", token_to_string(t.type), t.reg, t.line_number);
         
         }
         else{
-            printf("%s, %ld\n", token_to_string(t.type), t.instruction);
+            printf("%s, %ld, %d\n", token_to_string(t.type), t.instruction, t.line_number);
         }
 
     }
     */
+    
+    
+    
    
     scratch_buffer_clear();
     return tokens;
@@ -608,12 +676,12 @@ typedef struct {
     Token currentToken; 
     uint32_t tokenIndex;
     jmp_buf jmp;
-    //File* file;
+    FILE* file;
 } Parser;
 
 
 
-noreturn void progam_fatal_error(const char* fmt, ...){
+noreturn void program_fatal_error(const char* fmt, ...){
     fprintf(stderr,"Error: ");
     va_list list;
     va_start(list, fmt);
@@ -628,7 +696,7 @@ void symbol_table_add(char* name, uint64_t offset, TokenType section){
     for(int i = 0; i < program.symTable.symbols.size; i++){
         SymbolTableEntry e = array_list_get(program.symTable.symbols, SymbolTableEntry, i);
         if(strcmp(e.name, name) == 0){
-           progam_fatal_error("Many definitions of symbol: %s\n", name); 
+           program_fatal_error("Many definitions of symbol: %s\n", name); 
         }
     }
     SymbolTableEntry e;
@@ -653,6 +721,10 @@ noreturn void parser_fatal_error(Parser *p, const char* fmt, ...){
     va_start(list, fmt);
     vfprintf(stderr, fmt, list);
     va_end(list);
+    char* line = file_get_line(p->file, p->currentToken.line_number);
+    fprintf(stderr, "Line %d, Col %d\n", p->currentToken.line_number, p->currentToken.col);
+    fprintf(stderr, "%s\n", line);
+    fprintf(stderr,"%*s\n", p->currentToken.col, "^");
     exit(EXIT_FAILURE);
 }
 
@@ -776,7 +848,7 @@ static void section_realloc(Section* section){
    uint64_t new_capacity = section->capacity * 2;
    section->data = realloc(section->data, new_capacity);
    if(section->data == NULL){
-        progam_fatal_error("Out of memory\n");
+        program_fatal_error("Out of memory\n");
    }
    section->capacity = new_capacity;
 }
@@ -848,7 +920,7 @@ static Operand parse_operand(Parser* p){
         result.imm64 = imm; 
         return result;
     } else{
-        progam_fatal_error("Operand Type not supported yet: %s\n",token_to_string(p->currentToken.type));
+        program_fatal_error("Operand Type not supported yet: %s\n",token_to_string(p->currentToken.type));
     }
 }
 
@@ -924,7 +996,7 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
             opcode[instruction->size - 1] += operand[0].reg.registerIndex;
 
         } else if ((instruction->r & 0x1)) { 
-            progam_fatal_error("MODRM TABLE NOT IMPLEMENTED YET\n");
+            program_fatal_error("MODRM TABLE NOT IMPLEMENTED YET\n");
         }
     }
 
@@ -957,10 +1029,10 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
             break;
         }
         case 10:
-            progam_fatal_error("10 byte immediate offsets not supported\n");
+            program_fatal_error("10 byte immediate offsets not supported\n");
             break;
         default:
-            progam_fatal_error("Unreachable\n");
+            program_fatal_error("Unreachable\n");
         
     }
         
@@ -983,7 +1055,7 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
             break;
         case OPERAND_R32:
             if(op2->type == OPERAND_IMM64){
-                if(!(op2->imm64 <= UINT32_MAX)) progam_fatal_error("Can't put 64 bit operand in 32 bit register\n");
+                if(!(op2->imm64 <= UINT32_MAX)) program_fatal_error("Can't put 64 bit operand in 32 bit register\n");
                 else{
                     op2->type = OPERAND_IMM32;
                     op2->imm32 = (uint32_t)op2->imm64;
@@ -993,7 +1065,7 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
 
         case OPERAND_R16:
             if(op2->type == OPERAND_IMM64){
-                if(!(op2->imm64 <= UINT16_MAX)) progam_fatal_error("Value larger than 16 bits going in 16 bit register");
+                if(!(op2->imm64 <= UINT16_MAX)) program_fatal_error("Value larger than 16 bits going in 16 bit register");
                 else{
                     uint16_t operand_override_prefix = 0x66;
                     section_add_data(&program.text,&operand_override_prefix, 1);
@@ -1005,7 +1077,7 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
 
         case OPERAND_R8:
             if(op2->type == OPERAND_IMM64){
-                if(!(op2->imm64 <= UINT8_MAX)) progam_fatal_error("Value larger than 8 bits going in 8 bit register");
+                if(!(op2->imm64 <= UINT8_MAX)) program_fatal_error("Value larger than 8 bits going in 8 bit register");
                 else{
                     op2->type = OPERAND_IMM8;
                     op2->imm8 = (uint8_t)op2->imm64;
@@ -1015,7 +1087,7 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
 
         
         default:
-            progam_fatal_error("Operand not supported yet: %s\n", operand_to_string(op1->type));
+            program_fatal_error("Operand not supported yet: %s\n", operand_to_string(op1->type));
  
     }
 
@@ -1037,7 +1109,7 @@ static void parse_text_section(Parser* p){
     program.text.size = 0;
     program.text.capacity = 256;
     program.text.data = malloc(program.text.capacity);
-    if(program.text.data == NULL) progam_fatal_error("Out of memory\n");
+    if(program.text.data == NULL) program_fatal_error("Out of memory\n");
 
     while(p->currentToken.type != TOK_SECTION){
         parser_consume_newlines(p);
@@ -1058,9 +1130,11 @@ static void parse_text_section(Parser* p){
                     if(op.type == TOK_NEW_LINE) break;
                     operands[operand_count++] = parse_operand(p);
 
+                    //printf("%s, %d\n", token_to_string(p->currentToken.type), p->tokenIndex);
                     parser_next_token(p);
+                    //printf("%s, %d\n", token_to_string(p->currentToken.type), p->tokenIndex);
                     if(!match(p, TOK_COMMA, TOK_NEW_LINE)){
-                        parser_fatal_error(p, "Expected comma or new line after operand\n");
+                        parser_fatal_error(p, "Expected comma or new line after operand got %s\n", token_to_string(p->currentToken.type));
 
                     }
 
@@ -1080,16 +1154,19 @@ static void parse_text_section(Parser* p){
                     emit_instruction(found_instruction, operands);
                 }
 
+        } else{
+            parser_fatal_error(p, "Invalid token found in text section\n");
         }
-
     }
+
 }
 
 
-static void parse_tokens(ArrayList* tokens){
+static void parse_tokens(FILE* file, ArrayList* tokens){
     Parser p ={0};
     p.tokens = tokens;
     p.currentToken.type = TOK_MAX;
+    p.file = file;
  
     while(p.tokenIndex < p.tokens->size){
         if(setjmp(p.jmp) == 1){
@@ -1141,7 +1218,7 @@ static void parse_tokens(ArrayList* tokens){
 void assemble_program(MachineType arch, FILE* f){
    ArrayList tokens = tokenize_file(f); 
 
-   parse_tokens(&tokens);
+   parse_tokens(f, &tokens);
     
 
 
