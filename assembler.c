@@ -1,4 +1,5 @@
 #include "x86/nmemonics.h"
+#include "util.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <ctype.h>
@@ -253,117 +254,6 @@ const char* token_to_string(TokenType type) {
 }
 
 
-typedef struct{
-   void* data;
-   int size;
-   int capacity;
-} ArrayList;
-
-
-#define array_list_create_cap(list, type, cap) \
-do { \
-    list.size = 0; \
-    list.capacity = cap; \
-    list.data = malloc(sizeof(type) * list.capacity); \
-    memset(list.data, 0, sizeof(type) * list.capacity); \
-} while(0) 
-
-
-#define array_list_resize(list, type) \
-do { \
-    list.capacity *= 2; \
-    list.data = realloc(list.data, sizeof(type) * list.capacity); \
-} while(0) 
-
-#define array_list_append(list, type, value) \
-    do { \
-        if(list.size == list.capacity){ \
-            array_list_resize(list, type); \
-        } \
-        type* temp = (type*)list.data; \
-        temp[list.size] = value; \
-        list.size++; \
-    } while(0)
-
-#define array_list_get(list, type, index)((type*)list.data)[index]
-
-#define array_list_delete(list) \
-    do { \
-        if(list != NULL) {  \
-            if(list.capacity != 0) free(list.data); \
-        } \
-    } while(0)
-
-
-
-typedef struct {
-    char* data;
-    uint32_t offset;
-    uint32_t size;
-} ScratchBuffer;
-
-
-
-static ScratchBuffer scratch_buffer = {0};
-
-#define SCRATCH_BUFFER_SIZE 8092
-
-void init_scratch_buffer(){
-    scratch_buffer.data = malloc(SCRATCH_BUFFER_SIZE);
-    scratch_buffer.offset = 0;
-
-    if(scratch_buffer.data == NULL){
-        fprintf(stderr, "Failed to allocate memory\n");
-        exit(EXIT_FAILURE);
-    }
-}
-
-static inline void scratch_buffer_full(){
-    if(scratch_buffer.offset >= SCRATCH_BUFFER_SIZE){
-       fprintf(stderr, "ScratchBuffer is full"); 
-       exit(EXIT_FAILURE);
-    }
-}
-
-void scratch_buffer_append_char(char c){
-    scratch_buffer_full();
-    *((char*)scratch_buffer.data + scratch_buffer.offset) = c;
-    scratch_buffer.offset += sizeof(char);
-}
-
-
-void scratch_buffer_clear(){
-    scratch_buffer.offset = 0;
-} 
-
-
-char* scratch_buffer_fmt(const char* fmt, ...){
-    va_list list;
-    va_start(list, fmt);
-    uint32_t max_size = SCRATCH_BUFFER_SIZE - scratch_buffer.offset;
-    size_t size = vsnprintf(scratch_buffer.data + scratch_buffer.offset, max_size, fmt, list);
-    va_end(list);
-    scratch_buffer.offset += size;
-    return scratch_buffer.data;
-}
-
-
-char* scratch_buffer_vfmt(const char* fmt, va_list list){
-    uint32_t max_size = SCRATCH_BUFFER_SIZE - scratch_buffer.offset;
-    size_t size = vsnprintf(scratch_buffer.data + scratch_buffer.offset, max_size, fmt, list);
-    scratch_buffer.offset += size;
-    return scratch_buffer.data;
-}
-
-
-char* scratch_buffer_as_str(){ 
-    if(scratch_buffer.offset == 0) return NULL;
-
-    *((char*)scratch_buffer.data + scratch_buffer.offset) = '\0';
-    return scratch_buffer.data;
-}
-
-
 static char peek_char(FILE* f){
     fpos_t pos;
     fgetpos(f, &pos);
@@ -432,7 +322,8 @@ static inline void get_literal(FILE* file){
 static Token id_or_kw(FILE* file){
     get_literal(file);
     char* str = scratch_buffer_as_str();
-    uint32_t str_size = scratch_buffer.offset;
+    //TODO FIX THIS
+    uint32_t str_size = 0;
 
     if(str_size < 5){
         for(int i = 0; i < REG_MAX; i++){
@@ -628,44 +519,6 @@ static ArrayList tokenize_file(FILE* file){
     scratch_buffer_clear();
     return tokens;
 }
-
-
-
-typedef struct {
-    char* name;
-    TokenType section;
-    uint64_t addr;
-} SymbolTableEntry;
-
-
-//TODO: IMPLEMENT AN ACTUAL HASHMAP 
-typedef struct {
-    ArrayList symbols;
-} SymbolTable;
-
-
-typedef struct {
-    char* name;
-    uint64_t location;
-    uint64_t size;
-} SymbolResolutionEntry;
-
-
-typedef struct {
-    uint8_t* data;
-    uint64_t capacity;
-    uint64_t size;
-} Section;
-
-
-typedef struct {
-    SymbolTable symTable; //holds all the locations of the symbols 
-
-
-    Section data;
-    Section text;
-    Section bss;
-} Program;
 
 
 static Program program = {0};
@@ -882,6 +735,8 @@ typedef struct {
         uint64_t mem64;
     };
 } Operand;
+
+
 
 
 
@@ -1215,12 +1070,19 @@ static void parse_tokens(FILE* file, ArrayList* tokens){
 
 
 
-void assemble_program(MachineType arch, FILE* f){
+void assemble_program(MachineType arch, const char* file){
+    FILE* f = fopen(file, "r");
+
+    if(f == NULL){
+        printf("Failed to open file: %s\n", file);
+        exit(EXIT_FAILURE);
+    }
+
    ArrayList tokens = tokenize_file(f); 
 
    parse_tokens(f, &tokens);
+
+   write_elf(file, "btest.o", &program);
     
-
-
 }
 

@@ -4,7 +4,7 @@ CFLAGS = -DDEBUG -Wextra -g
 
 TARGET = bin/basm 
 
-SRC = assembler.c main.c
+SRC = assembler.c main.c util.c objectgen.c
 
 # Default rule
 all: $(TARGET)
