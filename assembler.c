@@ -88,10 +88,11 @@ typedef enum {
 
     TOK_GLOBAL,
     TOK_SECTION,
-    TOK_BSS,
     TOK_TEXT,
     TOK_DATA,
+    TOK_BSS,
     TOK_RESB,
+    TOK_DB,
 
     TOK_INT,
     TOK_UINT,
@@ -218,6 +219,9 @@ typedef enum {
 #define is_r8(reg) (reg >= REG_AL && reg <= REG_R15B)
 
 
+#define is_label(l) (l >= OPERAND_L8 && l <= OPERAND_L64)
+
+
 typedef struct {
     TokenType type;
     union{
@@ -241,6 +245,7 @@ const char* token_to_string(TokenType type) {
         case TOK_IDENTIFIER: return "TOK_IDENTIFIER";
         case TOK_GLOBAL: return "TOK_GLOBAL";
         case TOK_RESB: return "TOK_RESB";
+        case TOK_DB: return "TOK_DB";
         case TOK_SECTION: return "TOK_SECTION";
         case TOK_BSS: return "TOK_BSS";
         case TOK_TEXT: return "TOK_TEXT";
@@ -353,6 +358,7 @@ static Token id_or_kw(FILE* file){
     if(string_cmp_lower(".bss", str) == 0) return (Token){TOK_BSS, 0,0,0};
     if(string_cmp_lower(".data", str) == 0) return (Token){TOK_DATA, 0,0,0};
     if(string_cmp_lower(".text", str) == 0) return (Token){TOK_TEXT, 0,0,0};
+    if(string_cmp_lower("db", str) == 0) return (Token){TOK_DB, 0,0,0};
 
    
     return (Token){TOK_IDENTIFIER, 0,0, 0};
@@ -545,21 +551,55 @@ noreturn void program_fatal_error(const char* fmt, ...){
 
 
 
-void symbol_table_add(char* name, uint64_t offset, TokenType section){
+void symbol_table_add(char* name, uint64_t offset, uint8_t section, uint8_t visibility){
     for(int i = 0; i < program.symTable.symbols.size; i++){
-        SymbolTableEntry e = array_list_get(program.symTable.symbols, SymbolTableEntry, i);
-        if(strcmp(e.name, name) == 0){
+        SymbolTableEntry* e = &array_list_get(program.symTable.symbols, SymbolTableEntry, i);
+        if(strcmp(e->name, name) == 0){
+            //if we come across a label after declaring it global
+            if(e->visibility == VISIBILITY_GLOBAL && visibility == VISIBILITY_LOCAL){
+                e->section_offset = offset; 
+                return;
+            } else if(e->visibility == VISIBILITY_LOCAL && visibility == VISIBILITY_GLOBAL){
+                e->visibility = VISIBILITY_GLOBAL;
+            } 
            program_fatal_error("Many definitions of symbol: %s\n", name); 
         }
     }
-    SymbolTableEntry e;
+    SymbolTableEntry e = {0};
     e.name = name;
-    e.addr = offset;
+    e.section_offset = offset;
     e.section = section;
+    e.visibility = visibility;
+
+    if(section == SECTION_TEXT){
+        e.section_offset = program.text.size;
+    }
+    else if (section == SECTION_DATA){
+        e.section_offset = program.data.size;
+    }
+    else{ 
+        e.section_offset = program.bss.size;
+    }
+
+
     array_list_append(program.symTable.symbols, SymbolTableEntry, e);
 }
 
+//TODO: MAKE IT A MULTIPASS ASSEMBLER
+void symbol_table_add_instance(char* symbol_name){
+    for(int i = 0; i < program.symTable.symbols.size; i++){
+        SymbolTableEntry* e = &array_list_get(program.symTable.symbols, SymbolTableEntry, i);
+        
 
+        if(e->instances.data == NULL){
+            array_list_create_cap(e->instances, SymbolInstance, 2);
+            SymbolInstance current_instance = {0};
+            array_list_append(e->instances, SymbolInstance, current_instance);
+            return;
+        }
+    }
+    program_fatal_error("Symbol: %s not defined\n", symbol_name);
+}
 
 
 typedef enum {
@@ -648,51 +688,12 @@ bool __match(Parser *p, ...){
 #define match(p,...) __match(p, __VA_ARGS__, TOK_MAX)
 
 
-
-static inline uint64_t string_to_uint(char* string){
-    int base = 10;
-
-    //check for hexadecimal
-    char* temp = strcasestr(string, "0x");
-    if(temp != NULL && temp == string){
-        base = 16;
+static inline void init_section(Section* section, uint64_t start_size){
+    if(section->data == NULL){
+        section->capacity = start_size;
+        section->data= malloc(section->capacity);
+        if(section->data == NULL) program_fatal_error("Out of memory\n");
     }
-    return strtoull(string, NULL, base);
-}
-
-
-
-static void parse_bss_section(Parser* p){
-    program.bss.data = NULL;
-    program.bss.capacity = 0;
-
-    while(p->currentToken.type != TOK_SECTION){
-        parser_consume_newlines(p);
-
-        parser_expect_token(p, TOK_IDENTIFIER); 
-        Token id = p->currentToken;
-        parser_next_token(p);
-        parser_expect_consume_token(p, TOK_COLON); 
-
-        parser_consume_newlines(p);
-
-        symbol_table_add(id.literal, program.bss.size, TOK_BSS);
-
-        switch (p->currentToken.type) {
-            case TOK_RESB:
-                parser_next_token(p); 
-                parser_expect_token(p, TOK_UINT);
-                program.bss.size += string_to_uint(p->currentToken.literal); 
-
-                parser_next_token(p);
-                parser_expect_consume_token(p, TOK_NEW_LINE);
-                break;
-            default:
-                parser_fatal_error(p, "Invalid bss section instruction\n");
-
-
-        }
-    } 
 }
 
 
@@ -720,6 +721,89 @@ static inline void section_add_data(Section* section, void* data, size_t size){
     section->size += size;
 }
 
+
+
+
+static inline uint64_t string_to_uint(char* string){
+    int base = 10;
+
+    //check for hexadecimal
+    char* temp = strcasestr(string, "0x");
+    if(temp != NULL && temp == string){
+        base = 16;
+    }
+    return strtoull(string, NULL, base);
+}
+
+
+
+
+//TODO: ALLOW PSUEDOINSTRUCTIONS WITHOUT LABELS 
+static void parse_bss_section(Parser* p){
+    while(p->currentToken.type != TOK_SECTION){
+        parser_consume_newlines(p);
+        if(p->currentToken.type == TOK_SECTION) break;
+
+        parser_expect_token(p, TOK_IDENTIFIER); 
+        Token id = p->currentToken;
+        parser_next_token(p);
+        parser_expect_consume_token(p, TOK_COLON); 
+
+        parser_consume_newlines(p);
+
+        symbol_table_add(id.literal, program.bss.size, SECTION_BSS, VISIBILITY_LOCAL);
+
+        switch (p->currentToken.type) {
+            case TOK_RESB:
+                parser_next_token(p); 
+                parser_expect_token(p, TOK_UINT);
+                program.bss.size += string_to_uint(p->currentToken.literal); 
+                parser_next_token(p);
+                parser_expect_consume_token(p, TOK_NEW_LINE);
+                break;
+            default:
+                parser_fatal_error(p, "Invalid bss section instruction\n");
+
+
+        }
+    } 
+}
+
+
+
+
+static void parse_data_section(Parser* p){ 
+    while(p->currentToken.type != TOK_SECTION){
+        parser_consume_newlines(p);
+        if(p->currentToken.type == TOK_SECTION) break;
+
+        parser_expect_token(p, TOK_IDENTIFIER); 
+        Token id = p->currentToken;
+        parser_next_token(p);
+        parser_expect_consume_token(p, TOK_COLON); 
+
+        parser_consume_newlines(p);
+
+        symbol_table_add(id.literal, program.data.size, SECTION_DATA, VISIBILITY_LOCAL);
+
+        switch (p->currentToken.type) {
+            case TOK_DB:
+                parser_next_token(p); 
+                parser_expect_token(p, TOK_UINT);
+                uint8_t num = string_to_uint(p->currentToken.literal);
+                section_add_data(&program.data,&num, 1);
+                parser_next_token(p);
+                parser_expect_consume_token(p, TOK_NEW_LINE);
+                break;
+            default:
+                parser_fatal_error(p, "Invalid data section instruction\n");
+
+
+        }
+    }
+}
+
+
 typedef struct {
     OperandType type;
     union {
@@ -731,6 +815,9 @@ typedef struct {
         uint16_t imm16;
         uint32_t imm32;
         uint64_t imm64;
+
+        char* label;
+
         uint32_t mem32;
         uint64_t mem64;
     };
@@ -740,42 +827,55 @@ typedef struct {
 
 
 
+
+
 static Operand parse_operand(Parser* p){
     Operand result = {0};
-    // TODO: CHECK FOR UNSIGNED INTEGERS
-    if(p->currentToken.type == TOK_REG){
-        uint8_t w = 0,b = 0;
 
-        if(is_r64(p->currentToken.reg)){
-            w = 1;
-            result.type = OPERAND_R64;
-            result.reg.registerIndex = p->currentToken.reg;
-        } else if(is_r32(p->currentToken.reg)){
-            result.type = OPERAND_R32;
-            result.reg.registerIndex = p->currentToken.reg - REG_EAX;
-        } else if(is_r16(p->currentToken.reg)){
-            result.type = OPERAND_R16;
-            result.reg.registerIndex = p->currentToken.reg - REG_AX;
-        } else{
-            result.type = OPERAND_R8;
-            result.reg.registerIndex = p->currentToken.reg - REG_AL;
+    switch (p->currentToken.type) {
+        case TOK_REG: {
+            uint8_t w = 0,b = 0;
+
+            if(is_r64(p->currentToken.reg)){
+                w = 1;
+                result.type = OPERAND_R64;
+                result.reg.registerIndex = p->currentToken.reg;
+            } else if(is_r32(p->currentToken.reg)){
+                result.type = OPERAND_R32;
+                result.reg.registerIndex = p->currentToken.reg - REG_EAX;
+            } else if(is_r16(p->currentToken.reg)){
+                result.type = OPERAND_R16;
+                result.reg.registerIndex = p->currentToken.reg - REG_AX;
+            } else{
+                result.type = OPERAND_R8;
+                result.reg.registerIndex = p->currentToken.reg - REG_AL;
+            }
+
+            if(is_extended_reg(p->currentToken.reg)){
+                b = 1;
+                result.reg.registerIndex -= REG_R8; 
+            }
+
+            result.reg.rex = REX_PREFIX(w, 0, 0, b);
+            return result;
         }
 
-        if(is_extended_reg(p->currentToken.reg)){
-            b = 1;
-            result.reg.registerIndex -= REG_R8; 
-        }
+        case TOK_UINT:
+            result.imm64 = string_to_uint(p->currentToken.literal);
+            result.type = OPERAND_IMM64;
+            return result;
 
-        result.reg.rex = REX_PREFIX(w, 0, 0, b);
-        return result;
-    } else if(p->currentToken.type == TOK_UINT){
-        uint64_t imm = string_to_uint(p->currentToken.literal);
-        Operand result;
-        result.type = OPERAND_IMM64;
-        result.imm64 = imm; 
-        return result;
-    } else{
-        program_fatal_error("Operand Type not supported yet: %s\n",token_to_string(p->currentToken.type));
+
+        case TOK_IDENTIFIER: {
+            symbol_table_add_instance(p->currentToken.literal);
+            result.type = OPERAND_L64;
+            result.label = p->currentToken.literal; 
+            return result;
+        }
+        default:
+            program_fatal_error("Operand Type not supported yet: %s\n",token_to_string(p->currentToken.type));
+
+    
     }
 }
 
@@ -785,6 +885,11 @@ static Operand parse_operand(Parser* p){
 #define TO_RM(input_instr, reg8_or_m8) (input_instr + (OPERAND_RM8 - reg8_or_m8))
 
 static bool check_operand_type(OperandType table_instr, OperandType input_instr){
+    //convert the label into OPERAND_M
+    if(is_label(input_instr)){
+        input_instr -= (OPERAND_L8 - OPERAND_M8);
+    }
+
     if(table_instr == input_instr) return true;
 
     //these instructions either take a memory location or registers
@@ -793,6 +898,7 @@ static bool check_operand_type(OperandType table_instr, OperandType input_instr)
             return true;
         }
     }
+
     return false;
 }
 
@@ -961,21 +1067,26 @@ static void print_text_section(){
 
 
 static void parse_text_section(Parser* p){
-    program.text.size = 0;
-    program.text.capacity = 256;
-    program.text.data = malloc(program.text.capacity);
-    if(program.text.data == NULL) program_fatal_error("Out of memory\n");
-
     while(p->currentToken.type != TOK_SECTION){
         parser_consume_newlines(p);
+        if(p->currentToken.type == TOK_SECTION) break;
 
-        //functions and labels
-        if(p->currentToken.type == TOK_IDENTIFIER){
+        if(p->currentToken.type == TOK_GLOBAL){
+            parser_next_token(p);
+            parser_expect_token(p, TOK_IDENTIFIER);
+
+            Token id = p->currentToken;
+            //TODO: ALLOW MANY GLOBAL DECLARATIONS AT ONCE
+            symbol_table_add(id.literal, 0, SECTION_TEXT, VISIBILITY_GLOBAL);
+            parser_next_token(p);
+            parser_expect_consume_token(p, TOK_NEW_LINE);
+        }
+        else if(p->currentToken.type == TOK_IDENTIFIER){
             Token id = p->currentToken;
             parser_next_token(p);
             parser_expect_consume_token(p, TOK_COLON); 
             parser_next_token(p);
-            symbol_table_add(id.literal, program.text.size, TOK_TEXT);
+            symbol_table_add(id.literal, program.text.size, SECTION_TEXT, VISIBILITY_LOCAL);
         } else if (p->currentToken.type == TOK_INSTRUCTION) {
                 Operand operands[3] = {0};
                 int operand_count = 0;
@@ -1022,6 +1133,7 @@ static void parse_tokens(FILE* file, ArrayList* tokens){
     p.tokens = tokens;
     p.currentToken.type = TOK_MAX;
     p.file = file;
+    array_list_create_cap(program.symTable.symbols, SymbolTableEntry, 16);
  
     while(p.tokenIndex < p.tokens->size){
         if(setjmp(p.jmp) == 1){
@@ -1043,6 +1155,7 @@ static void parse_tokens(FILE* file, ArrayList* tokens){
 
         switch (p.currentToken.type) {
             case TOK_TEXT:
+                init_section(&program.text, 256);
                 parser_next_token(&p);
                 parser_expect_consume_token(&p, TOK_NEW_LINE);      
                 parse_text_section(&p); 
@@ -1055,7 +1168,10 @@ static void parse_tokens(FILE* file, ArrayList* tokens){
                 break;
 
             case TOK_DATA:
-
+                init_section(&program.data, 64);
+                parser_next_token(&p);
+                parser_expect_consume_token(&p, TOK_NEW_LINE);       
+                parse_data_section(&p);
                 break;
 
             default:

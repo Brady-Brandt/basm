@@ -64,11 +64,27 @@ void* scratch_buffer_get_data(uint32_t offset);
 char* scratch_buffer_as_str();
 
 
+#define SECTION_TEXT 1 
+#define SECTION_DATA 2 
+#define SECTION_BSS 3 
+
+#define VISIBILITY_LOCAL 0
+#define VISIBILITY_GLOBAL 1
+
+
+
+//SYMBOLS ARE ONLY VALID IN THE TEXT SECTION FOR NOW 
+typedef struct {
+    uint64_t offset; 
+}SymbolInstance;
+
 
 typedef struct {
     char* name;
     uint8_t section;
-    uint64_t addr;
+    uint8_t visibility;
+    uint64_t section_offset;
+    ArrayList instances; 
 } SymbolTableEntry;
 
 

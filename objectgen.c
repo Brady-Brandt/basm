@@ -1,5 +1,6 @@
 #include "util.h"
 #include <stdbool.h>
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -86,13 +87,37 @@ typedef enum {
 
 
 
+typedef struct {
+    uint64_t offset; //from the beginning of the section 
+    uint64_t info;
+    int64_t addend;
+} ElfRelocatableEntry;
+
+
+//I think these are the only 3 we will need 
+typedef enum{
+    RELOC_64 = 1,
+    RELOC_PC32 = 2,
+    RELOC_32S = 10, 
+} ElfRelocationTypes;
+
+
+
+
+
+
+static int compare_visibility(const void *p1, const void *p2){
+    const SymbolTableEntry* e1 = (p1);
+    const SymbolTableEntry* e2 = (p2);    
+    return e1->visibility - e2->visibility;
+}
+
+
+
 #define MACHINE_X86_64 62
 
-
-
-
-   
-uint64_t section_pad(Section* section, uint64_t offset, uint64_t alignment){
+ 
+static uint64_t section_pad(Section* section, uint64_t offset, uint64_t alignment){
     int padding = 0;
     while(offset % alignment != 0){
         offset++;
@@ -172,7 +197,6 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     int section_count = 0;
 
     uint64_t data_offset = 0;
-    uint64_t bss_offset = 0;
 
     //first section is always null
     ElfSectionHeader null_header = {0};
@@ -224,7 +248,7 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
         section_count++;
     }
 
-    if(p->data.size > 0){
+    if(p->bss.size > 0){
         ElfSectionHeader bss = {0};
         bss.type = ELF_SECTION_NOBITS;
         bss.flags = ELF_SF_ALLOC | ELF_SF_WRITE;
@@ -232,11 +256,6 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
         bss.size = p->bss.size;
         bss.offset = offset;
         bss.addralign = 4; //seems to be the default but idk
-                           //
-        bss_offset = bss.offset;
-        offset += bss.size;
-        offset = section_pad(&p->bss, offset, 4);
-
         
         scratch_buffer_append_str(".bss");
         fwrite(&bss, sizeof(bss), 1, output_stream);
@@ -267,13 +286,32 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
 
     fwrite(&section_st, sizeof(section_st), 1, output_stream);
 
+
     //pad the section string table with zeros to align with the symbol table
-    while(section_st.size % 8 != 0){
+    while((section_st.offset + section_st.size) % 8 != 0){
         section_st.size++;
         scratch_buffer_append_char(0);
     }
 
 
+    //THE GLOBAL SYMBOLS MUST COME AFTER THE LOCAL ONES 
+    // account for null symbol, text section, and file name
+    int sym_table_info = 4;
+    if(data_offset != 0) sym_table_info++;
+    if(p->bss.size > 0) sym_table_info++;
+
+    if(p->symTable.symbols.data != NULL){
+        qsort(p->symTable.symbols.data, p->symTable.symbols.size, sizeof(SymbolTableEntry),compare_visibility);
+
+        //get the index of the last local var
+        for(int i = p->symTable.symbols.size - 1; i >= 0; i--){
+            SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
+            if(e.visibility == VISIBILITY_LOCAL){
+                sym_table_info += i + 1;
+                break;
+            }
+        }
+    }
 
 
     ElfSectionHeader symbol_table= {0};
@@ -281,12 +319,12 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     symbol_table.name = symbol_table_st_index;
     symbol_table.addralign = 8;
     symbol_table.link = section_index + 1; //symbol string table will follow 
-    symbol_table.info = section_index; // not sure what if this is correct
+    symbol_table.info = sym_table_info; // one plus index of last local symbol 
     symbol_table.entsize = sizeof(ElfSymbolEntry);
     symbol_table.addralign = 8;
     //sections plus all symbols plus the file and null header
     symbol_table.size = ((section_count + p->symTable.symbols.size) + 2) * symbol_table.entsize; 
-    symbol_table.offset = section_st.offset + section_st.size;
+    symbol_table.offset = section_st.offset + section_st.size; 
 
     fwrite(&symbol_table, sizeof(symbol_table), 1, output_stream);
 
@@ -300,9 +338,12 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     symbol_str_table.offset = symbol_table.offset + symbol_table.size;
 
 
-    uint8_t padding[7] = {0};
+    uint8_t padding[8] = {0};
     int symbol_table_padding = 0;
+
+
     while(symbol_table.offset % symbol_table.addralign != 0){
+        symbol_table.offset++;
         symbol_str_table.offset++;
         symbol_table_padding++;
     }
@@ -318,9 +359,10 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     fwrite(&symbol_str_table, sizeof(symbol_str_table), 1, output_stream);
 
 
+
     fwrite(p->text.data, 1, p->text.size, output_stream);
     if(data_offset != 0) fwrite(p->data.data,1,p->data.size, output_stream);
-    if(bss_offset != 0) fwrite(p->bss.data,1,p->bss.size, output_stream);
+
     fwrite(section_string_table,1, section_st.size, output_stream);
     fwrite(padding, 1, symbol_table_padding, output_stream);
 
@@ -352,19 +394,39 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     temp.section_index = 1;
     temp.info = SB_SECTION + SB_LOCAL;
 
-
-    //write text section
+    //write text entry 
     fwrite(&temp, sizeof(temp), 1, output_stream);
 
-    //TODO WRITE BSS AND DATA
+
+    //write data entry
+    if(data_offset != 0){
+        ElfSymbolEntry d = {0};
+        d.section_index = 2;
+        d.info = SB_SECTION + SB_LOCAL;
+        fwrite(&d, sizeof(d), 1, output_stream);
+    }
+
+    //write data entry 
+    if(p->bss.size > 0){
+        ElfSymbolEntry b = {0};
+        b.section_index = 2;
+        b.info = SB_SECTION + SB_LOCAL;
+        fwrite(&b, sizeof(b), 1, output_stream);
+    }
+
     for(int i = 0; i < p->symTable.symbols.size; i++){
         memset(&temp, 0, sizeof(ElfSymbolEntry));
         SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
         temp.name = scratch_buffer_offset();
-        temp.section_index = 1;
-        if(strcmp(e.name, "_start") == 0){
-            temp.info = SB_GLOBAL;
-        }
+        
+        temp.section_index = e.section;
+        //if there is no data section bss section will be at SECTION_BSS - 1
+        if(e.section == SECTION_BSS && data_offset == 0){
+            temp.section_index = 2;    
+        } 
+
+        temp.value = e.section_offset;
+        temp.info =  (e.visibility == VISIBILITY_GLOBAL) ? SB_GLOBAL : SB_LOCAL; 
         fwrite(&temp, sizeof(temp), 1,output_stream);
         scratch_buffer_append_str(e.name);
     }
