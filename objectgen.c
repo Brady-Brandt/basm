@@ -296,7 +296,7 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
 
     //THE GLOBAL SYMBOLS MUST COME AFTER THE LOCAL ONES 
     // account for null symbol, text section, and file name
-    int sym_table_info = 4;
+    int sym_table_info = 3;
     if(data_offset != 0) sym_table_info++;
     if(p->bss.size > 0) sym_table_info++;
 
