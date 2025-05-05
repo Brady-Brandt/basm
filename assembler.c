@@ -101,6 +101,7 @@ typedef enum {
     TOK_INT,
     TOK_UINT,
     TOK_IDENTIFIER,
+    TOK_STRING,
 
     TOK_MAX,
 } TokenType;
@@ -243,6 +244,7 @@ const char* token_to_string(TokenType type) {
         case TOK_NEW_LINE: return "TOK_NEW_LINE";
         case TOK_INT: return "TOK_INT";
         case TOK_UINT: return "TOK_UINT";
+        case TOK_STRING: return "TOK_STRING";
         case TOK_IDENTIFIER: return "TOK_IDENTIFIER";
         case TOK_GLOBAL: return "TOK_GLOBAL";
         case TOK_RESB: return "TOK_RESB";
@@ -309,7 +311,7 @@ static int bsearch_string_cmp_lower(const void* a, const void* b) {
 
 
 
-static inline void get_literal(FILE* file){
+static inline void get_literal(FILE* file, int* col){
     while(true){
         char next = peek_char(file);
         if(!isalnum(next)){
@@ -317,16 +319,18 @@ static inline void get_literal(FILE* file){
         }
         char c = fgetc(file);
         scratch_buffer_append_char(c); 
+        (*col)++;
     }
 }
+
 
 
 
 /** 
  * Determine if the String is a keyword or identifier 
  */
-static Token id_or_kw(FILE* file){
-    get_literal(file);
+static Token id_or_kw(FILE* file, int* col){
+    get_literal(file, col);
     char* str = scratch_buffer_as_str();
     //TODO FIX THIS
     uint32_t str_size = 0;
@@ -395,6 +399,28 @@ static char* file_get_line(FILE* file, int line){
 
 
 
+static void get_string(FILE* file, uint32_t line, int col){
+    while(true){
+        char next = peek_char(file);
+        if(next == '\"'){
+            fgetc(file);
+            scratch_buffer_append_char(0);
+            break;
+        }
+
+        if(next == '\n'){
+            fprintf(stderr, "Error: String doesn't close\nLine %d, Col %d\n", line, col);
+            fprintf(stderr, "%s\n", file_get_line(file, line));
+            fprintf(stderr,"%*s\n", col, "^");
+            exit(EXIT_FAILURE);
+        }
+        char c = fgetc(file);
+        scratch_buffer_append_char(c); 
+    }
+}
+
+
+
 
 static ArrayList tokenize_file(FILE* file){
     init_scratch_buffer(); 
@@ -425,6 +451,7 @@ static ArrayList tokenize_file(FILE* file){
         switch (c) {
             case ':':
                 token.type = TOK_COLON;
+                col++;
                 break;
             case '\n':
                 line_number++;
@@ -432,12 +459,20 @@ static ArrayList tokenize_file(FILE* file){
                 token.type = TOK_NEW_LINE;
                 break;
             case ',':
+                col++;
                 token.type = TOK_COMMA;
                 break;
+            case '\"':
+                get_string(file,line_number, col);
+                token.type = TOK_STRING;
+                col++;
+                break;
             case '[':
+                col++;
                 token.type = TOK_OPENING_BRACKET;
                 break;
             case ']':
+                col++;
                 token.type = TOK_CLOSING_BRACKET;
                 break;
             case ';':
@@ -461,20 +496,22 @@ static ArrayList tokenize_file(FILE* file){
                 break;
             default: {
                 if (isalpha(c) || c == '_' || c == '.'){
+                    int temp = col;
+                    col++;
                     scratch_buffer_append_char(c);
-                    token = id_or_kw(file);
+                    token = id_or_kw(file, &col);
                     token.line_number = line_number;
-                    token.col = col;
+                    token.col = temp;
                     if(token.type != TOK_IDENTIFIER) scratch_buffer_clear();
 
                 }else if(isdigit(c)){
                     token.type = TOK_UINT;
                     scratch_buffer_append_char(c);
-                    get_literal(file); 
+                    get_literal(file, &col); 
                 }else if(c == '-'){
                     scratch_buffer_append_char(c);
                     token.type = TOK_INT;
-                    get_literal(file); 
+                    get_literal(file, &col); 
                 }
                 else{
                     //unkown token
@@ -790,9 +827,16 @@ static void parse_data_section(Parser* p){
         switch (p->currentToken.type) {
             case TOK_DB:
                 parser_next_token(p); 
-                parser_expect_token(p, TOK_UINT);
-                uint8_t num = string_to_uint(p->currentToken.literal);
-                section_add_data(&program.data,&num, 1);
+
+                if(p->currentToken.type == TOK_UINT){
+                    uint8_t num = string_to_uint(p->currentToken.literal);
+                    section_add_data(&program.data,&num, 1);
+                } else if(p->currentToken.type == TOK_STRING){
+                    section_add_data(&program.data, p->currentToken.literal, strlen(p->currentToken.literal) + 1);
+                } else{
+                    parser_fatal_error(p, "Invalid for operand\n");
+                }
+
                 parser_next_token(p);
                 parser_expect_consume_token(p, TOK_NEW_LINE);
                 break;
@@ -870,7 +914,7 @@ static Operand parse_operand(Parser* p){
             parser_next_token(p);
             //TODO IMPLEMENT THIS FOR REGISTERS AND OFFSETS 
             parser_expect_consume_token(p, TOK_IDENTIFIER);
-
+            program_fatal_error("TODO: IMPLEMENT BRACKETS");
 
         }
         
