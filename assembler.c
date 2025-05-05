@@ -47,6 +47,10 @@ B   0   Extension of the ModR/M r/m field, SIB base field, or Opcode reg field
 #define REX_CLEAR_OP_SIZE(prefix) (prefix & 71)
 #define REX_CHECK_OP_SIZE(prefix) (prefix & 16)
 
+#define REX_MODRM_REG 4
+#define REX_SIB_INDEX 2
+#define REX_B 1
+
 
 /*
 add BYTE PTR [r12+r13*1],0x1
@@ -206,11 +210,7 @@ typedef enum {
 
 
 
-#define is_extended_reg(type) \
-    (type >= REG_R8 && type <= REG_R15) || \
-        (type >= REG_R8D && type <= REG_R15D) || \
-        (type >= REG_R8W && type <= REG_R15W) || \
-        (type >= REG_R8B)
+#define is_extended_reg(type) (type >= REG_R8 && type <= REG_R15)
 
 
 #define is_r64(reg) (reg >= REG_RAX && reg <= REG_R15)
@@ -220,6 +220,7 @@ typedef enum {
 
 
 #define is_label(l) (l >= OPERAND_L8 && l <= OPERAND_L64)
+#define is_general_reg(r) (r >= OPERAND_R8 && r <= OPERAND_R64)
 
 
 typedef struct {
@@ -811,6 +812,7 @@ typedef struct {
             uint8_t registerIndex;
             uint8_t rex;
         } reg;
+
         uint8_t imm8;
         uint16_t imm16;
         uint32_t imm32;
@@ -834,7 +836,7 @@ static Operand parse_operand(Parser* p){
 
     switch (p->currentToken.type) {
         case TOK_REG: {
-            uint8_t w = 0,b = 0;
+            uint8_t w = 0;
 
             if(is_r64(p->currentToken.reg)){
                 w = 1;
@@ -850,13 +852,7 @@ static Operand parse_operand(Parser* p){
                 result.type = OPERAND_R8;
                 result.reg.registerIndex = p->currentToken.reg - REG_AL;
             }
-
-            if(is_extended_reg(p->currentToken.reg)){
-                b = 1;
-                result.reg.registerIndex -= REG_R8; 
-            }
-
-            result.reg.rex = REX_PREFIX(w, 0, 0, b);
+            result.reg.rex = REX_PREFIX(w, 0, 0, 0);
             return result;
         }
 
@@ -865,13 +861,19 @@ static Operand parse_operand(Parser* p){
             result.type = OPERAND_IMM64;
             return result;
 
-
-        case TOK_IDENTIFIER: {
-            symbol_table_add_instance(p->currentToken.literal);
+        case TOK_IDENTIFIER: 
             result.type = OPERAND_L64;
             result.label = p->currentToken.literal; 
             return result;
+
+        case TOK_OPENING_BRACKET: {
+            parser_next_token(p);
+            //TODO IMPLEMENT THIS FOR REGISTERS AND OFFSETS 
+            parser_expect_consume_token(p, TOK_IDENTIFIER);
+
+
         }
+        
         default:
             program_fatal_error("Operand Type not supported yet: %s\n",token_to_string(p->currentToken.type));
 
@@ -885,6 +887,7 @@ static Operand parse_operand(Parser* p){
 #define TO_RM(input_instr, reg8_or_m8) (input_instr + (OPERAND_RM8 - reg8_or_m8))
 
 static bool check_operand_type(OperandType table_instr, OperandType input_instr){
+
     //convert the label into OPERAND_M
     if(is_label(input_instr)){
         input_instr -= (OPERAND_L8 - OPERAND_M8);
@@ -894,6 +897,7 @@ static bool check_operand_type(OperandType table_instr, OperandType input_instr)
 
     //these instructions either take a memory location or registers
     if(table_instr >= OPERAND_RM8 && table_instr <= OPERAND_RM64){
+
         if(table_instr == TO_RM(input_instr, OPERAND_R8) || table_instr == TO_RM(input_instr, OPERAND_M8)){
             return true;
         }
@@ -949,16 +953,21 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
         return;
     }
 
-    if(operand[0].type >= OPERAND_R8 && operand[0].type <= OPERAND_R64){
+    if(is_general_reg(operand[0].type)){
         rex |= operand[0].reg.rex;
 
         //indicates we add register to the opcode
         if((instruction->r & 0x2)){
-            opcode[instruction->size - 1] += operand[0].reg.registerIndex;
-
+            opcode[instruction->size - 1] += operand[0].reg.registerIndex; 
         } else if ((instruction->r & 0x1)) { 
-            program_fatal_error("MODRM TABLE NOT IMPLEMENTED YET\n");
+            if(is_general_reg(operand[1].type)){
+                uses_mod_field = true;
+                mod_field = MODRM_TABLE[(operand[0].reg.registerIndex * 8 + 0xC0) + operand[1].reg.registerIndex];
+            } else{
+                program_fatal_error("MODRM TABLE NOT IMPLEMENTED YET\n");
+            }
         }
+
     }
 
 
@@ -1002,6 +1011,19 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
 
 
 static void match_operand_pairs(Operand* op1, Operand *op2){
+    uint16_t operand_override_prefix = 0x66;
+
+    //if we have extended registers r8-r15
+    //convert them to their respected index  and set the REX prefix accordingly
+    if(is_general_reg(op1->type) && is_extended_reg(op1->reg.registerIndex)){
+        op1->reg.rex |= REX_B;
+        op1->reg.registerIndex -= REG_R8;
+    }
+    if(is_general_reg(op2->type) && is_extended_reg(op2->reg.registerIndex)){
+        op1->reg.rex |= REX_MODRM_REG;
+        op2->reg.registerIndex -= REG_R8;
+    }
+    
     switch (op1->type) {
         case OPERAND_R64:
             if(op2->type == OPERAND_IMM64){
@@ -1012,6 +1034,9 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
                     op2->type = OPERAND_IMM32;
                     op2->imm32 = (uint32_t)op2->imm64;
                 }
+            } else if (op2->type >= OPERAND_R8 && op2->type < OPERAND_R64) {
+                //promote op2 to a 64 bit register 
+                op2->type = OPERAND_R64;
             }
             break;
         case OPERAND_R32:
@@ -1021,6 +1046,9 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
                     op2->type = OPERAND_IMM32;
                     op2->imm32 = (uint32_t)op2->imm64;
                 }
+            } else if(op2->type >= OPERAND_R8 && op2->type < OPERAND_R32){ 
+                //promote op2 to a 32 bit register 
+                op2->type = OPERAND_R32;
             }
             break;
 
@@ -1028,11 +1056,15 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
             if(op2->type == OPERAND_IMM64){
                 if(!(op2->imm64 <= UINT16_MAX)) program_fatal_error("Value larger than 16 bits going in 16 bit register");
                 else{
-                    uint16_t operand_override_prefix = 0x66;
                     section_add_data(&program.text,&operand_override_prefix, 1);
                     op2->type = OPERAND_IMM16;
                     op2->imm16 = (uint16_t)op2->imm64;
                 }
+            } else if(op2->type == OPERAND_R8){
+                //promote op2 to a 16 bit register 
+                op2->type = OPERAND_R16;
+
+                section_add_data(&program.text,&operand_override_prefix, 1);
             }
             break;
 
@@ -1064,6 +1096,8 @@ static void print_text_section(){
         printf("%02x ", program.text.data[i]);
     }
 }
+
+
 
 
 static void parse_text_section(Parser* p){
