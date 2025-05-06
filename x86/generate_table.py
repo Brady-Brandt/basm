@@ -322,6 +322,7 @@ operand_types["l8" ] =  iota()
 operand_types["l16" ] =  iota()
 operand_types["l32" ] =  iota()
 operand_types["l64" ] =  iota()
+operand_types["m" ] =  iota()
 
 
 operand_types["ST(i)"] = iota()
@@ -463,7 +464,7 @@ with open("instructions.dat", "r") as f:
     sorted_instructions = sorted(instructions)
 
 
-    
+
     write_nmemonics_strings(nmemonic_file, sorted_instructions)
 
 
