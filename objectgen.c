@@ -98,7 +98,7 @@ typedef struct {
 typedef enum{
     RELOC_64 = 1,
     RELOC_PC32 = 2,
-    RELOC_32S = 10, 
+    RELOC_32S = 11, 
 } ElfRelocationTypes;
 
 
@@ -188,6 +188,22 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
         string_table_index += 1;
     } 
     head.string_table_index = string_table_index;
+
+    bool has_text_reloca = false;
+    uint32_t num_text_reloca_entries = 0;
+
+    //check if the symbols are used to determine if we need 
+    //a text reloca section
+    for(int i = 0; i < p->symTable.symbols.size; i++){
+        SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
+        if(e.instances.data != NULL){
+            has_text_reloca = true;
+            num_text_reloca_entries += e.instances.size;
+        }
+
+    }
+
+    head.section_header_entries += (int)has_text_reloca;
 
     fwrite(&head, sizeof(ElfHeader),1, output_stream);
 
@@ -280,6 +296,12 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     scratch_buffer_append_str(".symtab");
     uint64_t symbol_string_table_st_index = scratch_buffer_offset();
     scratch_buffer_append_str(".strtab");
+    uint64_t text_reloca_st_index = 0;
+
+    if(has_text_reloca){
+        text_reloca_st_index = scratch_buffer_offset();
+        scratch_buffer_append_str(".rela.text");
+    }
 
     char* section_string_table = scratch_buffer_get_data(0);
     section_st.size = scratch_buffer_offset();
@@ -340,6 +362,7 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
 
     uint8_t padding[8] = {0};
     int symbol_table_padding = 0;
+    int text_reloca_padding = 0;
 
 
     while(symbol_table.offset % symbol_table.addralign != 0){
@@ -357,6 +380,27 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
 
 
     fwrite(&symbol_str_table, sizeof(symbol_str_table), 1, output_stream);
+
+
+    if(has_text_reloca){
+        uint64_t text_reloc_offset = symbol_str_table.offset + symbol_str_table.size;
+
+        while(text_reloc_offset % 8 != 0){
+            text_reloc_offset++;
+            text_reloca_padding++;
+        }
+
+        ElfSectionHeader text_reloc = {0};
+        text_reloc.name = text_reloca_st_index;
+        text_reloc.type = ELF_SECTION_RELAENTRY; 
+        text_reloc.offset = text_reloc_offset;
+        text_reloc.link = symbol_table.link - 1; //points to the symbol table
+        text_reloc.info = 1; // points to the text section?
+        text_reloc.addralign = 8;
+        text_reloc.entsize = sizeof(ElfRelocatableEntry); 
+        text_reloc.size = text_reloc.entsize * num_text_reloca_entries;
+        fwrite(&text_reloc, sizeof(text_reloc), 1, output_stream);
+    }
 
 
 
@@ -434,8 +478,29 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     char* sym_strt_str = scratch_buffer_get_data(0);
     fwrite(sym_strt_str,1, scratch_buffer_offset(), output_stream);
 
-    fclose(output_stream);
+    if(has_text_reloca){
+        fwrite(padding,1, text_reloca_padding, output_stream);
 
+        for(int i = 0; i < p->symTable.symbols.size; i++){
+            SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
+            for(int i = 0; i < e.instances.size; i++){
+                SymbolInstance instance = array_list_get(e.instances, SymbolInstance, i);
+
+                ElfRelocatableEntry reloc_e = {0};
+
+                //assume 32 for now 
+                reloc_e.offset = instance.offset;
+                reloc_e.addend = e.section_offset;
+                reloc_e.info = ((uint64_t)(e.section + 1) << 32)| RELOC_32S;
+                fwrite(&reloc_e, sizeof(reloc_e), 1, output_stream);
+            }
+        }
+
+
+
+
+    }
+    fclose(output_stream);
     return true;
 
 }

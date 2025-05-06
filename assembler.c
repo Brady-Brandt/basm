@@ -624,14 +624,14 @@ void symbol_table_add(char* name, uint64_t offset, uint8_t section, uint8_t visi
 }
 
 //TODO: MAKE IT A MULTIPASS ASSEMBLER
-void symbol_table_add_instance(char* symbol_name){
+void symbol_table_add_instance(char* symbol_name, uint32_t offset){
     for(int i = 0; i < program.symTable.symbols.size; i++){
         SymbolTableEntry* e = &array_list_get(program.symTable.symbols, SymbolTableEntry, i);
         
 
         if(e->instances.data == NULL){
             array_list_create_cap(e->instances, SymbolInstance, 2);
-            SymbolInstance current_instance = {0};
+            SymbolInstance current_instance = {offset};
             array_list_append(e->instances, SymbolInstance, current_instance);
             return;
         }
@@ -848,15 +848,22 @@ static void parse_data_section(Parser* p){
     }
 }
 
+typedef struct {
+    uint8_t registerIndex;
+    uint8_t rex;
+} Register;
+
+
+
+#define UNUSED_REG (Register){255,0}
+#define is_using_register(reg) (registerIndex != 255)
+
+
 
 typedef struct {
     OperandType type;
     union {
-        struct {
-            uint8_t registerIndex;
-            uint8_t rex;
-        } reg;
-
+        Register reg;
         uint8_t imm8;
         uint16_t imm16;
         uint32_t imm32;
@@ -864,7 +871,17 @@ typedef struct {
 
         char* label;
 
-        uint32_t mem32;
+        struct {
+            Register base_reg;
+            bool is_label; //determines if the offset is a label or literal
+            union{
+                int offset;            
+                char* label;
+            };
+            Register index_reg;         
+            uint8_t scale;         
+        } mem32;
+
         uint64_t mem64;
     };
 } Operand;
@@ -914,8 +931,15 @@ static Operand parse_operand(Parser* p){
             parser_next_token(p);
             //TODO IMPLEMENT THIS FOR REGISTERS AND OFFSETS 
             parser_expect_consume_token(p, TOK_IDENTIFIER);
-            program_fatal_error("TODO: IMPLEMENT BRACKETS");
 
+            result.type = OPERAND_M32;
+            result.mem32.base_reg = UNUSED_REG;
+            result.mem32.index_reg = UNUSED_REG;
+            result.mem32.is_label = true;
+            result.mem32.label = p->currentToken.literal;
+
+            parser_expect_token(p, TOK_CLOSING_BRACKET);
+            return result;
         }
         
         default:
@@ -945,6 +969,10 @@ static bool check_operand_type(OperandType table_instr, OperandType input_instr)
         if(table_instr == TO_RM(input_instr, OPERAND_R8) || table_instr == TO_RM(input_instr, OPERAND_M8)){
             return true;
         }
+    }
+
+    if(table_instr == OPERAND_M && input_instr >= OPERAND_M8 && input_instr <= OPERAND_M64){
+        return true;
     }
 
     return false;
@@ -982,8 +1010,14 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
     memcpy(opcode, instruction->bytes, instruction->size);
 
     uint8_t mod_field = 0;
+    uint8_t sib_field = 0;
     bool uses_mod_field = false;
+    bool uses_sib_field = false;
 
+    //used for labels (relocatable variables)
+    uint8_t reloca_temp[8] = {0};
+    uint8_t reloca_count = 0;
+    char* lbl = NULL;
 
     //indicate opcode extension in the reg portion of modrm
     if(instruction->digit != -1){
@@ -1008,7 +1042,13 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
                 uses_mod_field = true;
                 mod_field = MODRM_TABLE[(operand[0].reg.registerIndex * 8 + 0xC0) + operand[1].reg.registerIndex];
             } else{
-                program_fatal_error("MODRM TABLE NOT IMPLEMENTED YET\n");
+               //going to assume its a label for now
+               uses_mod_field = true;
+               mod_field = MODRM_TABLE[(0x4 * 8) + operand[0].reg.registerIndex];
+               sib_field = 0x25;
+               uses_sib_field = true;
+               reloca_count = 4;
+               lbl = operand[1].mem32.label;
             }
         }
 
@@ -1018,6 +1058,12 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
     if(rex != 0x40) section_add_data(&program.text, &rex, 1);
     section_add_data(&program.text, opcode, instruction->size); 
     if(uses_mod_field) section_add_data(&program.text, &mod_field, 1);
+    if(uses_sib_field) section_add_data(&program.text, &sib_field, 1);
+
+    if(reloca_count != 0){
+        symbol_table_add_instance(lbl, program.text.size);
+        section_add_data(&program.text, &reloca_temp, reloca_count);
+    } 
 
 
     //indicates an immediate
@@ -1174,9 +1220,8 @@ static void parse_text_section(Parser* p){
                     if(op.type == TOK_NEW_LINE) break;
                     operands[operand_count++] = parse_operand(p);
 
-                    //printf("%s, %d\n", token_to_string(p->currentToken.type), p->tokenIndex);
                     parser_next_token(p);
-                    //printf("%s, %d\n", token_to_string(p->currentToken.type), p->tokenIndex);
+
                     if(!match(p, TOK_COMMA, TOK_NEW_LINE)){
                         parser_fatal_error(p, "Expected comma or new line after operand got %s\n", token_to_string(p->currentToken.type));
 
@@ -1215,7 +1260,7 @@ static void parse_tokens(FILE* file, ArrayList* tokens){
  
     while(p.tokenIndex < p.tokens->size){
         if(setjmp(p.jmp) == 1){
-            print_text_section();        
+            //print_text_section();        
             break;
         }
 
