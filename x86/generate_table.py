@@ -302,6 +302,8 @@ operand_types["r16" ] =  iota()
 operand_types["r32" ] =  iota()
 operand_types["r64" ] =  iota()
 
+
+operand_types["mem_any" ] =  iota()
 operand_types["m8" ] =  iota()
 operand_types["m16" ] =  iota()
 operand_types["m32" ] =  iota()
