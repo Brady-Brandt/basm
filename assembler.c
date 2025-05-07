@@ -222,6 +222,8 @@ typedef enum {
 
 #define is_label(l) (l >= OPERAND_L8 && l <= OPERAND_L64)
 #define is_general_reg(r) (r >= OPERAND_R8 && r <= OPERAND_R64)
+#define is_mem(m) (m >= OPERAND_M8 && m <= OPERAND_M64)
+#define is_relative(x) (x >= OPERAND_REL8 && x <= OPERAND_REL32)
 
 
 typedef struct {
@@ -559,6 +561,7 @@ static ArrayList tokenize_file(FILE* file){
     
     
     
+    
    
     scratch_buffer_clear();
     return tokens;
@@ -627,14 +630,17 @@ void symbol_table_add(char* name, uint64_t offset, uint8_t section, uint8_t visi
 void symbol_table_add_instance(char* symbol_name, uint32_t offset){
     for(int i = 0; i < program.symTable.symbols.size; i++){
         SymbolTableEntry* e = &array_list_get(program.symTable.symbols, SymbolTableEntry, i);
-        
 
-        if(e->instances.data == NULL){
-            array_list_create_cap(e->instances, SymbolInstance, 2);
+        if(strcmp(e->name, symbol_name) == 0){
+            if(e->instances.data == NULL){
+                array_list_create_cap(e->instances, SymbolInstance, 2);
+            }
+
             SymbolInstance current_instance = {offset};
-            array_list_append(e->instances, SymbolInstance, current_instance);
+            array_list_append(e->instances, SymbolInstance, current_instance); 
             return;
         }
+         
     }
     program_fatal_error("Symbol: %s not defined\n", symbol_name);
 }
@@ -856,7 +862,7 @@ typedef struct {
 
 
 #define UNUSED_REG (Register){255,0}
-#define is_using_register(reg) (registerIndex != 255)
+#define is_using_register(reg) (reg.registerIndex != 255)
 
 
 
@@ -871,18 +877,20 @@ typedef struct {
 
         char* label;
 
+
+        //TODO PACK THIS STRUCT
         struct {
             Register base_reg;
-            bool is_label; //determines if the offset is a label or literal
+            bool is_label; //determines if the offset is a label or offset 
             union{
                 int offset;            
                 char* label;
             };
             Register index_reg;         
             uint8_t scale;         
-        } mem32;
+        } mem;
 
-        uint64_t mem64;
+
     };
 } Operand;
 
@@ -930,14 +938,16 @@ static Operand parse_operand(Parser* p){
         case TOK_OPENING_BRACKET: {
             parser_next_token(p);
             //TODO IMPLEMENT THIS FOR REGISTERS AND OFFSETS 
-            parser_expect_consume_token(p, TOK_IDENTIFIER);
+            parser_expect_token(p, TOK_IDENTIFIER);
 
-            result.type = OPERAND_M32;
-            result.mem32.base_reg = UNUSED_REG;
-            result.mem32.index_reg = UNUSED_REG;
-            result.mem32.is_label = true;
-            result.mem32.label = p->currentToken.literal;
+            //TODO SUPPORT TYPE SPECIFIERS
+            result.type = OPERAND_MEM_ANY;
+            result.mem.base_reg = UNUSED_REG;
+            result.mem.index_reg = UNUSED_REG;
+            result.mem.is_label = true;
+            result.mem.label = p->currentToken.literal;
 
+            parser_next_token(p);
             parser_expect_token(p, TOK_CLOSING_BRACKET);
             return result;
         }
@@ -956,24 +966,28 @@ static Operand parse_operand(Parser* p){
 
 static bool check_operand_type(OperandType table_instr, OperandType input_instr){
 
-    //convert the label into OPERAND_M
+    /*
     if(is_label(input_instr)){
-        input_instr -= (OPERAND_L8 - OPERAND_M8);
+        if(is_relative(table_instr)){
+            //convert label to operand REL, subtract one because there is no rel64
+            input_instr = input_instr - OPERAND_L8 - OPERAND_REL8 - 1; 
+        } else{
+            input_instr = OPERAND_IMM64;
+        }
     }
+    */
 
     if(table_instr == input_instr) return true;
 
     //these instructions either take a memory location or registers
     if(table_instr >= OPERAND_RM8 && table_instr <= OPERAND_RM64){
-
-        if(table_instr == TO_RM(input_instr, OPERAND_R8) || table_instr == TO_RM(input_instr, OPERAND_M8)){
+        if(table_instr == TO_RM(input_instr, OPERAND_M8)|| table_instr == TO_RM(input_instr, OPERAND_R8)){
             return true;
         }
     }
 
-    if(table_instr == OPERAND_M && input_instr >= OPERAND_M8 && input_instr <= OPERAND_M64){
-        return true;
-    }
+    if(table_instr == OPERAND_M && input_instr >= OPERAND_MEM_ANY && input_instr <= OPERAND_M64) return true;
+
 
     return false;
 }
@@ -1021,7 +1035,7 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
 
     //indicate opcode extension in the reg portion of modrm
     if(instruction->digit != -1){
-       mod_field |= instruction->digit; 
+       mod_field |= (instruction->digit << 3);
        uses_mod_field = true;
     }
 
@@ -1031,13 +1045,15 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
         return;
     }
 
+
     if(is_general_reg(operand[0].type)){
         rex |= operand[0].reg.rex;
-
         //indicates we add register to the opcode
         if((instruction->r & 0x2)){
             opcode[instruction->size - 1] += operand[0].reg.registerIndex; 
-        } else if ((instruction->r & 0x1)) { 
+        } 
+        //if we encode both operands in the modrm byte
+        else if ((instruction->r & 0x1)) {
             if(is_general_reg(operand[1].type)){
                 uses_mod_field = true;
                 mod_field = MODRM_TABLE[(operand[0].reg.registerIndex * 8 + 0xC0) + operand[1].reg.registerIndex];
@@ -1048,10 +1064,32 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
                sib_field = 0x25;
                uses_sib_field = true;
                reloca_count = 4;
-               lbl = operand[1].mem32.label;
+
+               lbl = operand[1].mem.label;
             }
+        } 
+        // if we have an opcode extension but still need to encode data in the modrm
+        else {
+             //     op ext   reg index
+            //11    000      000
+            mod_field |= 0xC0;
+            mod_field |= operand[0].reg.registerIndex; 
         }
 
+    } else if(is_mem(operand[0].type)){
+         if(is_general_reg(operand[1].type)){
+                rex |= operand[1].reg.rex;
+                uses_mod_field = true;
+                //ASSUMING WE HAVE AN SIB BYTE
+                mod_field = MODRM_TABLE[(0x4 * 8) + operand[1].reg.registerIndex];
+                sib_field = 0x25;
+                uses_sib_field = true;
+
+
+                //TODO: IT SEEMS LIKE NO MATTER WHAT reloca_count is supposed to be 4
+                reloca_count = 4;
+                lbl = operand[0].mem.label;
+            }     
     }
 
 
@@ -1113,68 +1151,62 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
         op1->reg.rex |= REX_MODRM_REG;
         op2->reg.registerIndex -= REG_R8;
     }
-    
+
+
+    if(op2->type == OPERAND_IMM64){
+        if(op1->type == OPERAND_M64 || op1->type == OPERAND_R64 && op2->imm64 <= UINT32_MAX){
+            if(op1->type == OPERAND_R64) op1->reg.rex = REX_CLEAR_OP_SIZE(op1->reg.rex);
+            op1->type -= 1;
+            op2->type = OPERAND_IMM32;
+            op2->imm32 = (uint32_t)op2->imm64;
+        } else if(op1->type == OPERAND_M32 || op1->type == OPERAND_R32){ 
+            if(!(op2->imm64 <= UINT32_MAX)) program_fatal_error("Invalid Operand Size\n");
+            op2->type = OPERAND_IMM32;
+            op2->imm32 = (uint32_t)op2->imm64;
+        } else if(op1->type == OPERAND_M16 || op1->type == OPERAND_R16){
+            if(!(op2->imm64 <= UINT16_MAX)) program_fatal_error("Invalid Operand Size\n");
+            section_add_data(&program.text,&operand_override_prefix, 1);
+            op2->type = OPERAND_IMM16;
+            op2->imm16 = (uint16_t)op2->imm64;
+
+        } else if(op1->type == OPERAND_M8 || op1->type == OPERAND_R8){
+            if(!(op2->imm64 <= UINT8_MAX)) program_fatal_error("Invalid Operand size\n");
+            op2->type = OPERAND_IMM8;
+            op2->imm8 = (uint8_t)op2->imm64;
+        }         
+        return;
+    } 
+
+
     switch (op1->type) {
         case OPERAND_R64:
-            if(op2->type == OPERAND_IMM64){
-                //default to 32 bit values if we can
-                if(op2->type == OPERAND_IMM64 && op2->imm64 <= UINT32_MAX){
-                    op1->type = OPERAND_R32; 
-                    op1->reg.rex = REX_CLEAR_OP_SIZE(op1->reg.rex);
-                    op2->type = OPERAND_IMM32;
-                    op2->imm32 = (uint32_t)op2->imm64;
-                }
-            } else if (op2->type >= OPERAND_R8 && op2->type < OPERAND_R64) {
-                //promote op2 to a 64 bit register 
-                op2->type = OPERAND_R64;
-            }
-            break;
+            if(op2->type == OPERAND_MEM_ANY) op2->type = OPERAND_M64;
+            return;
         case OPERAND_R32:
-            if(op2->type == OPERAND_IMM64){
-                if(!(op2->imm64 <= UINT32_MAX)) program_fatal_error("Can't put 64 bit operand in 32 bit register\n");
-                else{
-                    op2->type = OPERAND_IMM32;
-                    op2->imm32 = (uint32_t)op2->imm64;
-                }
-            } else if(op2->type >= OPERAND_R8 && op2->type < OPERAND_R32){ 
-                //promote op2 to a 32 bit register 
-                op2->type = OPERAND_R32;
-            }
-            break;
-
+            if (op2->type == OPERAND_MEM_ANY)op2->type = OPERAND_M32;
+            return;
         case OPERAND_R16:
-            if(op2->type == OPERAND_IMM64){
-                if(!(op2->imm64 <= UINT16_MAX)) program_fatal_error("Value larger than 16 bits going in 16 bit register");
-                else{
-                    section_add_data(&program.text,&operand_override_prefix, 1);
-                    op2->type = OPERAND_IMM16;
-                    op2->imm16 = (uint16_t)op2->imm64;
-                }
-            } else if(op2->type == OPERAND_R8){
-                //promote op2 to a 16 bit register 
-                op2->type = OPERAND_R16;
-
+            if (op2->type == OPERAND_MEM_ANY){
                 section_add_data(&program.text,&operand_override_prefix, 1);
+                op2->type = OPERAND_M32;
             }
-            break;
-
+            return;
         case OPERAND_R8:
-            if(op2->type == OPERAND_IMM64){
-                if(!(op2->imm64 <= UINT8_MAX)) program_fatal_error("Value larger than 8 bits going in 8 bit register");
-                else{
-                    op2->type = OPERAND_IMM8;
-                    op2->imm8 = (uint8_t)op2->imm64;
+            if(op2->type == OPERAND_MEM_ANY) op2->type = OPERAND_M8;
+            return;
+
+        case OPERAND_MEM_ANY:
+            if(is_general_reg(op2->type)){
+                op1->type = op2->type + (OPERAND_M8 - OPERAND_R8);
+                if(op2->type == OPERAND_R16){
+                    section_add_data(&program.text,&operand_override_prefix, 1);
                 }
             }
-            break;
-
-        
+            return;
         default:
             program_fatal_error("Operand not supported yet: %s\n", operand_to_string(op1->type));
- 
+
     }
-
-
 }
 
 
