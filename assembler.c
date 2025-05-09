@@ -47,6 +47,7 @@ B   0   Extension of the ModR/M r/m field, SIB base field, or Opcode reg field
 #define REX_CLEAR_OP_SIZE(prefix) (prefix & 71)
 #define REX_CHECK_OP_SIZE(prefix) (prefix & 16)
 
+#define REX_W 4
 #define REX_MODRM_REG 4
 #define REX_SIB_INDEX 2
 #define REX_B 1
@@ -97,6 +98,11 @@ typedef enum {
     TOK_BSS,
     TOK_RESB,
     TOK_DB,
+
+    TOK_BYTE,
+    TOK_WORD, 
+    TOK_DWORD,
+    TOK_QWORD, 
 
     TOK_INT,
     TOK_UINT,
@@ -220,6 +226,7 @@ typedef enum {
 #define is_r8(reg) (reg >= REG_AL && reg <= REG_R15B)
 
 
+#define is_immediate(i) (i >= OPERAND_IMM8 && i <= OPERAND_IMM64)
 #define is_label(l) (l >= OPERAND_L8 && l <= OPERAND_L64)
 #define is_general_reg(r) (r >= OPERAND_R8 && r <= OPERAND_R64)
 #define is_mem(m) (m >= OPERAND_M8 && m <= OPERAND_M64)
@@ -251,6 +258,10 @@ const char* token_to_string(TokenType type) {
         case TOK_GLOBAL: return "TOK_GLOBAL";
         case TOK_RESB: return "TOK_RESB";
         case TOK_DB: return "TOK_DB";
+        case TOK_BYTE: return "TOK_BYTE";
+        case TOK_WORD: return "TOK_WORD";
+        case TOK_DWORD: return "TOK_DWORD";
+        case TOK_QWORD: return "TOK_QWORD";
         case TOK_SECTION: return "TOK_SECTION";
         case TOK_BSS: return "TOK_BSS";
         case TOK_TEXT: return "TOK_TEXT";
@@ -366,6 +377,10 @@ static Token id_or_kw(FILE* file, int* col){
     if(string_cmp_lower(".data", str) == 0) return (Token){TOK_DATA, 0,0,0};
     if(string_cmp_lower(".text", str) == 0) return (Token){TOK_TEXT, 0,0,0};
     if(string_cmp_lower("db", str) == 0) return (Token){TOK_DB, 0,0,0};
+    if(string_cmp_lower("byte", str) == 0) return (Token){TOK_BYTE, 0,0,0};
+    if(string_cmp_lower("word", str) == 0) return (Token){TOK_WORD, 0,0,0};
+    if(string_cmp_lower("dword", str) == 0) return (Token){TOK_DWORD, 0,0,0};
+    if(string_cmp_lower("qword", str) == 0) return (Token){TOK_QWORD, 0,0,0};
 
    
     return (Token){TOK_IDENTIFIER, 0,0, 0};
@@ -897,6 +912,28 @@ typedef struct {
 
 
 
+static Operand parse_memory(Parser* p, OperandType mem_type){
+    Operand result = {0};
+
+
+    parser_next_token(p);
+    //TODO IMPLEMENT THIS FOR REGISTERS AND OFFSETS 
+    parser_expect_token(p, TOK_IDENTIFIER);
+
+    result.type = mem_type;
+    result.mem.base_reg = UNUSED_REG;
+    result.mem.index_reg = UNUSED_REG;
+    result.mem.is_label = true;
+    result.mem.label = p->currentToken.literal;
+
+    parser_next_token(p);
+    parser_expect_token(p, TOK_CLOSING_BRACKET);
+
+    
+    return result;
+}
+
+
 
 
 
@@ -935,23 +972,29 @@ static Operand parse_operand(Parser* p){
             result.label = p->currentToken.literal; 
             return result;
 
-        case TOK_OPENING_BRACKET: {
-            parser_next_token(p);
-            //TODO IMPLEMENT THIS FOR REGISTERS AND OFFSETS 
-            parser_expect_token(p, TOK_IDENTIFIER);
 
-            //TODO SUPPORT TYPE SPECIFIERS
-            result.type = OPERAND_MEM_ANY;
-            result.mem.base_reg = UNUSED_REG;
-            result.mem.index_reg = UNUSED_REG;
-            result.mem.is_label = true;
-            result.mem.label = p->currentToken.literal;
-
+        case TOK_BYTE:
             parser_next_token(p);
-            parser_expect_token(p, TOK_CLOSING_BRACKET);
-            return result;
-        }
-        
+            parser_expect_token(p, TOK_OPENING_BRACKET);
+            return parse_memory(p, OPERAND_M8); 
+
+        case TOK_WORD:
+            parser_next_token(p);
+            parser_expect_token(p, TOK_OPENING_BRACKET);
+            return parse_memory(p, OPERAND_M16); 
+
+        case TOK_DWORD:
+            parser_next_token(p);
+            parser_expect_token(p, TOK_OPENING_BRACKET);
+            return parse_memory(p, OPERAND_M32); 
+
+        case TOK_QWORD:
+            parser_next_token(p);
+            parser_expect_token(p, TOK_OPENING_BRACKET);
+            return parse_memory(p, OPERAND_M64); 
+
+        case TOK_OPENING_BRACKET:
+            return parse_memory(p, OPERAND_MEM_ANY); 
         default:
             program_fatal_error("Operand Type not supported yet: %s\n",token_to_string(p->currentToken.type));
 
@@ -965,18 +1008,6 @@ static Operand parse_operand(Parser* p){
 #define TO_RM(input_instr, reg8_or_m8) (input_instr + (OPERAND_RM8 - reg8_or_m8))
 
 static bool check_operand_type(OperandType table_instr, OperandType input_instr){
-
-    /*
-    if(is_label(input_instr)){
-        if(is_relative(table_instr)){
-            //convert label to operand REL, subtract one because there is no rel64
-            input_instr = input_instr - OPERAND_L8 - OPERAND_REL8 - 1; 
-        } else{
-            input_instr = OPERAND_IMM64;
-        }
-    }
-    */
-
     if(table_instr == input_instr) return true;
 
     //these instructions either take a memory location or registers
@@ -1045,7 +1076,7 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
         return;
     }
 
-
+   
     if(is_general_reg(operand[0].type)){
         rex |= operand[0].reg.rex;
         //indicates we add register to the opcode
@@ -1077,23 +1108,30 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
         }
 
     } else if(is_mem(operand[0].type)){
-         if(is_general_reg(operand[1].type)){
-                rex |= operand[1].reg.rex;
-                uses_mod_field = true;
-                //ASSUMING WE HAVE AN SIB BYTE
-                mod_field = MODRM_TABLE[(0x4 * 8) + operand[1].reg.registerIndex];
-                sib_field = 0x25;
-                uses_sib_field = true;
+        if(is_general_reg(operand[1].type)){
+            rex |= operand[1].reg.rex;
+            uses_mod_field = true;
+            //ASSUMING WE HAVE AN SIB BYTE
+            mod_field = MODRM_TABLE[(0x4 * 8) + operand[1].reg.registerIndex];
+            sib_field = 0x25;
+            uses_sib_field = true;
 
 
-                //TODO: IT SEEMS LIKE NO MATTER WHAT reloca_count is supposed to be 4
-                reloca_count = 4;
-                lbl = operand[0].mem.label;
-            }     
+            //TODO: IT SEEMS LIKE NO MATTER WHAT reloca_count is supposed to be 4
+            reloca_count = 4;
+            lbl = operand[0].mem.label;
+        } else if(is_immediate(operand[1].type)){
+            uses_mod_field = true;
+            sib_field = 0x25;
+            uses_sib_field = true;
+            mod_field |= 4;
+            reloca_count = 4;
+            lbl = operand[0].mem.label;
+        }    
     }
 
 
-    if(rex != 0x40) section_add_data(&program.text, &rex, 1);
+    if(rex != 0x40 && rex != 0) section_add_data(&program.text, &rex, 1);
     section_add_data(&program.text, opcode, instruction->size); 
     if(uses_mod_field) section_add_data(&program.text, &mod_field, 1);
     if(uses_sib_field) section_add_data(&program.text, &sib_field, 1);
@@ -1154,28 +1192,50 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
 
 
     if(op2->type == OPERAND_IMM64){
-        if(op1->type == OPERAND_M64 || op1->type == OPERAND_R64 && op2->imm64 <= UINT32_MAX){
-            if(op1->type == OPERAND_R64) op1->reg.rex = REX_CLEAR_OP_SIZE(op1->reg.rex);
-            op1->type -= 1;
-            op2->type = OPERAND_IMM32;
-            op2->imm32 = (uint32_t)op2->imm64;
-        } else if(op1->type == OPERAND_M32 || op1->type == OPERAND_R32){ 
-            if(!(op2->imm64 <= UINT32_MAX)) program_fatal_error("Invalid Operand Size\n");
-            op2->type = OPERAND_IMM32;
-            op2->imm32 = (uint32_t)op2->imm64;
-        } else if(op1->type == OPERAND_M16 || op1->type == OPERAND_R16){
-            if(!(op2->imm64 <= UINT16_MAX)) program_fatal_error("Invalid Operand Size\n");
-            section_add_data(&program.text,&operand_override_prefix, 1);
-            op2->type = OPERAND_IMM16;
-            op2->imm16 = (uint16_t)op2->imm64;
+        switch (op1->type) {
+            case OPERAND_R64:
+                if(op2->imm64 <= UINT32_MAX){
+                    op1->reg.rex = REX_CLEAR_OP_SIZE(op1->reg.rex);
+                    op1->type = OPERAND_R64;
+                    op2->type = OPERAND_IMM32;
+                    op2->imm32 = (uint32_t)op2->imm64;
+                }
+                break;
+            case OPERAND_M64:
+                if(!(op2->imm64 <= UINT32_MAX))program_fatal_error("Invalid Operand Size\n"); 
+                op2->type = OPERAND_IMM32;
+                op2->imm32 = (uint32_t)op2->imm64;
+                break;
 
-        } else if(op1->type == OPERAND_M8 || op1->type == OPERAND_R8){
-            if(!(op2->imm64 <= UINT8_MAX)) program_fatal_error("Invalid Operand size\n");
-            op2->type = OPERAND_IMM8;
-            op2->imm8 = (uint8_t)op2->imm64;
-        }         
+            case OPERAND_R32:
+            case OPERAND_M32:
+                if(!(op2->imm64 <= UINT32_MAX)) program_fatal_error("Invalid Operand Size\n");
+                op2->type = OPERAND_IMM32;
+                op2->imm32 = (uint32_t)op2->imm64;
+                break;
+            case OPERAND_M16:
+            case OPERAND_R16:
+                if(!(op2->imm64 <= UINT16_MAX)) program_fatal_error("Invalid Operand Size\n");
+                section_add_data(&program.text,&operand_override_prefix, 1);
+                op2->type = OPERAND_IMM16;
+                op2->imm16 = (uint16_t)op2->imm64;
+                break;
+            case OPERAND_M8:
+            case OPERAND_R8:
+                if(!(op2->imm64 <= UINT8_MAX)) program_fatal_error("Invalid Operand size\n");
+                op2->type = OPERAND_IMM8;
+                op2->imm8 = (uint8_t)op2->imm64;
+                break;
+            case OPERAND_MEM_ANY:
+                program_fatal_error("Expected Size specifier\n");
+                break;
+        
+            default:
+                return;
+
+        }
         return;
-    } 
+    }
 
 
     switch (op1->type) {
@@ -1204,7 +1264,8 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
             }
             return;
         default:
-            program_fatal_error("Operand not supported yet: %s\n", operand_to_string(op1->type));
+            program_fatal_error("Operand Combo not supported yet: %s, %s\n", 
+                    operand_to_string(op1->type), operand_to_string(op2->type));
 
     }
 }
