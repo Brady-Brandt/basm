@@ -47,36 +47,14 @@ B   0   Extension of the ModR/M r/m field, SIB base field, or Opcode reg field
 #define REX_CLEAR_OP_SIZE(prefix) (prefix & 71)
 #define REX_CHECK_OP_SIZE(prefix) (prefix & 16)
 
-#define REX_W 4
-#define REX_MODRM_REG 4
-#define REX_SIB_INDEX 2
+#define REX_W 8
+#define REX_R 4
+#define REX_X 2
 #define REX_B 1
 
 
-/*
-add BYTE PTR [r12+r13*1],0x1
-43 80 04 2c 01
 
-0x43 := REX = 0100 | 0011
-Lower two bits are both one because we are using the extended registers r12 & r13
-0x80 := Opcode Instruction
-
-mod byte
-00 | 000 | 100
-0x04 := Other part of opcode instruction goes in reg portion in this case its 0
-lower 3 bits 100 indicate a SIB follows
-
-0x2c SIB byte 
-00101100
-00 -> Scale => 1
-101 -> Index => r13 
-100 -> Base => r12
-
-addr = scale * index + base
-*/
-
-
-
+//addr = scale * index + base
 
 //call -> E8 (addr relative to the next instruction)
 
@@ -84,7 +62,9 @@ addr = scale * index + base
 typedef enum {
     TOK_INSTRUCTION,
     TOK_REG,
-  
+ 
+    TOK_ADD,
+    TOK_MULTIPLY,
     TOK_OPENING_BRACKET,
     TOK_CLOSING_BRACKET,
     TOK_COMMA,
@@ -250,6 +230,8 @@ const char* token_to_string(TokenType type) {
     switch (type) {
         case TOK_COMMA:return "TOK_COMMA";
         case TOK_COLON: return "TOK_COLON";
+        case TOK_ADD: return "TOK_ADD";
+        case TOK_MULTIPLY: return "TOK_MULTIPLY";
         case TOK_NEW_LINE: return "TOK_NEW_LINE";
         case TOK_INT: return "TOK_INT";
         case TOK_UINT: return "TOK_UINT";
@@ -492,6 +474,14 @@ static ArrayList tokenize_file(FILE* file){
                 col++;
                 token.type = TOK_CLOSING_BRACKET;
                 break;
+            case '+':
+                col++;
+                token.type = TOK_ADD;
+                break;
+            case '*':
+                col++;
+                token.type = TOK_MULTIPLY;
+                break;
             case ';':
                 while(true){
                     c = fgetc(file);
@@ -572,9 +562,9 @@ static ArrayList tokenize_file(FILE* file){
         }
 
     }
-    */
     
     
+    */ 
     
     
    
@@ -695,8 +685,8 @@ static Token parser_next_token(Parser* p){
 
 
 static Token parser_peek_token(Parser *p){
-    if(p->tokenIndex + 1 < p->tokens->size){
-        return array_list_get((*p->tokens), Token, p->tokenIndex + 1);
+    if(p->tokenIndex < p->tokens->size){
+        return array_list_get((*p->tokens), Token, p->tokenIndex);
     }
     longjmp(p->jmp, 1);
 }
@@ -880,6 +870,12 @@ typedef struct {
 #define is_using_register(reg) (reg.registerIndex != 255)
 
 
+#define mem_is_label(mem) ((mem.scale & 128))
+#define mem_set_label(mem) (mem.scale |= 128)
+#define mem_op_prefix(mem) (mem.scale & 64)
+#define mem_set_prefix(mem) (mem.scale |= 64)
+#define mem_get_scale(mem) ((mem.scale & 63))
+
 
 typedef struct {
     OperandType type;
@@ -892,17 +888,22 @@ typedef struct {
 
         char* label;
 
-
-        //TODO PACK THIS STRUCT
         struct {
-            Register base_reg;
-            bool is_label; //determines if the offset is a label or offset 
+            uint8_t rex;
+            uint8_t base; //type reg
+            uint8_t index; //type reg
+
+            //the msb is going to indicate whether the union
+            //is a label or an offset;
+            //1 == label,0 == offset
+            //next bit indicates if we need address size override prefix
+            uint8_t scale;         
+
+            //if value is zero, we aren't using either 
             union{
                 int offset;            
                 char* label;
             };
-            Register index_reg;         
-            uint8_t scale;         
         } mem;
 
 
@@ -914,21 +915,102 @@ typedef struct {
 
 static Operand parse_memory(Parser* p, OperandType mem_type){
     Operand result = {0};
-
-
-    parser_next_token(p);
-    //TODO IMPLEMENT THIS FOR REGISTERS AND OFFSETS 
-    parser_expect_token(p, TOK_IDENTIFIER);
-
+    result.mem.base = REG_MAX;
+    result.mem.index = REG_MAX;
+    result.mem.rex = REX_PREFIX(0, 0, 0, 0);
     result.type = mem_type;
-    result.mem.base_reg = UNUSED_REG;
-    result.mem.index_reg = UNUSED_REG;
-    result.mem.is_label = true;
-    result.mem.label = p->currentToken.literal;
 
-    parser_next_token(p);
-    parser_expect_token(p, TOK_CLOSING_BRACKET);
+    OperandType base_size = OPERAND_NOP;
+    OperandType index_size = OPERAND_NOP;
 
+    Token t = parser_next_token(p);
+
+    while(t.type != TOK_CLOSING_BRACKET){
+        switch (t.type) {
+            case TOK_IDENTIFIER:
+                result.mem.label = p->currentToken.literal;
+                mem_set_label(result.mem);
+                break;
+            case TOK_REG: {
+                    OperandType size = OPERAND_NOP;
+                    uint8_t reg = REG_MAX;
+
+                    if(is_r64(p->currentToken.reg)){
+                        result.mem.rex |= REX_W;
+                        size = OPERAND_R64;
+                        reg = p->currentToken.reg;
+                    } else if(is_r32(p->currentToken.reg)){
+                        size = OPERAND_R32;
+                        reg = p->currentToken.reg - REG_EAX;
+                        mem_set_prefix(result.mem);
+                    } else{
+                        //In 64 bit mode these registers need to be 32 or 64 bit
+                        parser_fatal_error(p, "Invalid Size\n");
+                    }
+ 
+                    if(result.mem.base == REG_MAX){
+                        if(is_extended_reg(reg)){
+                            result.mem.rex |= REX_B;
+                            reg -= REG_R8;
+                        }
+                        base_size = size;
+                        result.mem.base = reg;
+                    } else if(result.mem.index == REG_MAX){
+                        if(is_extended_reg(reg)){
+                            result.mem.rex |= REX_X;
+                            reg -= REG_R8;
+                        }
+                        index_size = size;
+                        result.mem.index = reg;
+                    } else{
+                        parser_fatal_error(p, "Invalid address\n");
+                    } 
+                }
+                break;
+            case TOK_UINT:
+                result.mem.offset = (int)string_to_uint(p->currentToken.literal);
+                break;
+
+            default:
+                parser_fatal_error(p, "Invalid Token: %s\n", token_to_string(t.type));
+        
+        }
+
+        t = parser_next_token(p);
+
+
+        switch (t.type) {
+            case TOK_MULTIPLY:
+                parser_fatal_error(p, "Scale Factor not supported yet\n");
+
+            case TOK_ADD: {
+                    Token next = parser_peek_token(p);
+                    if(next.type == TOK_CLOSING_BRACKET){
+                        parser_fatal_error(p, "Expected Label, Offset, or Register: %s\n", token_to_string(t.type));
+                    }
+
+                }
+                break;
+            case TOK_CLOSING_BRACKET:
+                goto endloop;
+
+            default:
+                parser_fatal_error(p, "Invalid Token: %s\n", token_to_string(t.type)); 
+        }
+
+
+        t = parser_next_token(p);
+
+
+    }
+
+    endloop:
+
+
+    //ensure the registeres are the same size
+    if(base_size != OPERAND_NOP && index_size != OPERAND_NOP && base_size != index_size){ 
+        parser_fatal_error(p, "Invalid: Registers must be the same size\n");
+    }
     
     return result;
 }
@@ -1048,26 +1130,106 @@ static Instruction* find_instruction(uint64_t instr, Operand operand[3]){
 
 
 
+#define MODRM_INDEX 0
+#define SIB_INDEX 1
+#define DISPLACEMENT_SIZE 4
+
+static int modrm_sib_fields(Operand* op, uint8_t *data, char** label){
+    uint8_t ADDRESS_OVERRIDE_PREFIX = 0x67;
+    int size = 1;
+    int32_t offset = (int32_t)op->mem.offset;
+
+    if(mem_is_label(op->mem)){
+        (*label) = op->mem.label;
+        offset = 0;
+    }
+    if(mem_op_prefix(op->mem)) section_add_data(&program.text, &ADDRESS_OVERRIDE_PREFIX, 1);
+
+    if(op->mem.base == REG_MAX && op->mem.index == REG_MAX){
+        //TODO: FIGURE OUT WHEN THE R/M FIELD IS 101  
+        data[MODRM_INDEX] |= 0x4;
+        data[SIB_INDEX] = 0x25;
+        size++;
+        size += DISPLACEMENT_SIZE;  
+        memcpy(data + 2, &offset, DISPLACEMENT_SIZE);
+    } else if (op->mem.base != REG_MAX && op->mem.index == REG_MAX) {
+        //TODO: FIGURE OUT WHEN 8 bit displacements are used 
+        data[MODRM_INDEX] |= op->mem.base;
+        //check if we have an offset
+        if(op->mem.label != 0){
+            // we want a 32 bit displacement
+            data[MODRM_INDEX] += 0x80;
+            size += DISPLACEMENT_SIZE;
+            // the esp register requires a sib byte
+            if(op->mem.base == REG_ESP){
+                data[SIB_INDEX] = 0x24;
+                size++;
+                memcpy(data + 2, &offset, DISPLACEMENT_SIZE);
+            } else{
+                memcpy(data + 1, &offset, DISPLACEMENT_SIZE);
+            }
+        } else{
+            // the esp register requires a sib byte
+            if(op->mem.base == REG_ESP){
+                data[SIB_INDEX] = 0x24; 
+                size += 1 + DISPLACEMENT_SIZE;
+                memcpy(data + 2, &offset, DISPLACEMENT_SIZE);
+            } else if(op->mem.base == REG_EBP){
+                // in this case we have to just do an 8 bit displacement of zeros 
+                data[MODRM_INDEX] |= 1 << 6;
+                size++;
+                uint8_t zero = 0;
+                memcpy(data + 1, &zero, 1);
+            }
+        }
+    } else if (op->mem.base == REG_MAX && op->mem.index != REG_MAX) {
+        //need an sib byte
+        data[MODRM_INDEX] |= 0x4;
+        data[SIB_INDEX] |= op->mem.scale << 6;
+        data[SIB_INDEX] |= op->mem.index << 3;
+        data[SIB_INDEX] |= 0x5;
+        size++;
+        size += DISPLACEMENT_SIZE;
+        //either copy zeros, an offset or zeros for a label
+        memcpy(data + 2, &offset, DISPLACEMENT_SIZE); 
+    } else{
+        //both a base and an index 
+        data[MODRM_INDEX] |= 0x4;
+        data[SIB_INDEX] |= op->mem.scale << 6;
+        data[SIB_INDEX] |= op->mem.index << 3;
+        data[SIB_INDEX] |= op->mem.base;
+        size++;
+
+        if(offset != 0){
+            //SIB PLUS DIS 32
+            data[MODRM_INDEX] |= 1 << 7;
+            memcpy(data+2, &offset, DISPLACEMENT_SIZE);
+            size += DISPLACEMENT_SIZE;
+        }
+    } 
+    
+
+    return size;
+}
+
+
+
 static void emit_instruction(Instruction* instruction, Operand operand[3]){
+
     uint8_t rex = instruction->rex;
 
     uint8_t opcode[4] = {0};
     memcpy(opcode, instruction->bytes, instruction->size);
 
-    uint8_t mod_field = 0;
-    uint8_t sib_field = 0;
-    bool uses_mod_field = false;
-    bool uses_sib_field = false;
 
-    //used for labels (relocatable variables)
-    uint8_t reloca_temp[8] = {0};
-    uint8_t reloca_count = 0;
+    uint8_t modrm_sib[6] = {0};
+    uint8_t modrm_size = 0;
     char* lbl = NULL;
 
     //indicate opcode extension in the reg portion of modrm
     if(instruction->digit != -1){
-       mod_field |= (instruction->digit << 3);
-       uses_mod_field = true;
+        modrm_size = 1;
+        modrm_sib[MODRM_INDEX] |= (instruction->digit << 3);
     }
 
     // Instruction takes no operands
@@ -1086,59 +1248,44 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
         //if we encode both operands in the modrm byte
         else if ((instruction->r & 0x1)) {
             if(is_general_reg(operand[1].type)){
-                uses_mod_field = true;
-                mod_field = MODRM_TABLE[(operand[0].reg.registerIndex * 8 + 0xC0) + operand[1].reg.registerIndex];
+                rex |= operand[1].reg.rex;
+                modrm_size = 1;
+                modrm_sib[MODRM_INDEX] |= 192;
+                modrm_sib[MODRM_INDEX] |=(operand[1].reg.registerIndex << 3);
+                modrm_sib[MODRM_INDEX] |= operand[0].reg.registerIndex; 
             } else{
-               //going to assume its a label for now
-               uses_mod_field = true;
-               mod_field = MODRM_TABLE[(0x4 * 8) + operand[0].reg.registerIndex];
-               sib_field = 0x25;
-               uses_sib_field = true;
-               reloca_count = 4;
-
-               lbl = operand[1].mem.label;
+               rex |= operand[1].mem.rex;
+               modrm_sib[MODRM_INDEX] |= (operand[0].reg.registerIndex << 3);
+               modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl);
             }
         } 
         // if we have an opcode extension but still need to encode data in the modrm
         else {
              //     op ext   reg index
             //11    000      000
-            mod_field |= 0xC0;
-            mod_field |= operand[0].reg.registerIndex; 
+            modrm_sib[MODRM_INDEX] |= 0xC0;
+            modrm_sib[MODRM_INDEX] |= operand[0].reg.registerIndex; 
         }
 
     } else if(is_mem(operand[0].type)){
         if(is_general_reg(operand[1].type)){
             rex |= operand[1].reg.rex;
-            uses_mod_field = true;
-            //ASSUMING WE HAVE AN SIB BYTE
-            mod_field = MODRM_TABLE[(0x4 * 8) + operand[1].reg.registerIndex];
-            sib_field = 0x25;
-            uses_sib_field = true;
+            modrm_size = 1;
+            modrm_sib[MODRM_INDEX] |= operand[1].reg.registerIndex << 3; 
+            modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
 
-
-            //TODO: IT SEEMS LIKE NO MATTER WHAT reloca_count is supposed to be 4
-            reloca_count = 4;
-            lbl = operand[0].mem.label;
         } else if(is_immediate(operand[1].type)){
-            uses_mod_field = true;
-            sib_field = 0x25;
-            uses_sib_field = true;
-            mod_field |= 4;
-            reloca_count = 4;
-            lbl = operand[0].mem.label;
+            modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
         }    
     }
 
 
-    if(rex != 0x40 && rex != 0) section_add_data(&program.text, &rex, 1);
+    if(rex > 0x40) section_add_data(&program.text, &rex, 1);
     section_add_data(&program.text, opcode, instruction->size); 
-    if(uses_mod_field) section_add_data(&program.text, &mod_field, 1);
-    if(uses_sib_field) section_add_data(&program.text, &sib_field, 1);
+    if(modrm_size != 0) section_add_data(&program.text, modrm_sib, modrm_size);
 
-    if(reloca_count != 0){
-        symbol_table_add_instance(lbl, program.text.size);
-        section_add_data(&program.text, &reloca_temp, reloca_count);
+    if(lbl != NULL){
+        symbol_table_add_instance(lbl, program.text.size - DISPLACEMENT_SIZE);
     } 
 
 
@@ -1182,11 +1329,21 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
     //if we have extended registers r8-r15
     //convert them to their respected index  and set the REX prefix accordingly
     if(is_general_reg(op1->type) && is_extended_reg(op1->reg.registerIndex)){
-        op1->reg.rex |= REX_B;
+        //if op2 is a memory address, the first operand goes into  
+        // the reg portion of modrm instead of the r/m portion
+        if(op2->type >= OPERAND_MEM_ANY && op2->type <= OPERAND_M64){
+            op1->reg.rex |= REX_R;
+        } else{
+            op1->reg.rex |= REX_B;
+        }
         op1->reg.registerIndex -= REG_R8;
     }
     if(is_general_reg(op2->type) && is_extended_reg(op2->reg.registerIndex)){
-        op1->reg.rex |= REX_MODRM_REG;
+        if(op1->type >= OPERAND_MEM_ANY && op1->type <= OPERAND_M64 || is_general_reg(op1->type)){
+            op2->reg.rex |= REX_R;
+        } else{
+            op2->reg.rex |= REX_B;
+        }
         op2->reg.registerIndex -= REG_R8;
     }
 
@@ -1196,7 +1353,7 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
             case OPERAND_R64:
                 if(op2->imm64 <= UINT32_MAX){
                     op1->reg.rex = REX_CLEAR_OP_SIZE(op1->reg.rex);
-                    op1->type = OPERAND_R64;
+                    op1->type = OPERAND_R32;
                     op2->type = OPERAND_IMM32;
                     op2->imm32 = (uint32_t)op2->imm64;
                 }
