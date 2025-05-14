@@ -309,7 +309,8 @@ static int bsearch_string_cmp_lower(const void* a, const void* b) {
 static inline void get_literal(FILE* file, int* col){
     while(true){
         char next = peek_char(file);
-        if(!isalnum(next)){
+        //TODO: add more valid labels 
+        if(!isalnum(next) && next != '_'){
             break;
         }
         char c = fgetc(file);
@@ -1250,20 +1251,20 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
     }
 
 
-    // Instruction takes one operand
     if(operand[1].type == OPERAND_NOP){
-        section_add_data(&program.text, opcode, instruction->size); 
-        //assume its a relative address
-        if(operand[0].type == OPERAND_L64){ 
+        // handle call, jmp, jcc instructions
+        if(operand[0].type == OPERAND_L64){
+            section_add_data(&program.text, opcode, instruction->size); 
+            //assume its a relative address
             uint32_t zero = 0;
             //add some temp zeros
             section_add_data(&program.text, &zero, 4);
-            symbol_table_add_instance(operand[0].label, program.text.size, true);
-        } else{
-            program_fatal_error("Single operand instructions with type %s not implemented yet\n", 
-                    operand_to_string(operand[0].type));
+            symbol_table_add_instance(operand[0].label, program.text.size, true); 
+            return;
+        } else if (is_general_reg(operand[0].type) && is_extended_reg(operand[0].reg.registerIndex)) {
+            operand[0].reg.rex |= REX_B;
+            operand[0].reg.registerIndex -= REG_R8; 
         }
-        return;
     }
 
    
@@ -1303,9 +1304,9 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
             modrm_sib[MODRM_INDEX] |= operand[1].reg.registerIndex << 3; 
             modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
 
-        } else if(is_immediate(operand[1].type)){
+        } else if(is_immediate(operand[1].type) || operand[1].type == OPERAND_NOP){
             modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
-        }    
+        }   
     }
 
 
@@ -1448,6 +1449,11 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
                     section_add_data(&program.text,&operand_override_prefix, 1);
                 }
             }
+            return;
+        case OPERAND_M8:
+        case OPERAND_M16:
+        case OPERAND_M32:
+        case OPERAND_M64:
             return;
         default:
             program_fatal_error("Operand Combo not supported yet: %s, %s\n", 
