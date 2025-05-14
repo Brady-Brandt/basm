@@ -600,13 +600,19 @@ noreturn void program_fatal_error(const char* fmt, ...){
 void symbol_table_add(char* name, uint64_t offset, uint8_t section, uint8_t visibility){
     for(int i = 0; i < program.symTable.symbols.size; i++){
         SymbolTableEntry* e = &array_list_get(program.symTable.symbols, SymbolTableEntry, i);
-        if(strcmp(e->name, name) == 0){
+        if(strcmp(e->name, name) == 0 && section != SECTION_UNDEFINED && visibility != VISIBILITY_UNDEFINED){
             //if we come across a label after declaring it global
             if(e->visibility == VISIBILITY_GLOBAL && visibility == VISIBILITY_LOCAL){
                 e->section_offset = offset; 
                 return;
             } else if(e->visibility == VISIBILITY_LOCAL && visibility == VISIBILITY_GLOBAL){
                 e->visibility = VISIBILITY_GLOBAL;
+                return;
+            } else if (e->section == SECTION_UNDEFINED && e->visibility == VISIBILITY_UNDEFINED) {
+                e->visibility = visibility;
+                e->section_offset= offset;
+                e->section = section;
+                return;
             } 
            program_fatal_error("Many definitions of symbol: %s\n", name); 
         }
@@ -632,7 +638,7 @@ void symbol_table_add(char* name, uint64_t offset, uint8_t section, uint8_t visi
 }
 
 //TODO: MAKE IT A MULTIPASS ASSEMBLER
-void symbol_table_add_instance(char* symbol_name, uint32_t offset){
+void symbol_table_add_instance(char* symbol_name, uint32_t offset, bool is_relative){
     for(int i = 0; i < program.symTable.symbols.size; i++){
         SymbolTableEntry* e = &array_list_get(program.symTable.symbols, SymbolTableEntry, i);
 
@@ -641,13 +647,23 @@ void symbol_table_add_instance(char* symbol_name, uint32_t offset){
                 array_list_create_cap(e->instances, SymbolInstance, 2);
             }
 
-            SymbolInstance current_instance = {offset};
+            SymbolInstance current_instance = {offset, is_relative};
             array_list_append(e->instances, SymbolInstance, current_instance); 
             return;
         }
          
     }
-    program_fatal_error("Symbol: %s not defined\n", symbol_name);
+
+    //add the symbol incase we encounter it later
+    SymbolTableEntry e = {0};
+    e.name = symbol_name;
+    e.section_offset = MAX_OFFSET;
+    e.section = SECTION_UNDEFINED;
+    e.visibility = VISIBILITY_UNDEFINED;
+    array_list_create_cap(e.instances, SymbolInstance, 2);
+    SymbolInstance c = {offset, is_relative};
+    array_list_append(e.instances, SymbolInstance, c); 
+    array_list_append(program.symTable.symbols, SymbolTableEntry, e);
 }
 
 
@@ -859,16 +875,6 @@ static void parse_data_section(Parser* p){
     }
 }
 
-typedef struct {
-    uint8_t registerIndex;
-    uint8_t rex;
-} Register;
-
-
-
-#define UNUSED_REG (Register){255,0}
-#define is_using_register(reg) (reg.registerIndex != 255)
-
 
 #define mem_is_label(mem) ((mem.scale & 128))
 #define mem_set_label(mem) (mem.scale |= 128)
@@ -880,7 +886,10 @@ typedef struct {
 typedef struct {
     OperandType type;
     union {
-        Register reg;
+        struct{
+            uint8_t registerIndex;
+            uint8_t rex;
+        } reg;
         uint8_t imm8;
         uint16_t imm16;
         uint32_t imm32;
@@ -1101,6 +1110,8 @@ static bool check_operand_type(OperandType table_instr, OperandType input_instr)
 
     if(table_instr == OPERAND_M && input_instr >= OPERAND_MEM_ANY && input_instr <= OPERAND_M64) return true;
 
+    if(table_instr == OPERAND_REL32 && input_instr == OPERAND_L64) return true;
+
 
     return false;
 }
@@ -1238,6 +1249,23 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
         return;
     }
 
+
+    // Instruction takes one operand
+    if(operand[1].type == OPERAND_NOP){
+        section_add_data(&program.text, opcode, instruction->size); 
+        //assume its a relative address
+        if(operand[0].type == OPERAND_L64){ 
+            uint32_t zero = 0;
+            //add some temp zeros
+            section_add_data(&program.text, &zero, 4);
+            symbol_table_add_instance(operand[0].label, program.text.size, true);
+        } else{
+            program_fatal_error("Single operand instructions with type %s not implemented yet\n", 
+                    operand_to_string(operand[0].type));
+        }
+        return;
+    }
+
    
     if(is_general_reg(operand[0].type)){
         rex |= operand[0].reg.rex;
@@ -1268,6 +1296,7 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
         }
 
     } else if(is_mem(operand[0].type)){
+        rex |= operand[0].mem.rex;
         if(is_general_reg(operand[1].type)){
             rex |= operand[1].reg.rex;
             modrm_size = 1;
@@ -1285,7 +1314,7 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
     if(modrm_size != 0) section_add_data(&program.text, modrm_sib, modrm_size);
 
     if(lbl != NULL){
-        symbol_table_add_instance(lbl, program.text.size - DISPLACEMENT_SIZE);
+        symbol_table_add_instance(lbl, program.text.size - DISPLACEMENT_SIZE, false);
     } 
 
 
@@ -1568,8 +1597,29 @@ void assemble_program(MachineType arch, const char* file){
     }
 
    ArrayList tokens = tokenize_file(f); 
-
    parse_tokens(f, &tokens);
+
+   for(int i = 0; i < program.symTable.symbols.size; i++){
+       SymbolTableEntry* e = &array_list_get(program.symTable.symbols, SymbolTableEntry, i);
+       if(e->section == SECTION_UNDEFINED && e->visibility == VISIBILITY_UNDEFINED){
+           program_fatal_error("Symbol %s used but never defined\n", e->name);
+       }
+       for(int j = 0; j < e->instances.size; j++){
+           SymbolInstance* instance =  &array_list_get(e->instances, SymbolInstance, j);
+
+           //NOTE WE ONLY ALLOW USING SYMBOLS 
+           //IN THE TEXT SECTION FOR NOW 
+           if(instance->is_relative){
+                //assume size of 4   
+                uint64_t next_instruction = instance->offset;
+                uint64_t rip_addr = e->section_offset;
+                //not sure if this is supposed to be signed or unsigned
+                int32_t rel_addr = (int32_t)(rip_addr - next_instruction);
+                memcpy(&program.text.data[instance->offset - 4], &rel_addr, 4);
+           }
+
+       }
+   }
 
    write_elf(file, "btest.o", &program);
     

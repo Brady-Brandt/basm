@@ -98,6 +98,7 @@ typedef struct {
 typedef enum{
     RELOC_64 = 1,
     RELOC_PC32 = 2,
+    RELOC_32 = 10, 
     RELOC_32S = 11, 
 } ElfRelocationTypes;
 
@@ -196,11 +197,17 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     //a text reloca section
     for(int i = 0; i < p->symTable.symbols.size; i++){
         SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
-        if(e.instances.data != NULL){
-            has_text_reloca = true;
-            num_text_reloca_entries += e.instances.size;
-        }
 
+        for(int j = 0; j < e.instances.size; j++){
+            SymbolInstance instance = array_list_get(e.instances, SymbolInstance, j);
+            //skip over the relative instances
+            if(!instance.is_relative){
+                has_text_reloca = true;
+                num_text_reloca_entries++;
+            }
+
+
+        }
     }
 
     head.section_header_entries += (int)has_text_reloca;
@@ -483,15 +490,17 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
 
         for(int i = 0; i < p->symTable.symbols.size; i++){
             SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
-            for(int i = 0; i < e.instances.size; i++){
-                SymbolInstance instance = array_list_get(e.instances, SymbolInstance, i);
+            for(int j = 0; j < e.instances.size; j++){
+                SymbolInstance instance = array_list_get(e.instances, SymbolInstance, j);
+
+                if(instance.is_relative) continue;
 
                 ElfRelocatableEntry reloc_e = {0};
 
                 //assume 32 for now 
                 reloc_e.offset = instance.offset;
                 reloc_e.addend = e.section_offset;
-                reloc_e.info = ((uint64_t)(e.section + 1) << 32)| RELOC_32S;
+                reloc_e.info = ((uint64_t)(e.section + 1) << 32)| RELOC_32;
                 fwrite(&reloc_e, sizeof(reloc_e), 1, output_stream);
             }
         }

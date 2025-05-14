@@ -68,14 +68,21 @@ char* scratch_buffer_as_str();
 #define SECTION_DATA 2 
 #define SECTION_BSS 3 
 
+#define SECTION_UNDEFINED 255
+
 #define VISIBILITY_LOCAL 0
 #define VISIBILITY_GLOBAL 1
+
+#define VISIBILITY_UNDEFINED 255
+
+#define MAX_OFFSET 18446744073709551615ULL
 
 
 
 //SYMBOLS ARE ONLY VALID IN THE TEXT SECTION FOR NOW 
 typedef struct {
     uint64_t offset; 
+    bool is_relative;
 }SymbolInstance;
 
 
