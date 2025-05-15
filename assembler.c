@@ -994,6 +994,8 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
     OperandType base_size = OPERAND_NOP;
     OperandType index_size = OPERAND_NOP;
 
+    bool check_scale = false;
+
     Token t = parser_next_token(p);
 
     while(t.type != TOK_CLOSING_BRACKET){
@@ -1020,7 +1022,7 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
                         parser_fatal_error(p, "Invalid Size\n");
                     }
  
-                    if(result.mem.base == REG_MAX){
+                    if(result.mem.base == REG_MAX && parser_peek_token(p).type != TOK_MULTIPLY){
                         if(is_extended_reg(reg)){
                             result.mem.rex |= REX_B;
                             reg -= REG_R8;
@@ -1039,10 +1041,29 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
                     } 
                 }
                 break;
-            case TOK_UINT:
-                result.mem.offset = (int)string_to_uint(p->currentToken.literal);
+            case TOK_UINT:{
+                int temp = (int)string_to_uint(p->currentToken.literal);
+                if(check_scale){
+                    switch (temp) {
+                        case 1:
+                            break;
+                        case 2:
+                            result.mem.scale |= 1; 
+                            break;
+                        case 4:
+                            result.mem.scale |= 2;
+                            break;
+                        case 8:
+                            result.mem.scale |= 3;
+                            break;
+                        default:
+                            parser_fatal_error(p, "Invalid Scale Factor: %i\n", temp);
+                    } 
+                } else{
+                    result.mem.offset = temp; 
+                }
                 break;
-
+            }
             default:
                 parser_fatal_error(p, "Invalid Token: %s\n", token_to_string(t.type));
         
@@ -1052,9 +1073,14 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
 
 
         switch (t.type) {
-            case TOK_MULTIPLY:
-                parser_fatal_error(p, "Scale Factor not supported yet\n");
-
+            case TOK_MULTIPLY:{
+                Token next = parser_peek_token(p); 
+                if(next.type != TOK_UINT || check_scale == true){ 
+                    parser_fatal_error(p, "Invalid Address\n");
+                }
+                check_scale = true;
+            }
+            break;
             case TOK_ADD: {
                     Token next = parser_peek_token(p);
                     if(next.type == TOK_CLOSING_BRACKET){
@@ -1084,26 +1110,6 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
         parser_fatal_error(p, "Invalid: Registers must be the same size\n");
     }
 
-
-    struct {
-            uint8_t rex;
-            uint8_t base; //type reg
-            uint8_t index; //type reg
-
-            //the msb is going to indicate whether the union
-            //is a label or an offset;
-            //1 == label,0 == offset
-            //next bit indicates if we need address size override prefix
-            uint8_t scale;         
-
-            //if value is zero, we aren't using either 
-            union{
-                int offset;            
-                char* label;
-            };
-        } mem;
-
-    
     return result;
 }
 
@@ -1294,7 +1300,7 @@ static int modrm_sib_fields(Operand* op, uint8_t *data, char** label){
         data[SIB_INDEX] |= op->mem.base;
         size++;
 
-        if(offset != 0){
+        if(op->mem.offset != 0){
             //SIB PLUS DIS 32
             data[MODRM_INDEX] |= 1 << 7;
             memcpy(data+2, &offset, DISPLACEMENT_SIZE);
