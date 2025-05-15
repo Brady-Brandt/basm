@@ -425,18 +425,55 @@ static void get_string(FILE* file, uint32_t line, int col){
         if(next == '\"'){
             fgetc(file);
             scratch_buffer_append_char(0);
-            break;
+            return;
         }
 
         if(next == '\n'){
             fprintf(stderr, "Error: String doesn't close\nLine %d, Col %d\n", line, col);
-            fprintf(stderr, "%s\n", file_get_line(file, line));
-            fprintf(stderr,"%*s\n", col, "^");
-            exit(EXIT_FAILURE);
+            goto error;
         }
         char c = fgetc(file);
-        scratch_buffer_append_char(c); 
+        if(c == '\\'){
+            c = fgetc(file);
+            switch (c) {
+                case 'b':
+                    scratch_buffer_append_char(8); 
+                    break;
+                case 't':
+                    scratch_buffer_append_char(9); 
+                    break;
+                case 'n':
+                    scratch_buffer_append_char(10); 
+                    break;
+                case 'f':
+                    scratch_buffer_append_char(12); 
+                    break;
+                case 'r':
+                    scratch_buffer_append_char(13); 
+                    break;
+                case '\"':
+                    scratch_buffer_append_char(34); 
+                    break;
+                case '\'':
+                    scratch_buffer_append_char(39); 
+                    break;
+                case '\\':
+                    scratch_buffer_append_char(92); 
+                    break;
+                default:
+                    fprintf(stderr, "Error: Invalid Escape Sequence\nLine %d, Col %d\n", line, col); 
+                    goto error;
+            }  
+        } else{
+            scratch_buffer_append_char(c); 
+        }
     }
+
+error:
+    fprintf(stderr, "%s\n", file_get_line(file, line));
+    fprintf(stderr,"%*s\n", col, "^");
+    exit(EXIT_FAILURE);
+
 }
 
 
