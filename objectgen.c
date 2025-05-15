@@ -177,7 +177,6 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     int string_table_index = 2;
 
 
-    //TODO: .text reloca
     //section names table, linker symbol table, string table, .text section, plus null header
     head.section_header_entries = 5;
     if(p->bss.size > 0) {
@@ -288,7 +287,6 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     }
 
 
-    //TODO ADD RELOCATABLE ENTRIES
     ElfSectionHeader section_st = {0};
     section_st.type = ELF_SECTION_STRING_TABLE; 
     section_st.name = scratch_buffer_offset();
@@ -460,7 +458,8 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     //write data entry 
     if(p->bss.size > 0){
         ElfSymbolEntry b = {0};
-        b.section_index = 2;
+        //if there is a data section it goes right after it 
+        b.section_index = (data_offset != 0) ? 3 : 2;
         b.info = SB_SECTION + SB_LOCAL;
         fwrite(&b, sizeof(b), 1, output_stream);
     }
