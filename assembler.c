@@ -219,6 +219,11 @@ typedef enum {
 #define is_relative(x) (x >= OPERAND_REL8 && x <= OPERAND_REL32)
 
 
+#define is_int32(n) ((int64_t)n <= INT32_MAX && (int64_t)n >= INT32_MIN)
+#define is_int16(n) ((int64_t)n <= INT16_MAX && (int64_t)n >= INT16_MIN)
+#define is_int8(n) ((int64_t)n <= INT8_MAX && (int64_t)n >= INT8_MIN)
+
+
 typedef struct {
     TokenType type;
     union{
@@ -852,18 +857,26 @@ static inline void section_add_data(Section* section, void* data, size_t size){
 
 
 
-static inline uint64_t string_to_uint(char* string){
+static inline uint64_t string_to_int(char* string, TokenType sign){
     int base = 10;
 
     //check for hexadecimal
-    char* temp = strcasestr(string, "0x");
-    if(temp != NULL && temp == string){
-        base = 16;
+    int size = strlen(string);
+    if(size > 2){
+        if(string[0] == '0' && string[1] == 'x'){
+            base = 16;
+
+        } 
+        else if (size > 3 && string[0] == '-' && string[1] == '0' && string[2] == 'x') {
+            base = 16; 
+        }
     }
+
+    if(sign == TOK_INT){
+        return strtoll(string, NULL, base);
+    }     
     return strtoull(string, NULL, base);
 }
-
-
 
 
 //TODO: ALLOW PSUEDOINSTRUCTIONS WITHOUT LABELS 
@@ -902,7 +915,7 @@ static void parse_bss_section(Parser* p){
         }
         parser_next_token(p); 
         parser_expect_token(p, TOK_UINT);
-        program.bss.size += num * string_to_uint(p->currentToken.literal); 
+        program.bss.size += num * string_to_int(p->currentToken.literal, TOK_UINT); 
         parser_next_token(p);
         parser_expect_consume_token(p, TOK_NEW_LINE);
 
@@ -934,31 +947,52 @@ static void parse_data_section(Parser* p){
 
         do{
             parser_next_token(p);
-            if(p->currentToken.type == TOK_UINT){
+            if(p->currentToken.type == TOK_UINT || p->currentToken.type == TOK_INT){
                 switch (psuedo_instr) {
                     case TOK_DB: {
-                        uint64_t num = string_to_uint(p->currentToken.literal);
-                        if(num > UINT8_MAX) parser_fatal_error(p, "Invalid Size: %ld\n", num);
-                        uint8_t temp = (uint8_t)num;
+                        uint8_t temp = 0;
+                        if(p->currentToken.type == TOK_UINT){
+                            uint64_t num = string_to_int(p->currentToken.literal, TOK_UINT);
+                            if(num > UINT8_MAX) parser_fatal_error(p, "Invalid Size: %ld\n", num);
+                            temp = num;
+                        } else{
+                            int64_t num = (int64_t)string_to_int(p->currentToken.literal, TOK_INT);
+                            if(!is_int8(num)) parser_fatal_error(p, "Invalid Size: %ld\n", num);
+                            temp = num;
+                        }
                         section_add_data(&program.data,&temp, 1);
                         break;
                     }
                     case TOK_DW: {
-                        uint64_t num = (uint64_t)string_to_uint(p->currentToken.literal);
-                        if(num > UINT16_MAX) parser_fatal_error(p, "Invalid Size: %ld\n", num);
-                        uint16_t temp = (uint16_t)num;
+                        uint16_t temp = 0;
+                        if(p->currentToken.type == TOK_UINT){
+                            uint64_t num = string_to_int(p->currentToken.literal, TOK_UINT);
+                            if(num > UINT16_MAX) parser_fatal_error(p, "Invalid Size: %ld\n", num);
+                            temp = num;
+                        } else{
+                            int64_t num = (int64_t)string_to_int(p->currentToken.literal, TOK_INT);
+                            if(!is_int16(num)) parser_fatal_error(p, "Invalid Size: %ld\n", num);
+                            temp = num;
+                        }
                         section_add_data(&program.data,&temp, 2);
                         break;
                     }
                     case TOK_DD: {
-                        uint64_t num = (uint64_t)string_to_uint(p->currentToken.literal);
-                        if(num > UINT32_MAX) parser_fatal_error(p, "Invalid Size: %ld\n", num);
-                        uint32_t temp = (uint32_t)num;
+                        uint32_t temp = 0;
+                        if(p->currentToken.type == TOK_UINT){
+                            uint64_t num = string_to_int(p->currentToken.literal, TOK_UINT);
+                            if(num > UINT32_MAX) parser_fatal_error(p, "Invalid Size: %ld\n", num);
+                            temp = num;
+                        } else{
+                            int64_t num = (int64_t)string_to_int(p->currentToken.literal, TOK_INT);
+                            if(!is_int32(num)) parser_fatal_error(p, "Invalid Size: %ld\n", num);
+                            temp = num;
+                        }
                         section_add_data(&program.data,&temp, 4);
                         break;
                     }
                     case TOK_DQ: {
-                        uint64_t num = (uint64_t)string_to_uint(p->currentToken.literal);
+                        uint64_t num = string_to_int(p->currentToken.literal, p->currentToken.type);
                         section_add_data(&program.data,&num, 8);
                         break;
                     }
@@ -1082,7 +1116,7 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
                 }
                 break;
             case TOK_UINT:{
-                int temp = (int)string_to_uint(p->currentToken.literal);
+                int temp = (int)string_to_int(p->currentToken.literal, TOK_UINT);
                 if(check_scale){
                     switch (temp) {
                         case 1:
@@ -1183,8 +1217,13 @@ static Operand parse_operand(Parser* p){
         }
 
         case TOK_UINT:
-            result.imm64 = string_to_uint(p->currentToken.literal);
+            result.imm64 = string_to_int(p->currentToken.literal, TOK_UINT);
             result.type = OPERAND_IMM64;
+            return result;
+
+        case TOK_INT:
+            result.imm64 = string_to_int(p->currentToken.literal, TOK_INT);
+            result.type = OPERAND_SIGNED;
             return result;
 
         case TOK_IDENTIFIER: 
@@ -1506,38 +1545,48 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
     }
 
 
-    if(op2->type == OPERAND_IMM64){
+    if(op2->type == OPERAND_IMM64 || op2->type == OPERAND_SIGNED){
         switch (op1->type) {
             case OPERAND_R64:
-                if(op2->imm64 <= UINT32_MAX){
+                if(op2->type == OPERAND_IMM64 && op2->imm64 <= UINT32_MAX){
                     op1->reg.rex = REX_CLEAR_OP_SIZE(op1->reg.rex);
                     op1->type = OPERAND_R32;
                     op2->type = OPERAND_IMM32;
                     op2->imm32 = (uint32_t)op2->imm64;
+                } else if (op2->type == OPERAND_SIGNED) { 
+                    op1->reg.rex = REX_CLEAR_OP_SIZE(op1->reg.rex);
+                    op2->type = OPERAND_IMM64;
                 }
                 break;
             case OPERAND_M64:
-                if(!(op2->imm64 <= UINT32_MAX))program_fatal_error("Invalid Operand Size\n"); 
-                op2->type = OPERAND_IMM32;
-                op2->imm32 = (uint32_t)op2->imm64;
-                break;
-
             case OPERAND_R32:
             case OPERAND_M32:
-                if(!(op2->imm64 <= UINT32_MAX)) program_fatal_error("Invalid Operand Size\n");
+                if(op2->type == OPERAND_SIGNED){
+                    if(!is_int32(op2->imm64)) program_fatal_error("Invalid Operand Size\n"); 
+                } else{
+                    if(!(op2->imm64 <= UINT32_MAX))program_fatal_error("Invalid Operand Size\n"); 
+                }
                 op2->type = OPERAND_IMM32;
                 op2->imm32 = (uint32_t)op2->imm64;
                 break;
             case OPERAND_M16:
             case OPERAND_R16:
-                if(!(op2->imm64 <= UINT16_MAX)) program_fatal_error("Invalid Operand Size\n");
+                if(op2->type == OPERAND_SIGNED){
+                    if(!is_int16(op2->imm64)) program_fatal_error("Invalid Operand Size\n"); 
+                } else{
+                    if(!(op2->imm64 <= UINT16_MAX))program_fatal_error("Invalid Operand Size\n"); 
+                }
                 section_add_data(&program.text,&operand_override_prefix, 1);
                 op2->type = OPERAND_IMM16;
                 op2->imm16 = (uint16_t)op2->imm64;
                 break;
             case OPERAND_M8:
             case OPERAND_R8:
-                if(!(op2->imm64 <= UINT8_MAX)) program_fatal_error("Invalid Operand size\n");
+                if(op2->type == OPERAND_SIGNED){
+                    if(!is_int8(op2->imm64)) program_fatal_error("Invalid Operand Size\n"); 
+                } else{
+                    if(!(op2->imm64 <= UINT8_MAX))program_fatal_error("Invalid Operand Size\n"); 
+                }
                 op2->type = OPERAND_IMM8;
                 op2->imm8 = (uint8_t)op2->imm64;
                 break;

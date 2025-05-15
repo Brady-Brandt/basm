@@ -319,6 +319,8 @@ operand_types["imm16" ] =  iota()
 operand_types["imm32" ] =  iota()
 operand_types["imm64" ] =  iota()
 
+operand_types["signed"] = iota()
+
 #represent labels
 operand_types["l8" ] =  iota()
 operand_types["l16" ] =  iota()
@@ -541,20 +543,4 @@ with open("instructions.dat", "r") as f:
     for index in instr_variant_lookup:
         nmemonic_file.write(f"{index},\n")
 
-    nmemonic_file.write("};\n")
-
-
-
-    nmemonic_file.write("static const uint8_t MODRM_TABLE[256] = {\n")
-    for k in range(4):
-        for i in range(k*0x40, k*0x40 + 8):
-            for j in range(8):
-                nmemonic_file.write(f"0x{(i + (j * 8)):02x}, ")
-            nmemonic_file.write("\n")
-
-
-    nmemonic_file.write("};\n")
-
-
-
-            
+    nmemonic_file.write("};\n")       
