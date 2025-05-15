@@ -71,6 +71,7 @@ typedef enum {
     TOK_NEW_LINE,
 
     TOK_GLOBAL,
+    TOK_EXTERN,
     TOK_SECTION,
     TOK_TEXT,
     TOK_DATA,
@@ -243,6 +244,7 @@ const char* token_to_string(TokenType type) {
         case TOK_STRING: return "TOK_STRING";
         case TOK_IDENTIFIER: return "TOK_IDENTIFIER";
         case TOK_GLOBAL: return "TOK_GLOBAL";
+        case TOK_EXTERN: return "TOK_EXTERN";
         case TOK_RESB: return "TOK_RESB";
         case TOK_RESW:return "TOK_RESW";
         case TOK_RESD:return "TOK_RESD";
@@ -366,6 +368,7 @@ static Token id_or_kw(FILE* file, int* col){
     
     if(string_cmp_lower("section", str) == 0) return (Token){TOK_SECTION, 0,0,0};
     if(string_cmp_lower("global", str) == 0) return (Token){TOK_GLOBAL, 0,0,0};
+    if(string_cmp_lower("extern", str) == 0) return (Token){TOK_EXTERN, 0,0,0};
     if(string_cmp_lower(".bss", str) == 0) return (Token){TOK_BSS, 0,0,0};
     if(string_cmp_lower(".data", str) == 0) return (Token){TOK_DATA, 0,0,0};
     if(string_cmp_lower(".text", str) == 0) return (Token){TOK_TEXT, 0,0,0};
@@ -1568,13 +1571,14 @@ static void parse_text_section(Parser* p){
         parser_consume_newlines(p);
         if(p->currentToken.type == TOK_SECTION) break;
 
-        if(p->currentToken.type == TOK_GLOBAL){
+        if(p->currentToken.type == TOK_GLOBAL || p->currentToken.type == TOK_EXTERN){
+            int section = (p->currentToken.type == TOK_GLOBAL) ? SECTION_TEXT : SECTION_EXTERN;
             parser_next_token(p);
             parser_expect_token(p, TOK_IDENTIFIER);
 
             Token id = p->currentToken;
             //TODO: ALLOW MANY GLOBAL DECLARATIONS AT ONCE
-            symbol_table_add(id.literal, 0, SECTION_TEXT, VISIBILITY_GLOBAL);
+            symbol_table_add(id.literal, 0, section, VISIBILITY_GLOBAL);
             parser_next_token(p);
             parser_expect_consume_token(p, TOK_NEW_LINE);
         }
@@ -1698,12 +1702,19 @@ void assemble_program(MachineType arch, const char* file){
        if(e->section == SECTION_UNDEFINED && e->visibility == VISIBILITY_UNDEFINED){
            program_fatal_error("Symbol %s used but never defined\n", e->name);
        }
+
        for(int j = 0; j < e->instances.size; j++){
            SymbolInstance* instance =  &array_list_get(e->instances, SymbolInstance, j);
 
            //NOTE WE ONLY ALLOW USING SYMBOLS 
            //IN THE TEXT SECTION FOR NOW 
            if(instance->is_relative){
+                //want the linker to handle relocation
+               if(e->section == SECTION_EXTERN){
+                    instance->is_relative = false;
+                    instance->offset -= 4;
+                    continue;
+               } 
                 //assume size of 4   
                 uint64_t next_instruction = instance->offset;
                 uint64_t rip_addr = e->section_offset;

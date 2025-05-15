@@ -487,6 +487,14 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     if(has_text_reloca){
         fwrite(padding,1, text_reloca_padding, output_stream);
 
+        //for pc relative symbols 
+        //there index into the elf symbol table 
+        //will be calculated using our symbol table index 
+        //plus all the entries that come before our symbols (null, text, file, bss, etc)
+        int pc_sym_index = 3;
+        if(data_offset != 0) pc_sym_index++;
+        if(p->bss.size > 0) pc_sym_index++;
+
         for(int i = 0; i < p->symTable.symbols.size; i++){
             SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
             for(int j = 0; j < e.instances.size; j++){
@@ -496,10 +504,17 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
 
                 ElfRelocatableEntry reloc_e = {0};
 
-                //assume 32 for now 
-                reloc_e.offset = instance.offset;
-                reloc_e.addend = e.section_offset;
-                reloc_e.info = ((uint64_t)(e.section + 1) << 32)| RELOC_32;
+                if(e.section == SECTION_EXTERN){
+                    reloc_e.offset = instance.offset;
+                    //still not sure exactly why its this
+                    reloc_e.addend = -4;
+                    reloc_e.info = ((uint64_t)(pc_sym_index + i) << 32)| RELOC_PC32;
+                } else{
+                    //assume 32 for now 
+                    reloc_e.offset = instance.offset;
+                    reloc_e.addend = e.section_offset;
+                    reloc_e.info = ((uint64_t)(e.section + 1) << 32)| RELOC_32;
+                }
                 fwrite(&reloc_e, sizeof(reloc_e), 1, output_stream);
             }
         }

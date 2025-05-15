@@ -63,7 +63,7 @@ void* scratch_buffer_get_data(uint32_t offset);
 
 char* scratch_buffer_as_str();
 
-
+#define SECTION_EXTERN 0
 #define SECTION_TEXT 1 
 #define SECTION_DATA 2 
 #define SECTION_BSS 3 
