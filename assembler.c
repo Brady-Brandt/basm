@@ -3,7 +3,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <ctype.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -77,7 +76,13 @@ typedef enum {
     TOK_DATA,
     TOK_BSS,
     TOK_RESB,
+    TOK_RESW,
+    TOK_RESD,
+    TOK_RESQ,
     TOK_DB,
+    TOK_DW,
+    TOK_DD,
+    TOK_DQ,
 
     TOK_BYTE,
     TOK_WORD, 
@@ -239,7 +244,13 @@ const char* token_to_string(TokenType type) {
         case TOK_IDENTIFIER: return "TOK_IDENTIFIER";
         case TOK_GLOBAL: return "TOK_GLOBAL";
         case TOK_RESB: return "TOK_RESB";
+        case TOK_RESW:return "TOK_RESW";
+        case TOK_RESD:return "TOK_RESD";
+        case TOK_RESQ:return "TOK_RESQ";
         case TOK_DB: return "TOK_DB";
+        case TOK_DW: return "TOK_DW";
+        case TOK_DD: return "TOK_DD";
+        case TOK_DQ: return "TOK_DQ";
         case TOK_BYTE: return "TOK_BYTE";
         case TOK_WORD: return "TOK_WORD";
         case TOK_DWORD: return "TOK_DWORD";
@@ -354,16 +365,22 @@ static Token id_or_kw(FILE* file, int* col){
 
     
     if(string_cmp_lower("section", str) == 0) return (Token){TOK_SECTION, 0,0,0};
-    if(string_cmp_lower("resb", str) == 0) return (Token){TOK_RESB, 0,0,0};
     if(string_cmp_lower("global", str) == 0) return (Token){TOK_GLOBAL, 0,0,0};
     if(string_cmp_lower(".bss", str) == 0) return (Token){TOK_BSS, 0,0,0};
     if(string_cmp_lower(".data", str) == 0) return (Token){TOK_DATA, 0,0,0};
     if(string_cmp_lower(".text", str) == 0) return (Token){TOK_TEXT, 0,0,0};
     if(string_cmp_lower("db", str) == 0) return (Token){TOK_DB, 0,0,0};
+    if(string_cmp_lower("dw", str) == 0) return (Token){TOK_DW, 0,0,0};
+    if(string_cmp_lower("dd", str) == 0) return (Token){TOK_DD, 0,0,0};
+    if(string_cmp_lower("dq", str) == 0) return (Token){TOK_DQ, 0,0,0};
     if(string_cmp_lower("byte", str) == 0) return (Token){TOK_BYTE, 0,0,0};
     if(string_cmp_lower("word", str) == 0) return (Token){TOK_WORD, 0,0,0};
     if(string_cmp_lower("dword", str) == 0) return (Token){TOK_DWORD, 0,0,0};
     if(string_cmp_lower("qword", str) == 0) return (Token){TOK_QWORD, 0,0,0};
+    if(string_cmp_lower("resb", str) == 0) return (Token){TOK_RESB, 0,0,0};
+    if(string_cmp_lower("resw", str) == 0) return (Token){TOK_RESW, 0,0,0};
+    if(string_cmp_lower("resd", str) == 0) return (Token){TOK_RESD, 0,0,0};
+    if(string_cmp_lower("resq", str) == 0) return (Token){TOK_RESQ, 0,0,0};
 
    
     return (Token){TOK_IDENTIFIER, 0,0, 0};
@@ -514,15 +531,18 @@ static ArrayList tokenize_file(FILE* file){
 
                 }else if(isdigit(c)){
                     token.type = TOK_UINT;
+                    col++;
                     scratch_buffer_append_char(c);
                     get_literal(file, &col); 
                 }else if(c == '-'){
+                    col++;
                     scratch_buffer_append_char(c);
                     token.type = TOK_INT;
                     get_literal(file, &col); 
                 }
                 else{
                     //unkown token
+                    col++;
                     printf("%c\n", c);
                     token.type = TOK_MAX;
                 }
@@ -547,7 +567,6 @@ static ArrayList tokenize_file(FILE* file){
     }
 
  
-
     /* 
     for(int i = 0; i < tokens.size; i++){
         Token t = array_list_get(tokens, Token, i);
@@ -563,9 +582,10 @@ static ArrayList tokenize_file(FILE* file){
         }
 
     }
+    */
     
     
-    */ 
+    
     
     
    
@@ -725,6 +745,8 @@ static void parser_expect_token(Parser *p, TokenType expected){
     }
 }
 
+
+
 static inline void parser_expect_consume_token(Parser *p, TokenType expected){
     parser_expect_token(p, expected);
     parser_next_token(p);
@@ -819,22 +841,33 @@ static void parse_bss_section(Parser* p){
 
         symbol_table_add(id.literal, program.bss.size, SECTION_BSS, VISIBILITY_LOCAL);
 
+        int num = 1;
         switch (p->currentToken.type) {
             case TOK_RESB:
-                parser_next_token(p); 
-                parser_expect_token(p, TOK_UINT);
-                program.bss.size += string_to_uint(p->currentToken.literal); 
-                parser_next_token(p);
-                parser_expect_consume_token(p, TOK_NEW_LINE);
+                num = 1; 
+                break;
+            case TOK_RESW:
+                num = 2;
+                break;
+            case TOK_RESD:
+                num = 4;
+                break;
+            case TOK_RESQ:
+                num = 8;
                 break;
             default:
                 parser_fatal_error(p, "Invalid bss section instruction\n");
 
 
         }
+        parser_next_token(p); 
+        parser_expect_token(p, TOK_UINT);
+        program.bss.size += num * string_to_uint(p->currentToken.literal); 
+        parser_next_token(p);
+        parser_expect_consume_token(p, TOK_NEW_LINE);
+
     } 
 }
-
 
 
 
@@ -852,27 +885,55 @@ static void parse_data_section(Parser* p){
 
         symbol_table_add(id.literal, program.data.size, SECTION_DATA, VISIBILITY_LOCAL);
 
-        switch (p->currentToken.type) {
-            case TOK_DB:
-                parser_next_token(p); 
 
-                if(p->currentToken.type == TOK_UINT){
-                    uint8_t num = string_to_uint(p->currentToken.literal);
-                    section_add_data(&program.data,&num, 1);
-                } else if(p->currentToken.type == TOK_STRING){
-                    section_add_data(&program.data, p->currentToken.literal, strlen(p->currentToken.literal) + 1);
-                } else{
-                    parser_fatal_error(p, "Invalid for operand\n");
-                }
-
-                parser_next_token(p);
-                parser_expect_consume_token(p, TOK_NEW_LINE);
-                break;
-            default:
-                parser_fatal_error(p, "Invalid data section instruction\n");
-
-
+        if(!match(p, TOK_DB, TOK_DW, TOK_DD, TOK_DQ)){
+            parser_fatal_error(p, "Invalid Data Section Instruction\n");
         }
+
+        TokenType psuedo_instr = p->currentToken.type;
+
+        do{
+            parser_next_token(p);
+            if(p->currentToken.type == TOK_UINT){
+                switch (psuedo_instr) {
+                    case TOK_DB: {
+                        uint64_t num = string_to_uint(p->currentToken.literal);
+                        if(num > UINT8_MAX) parser_fatal_error(p, "Invalid Size: %ld\n", num);
+                        uint8_t temp = (uint8_t)num;
+                        section_add_data(&program.data,&temp, 1);
+                        break;
+                    }
+                    case TOK_DW: {
+                        uint64_t num = (uint64_t)string_to_uint(p->currentToken.literal);
+                        if(num > UINT16_MAX) parser_fatal_error(p, "Invalid Size: %ld\n", num);
+                        uint16_t temp = (uint16_t)num;
+                        section_add_data(&program.data,&temp, 2);
+                        break;
+                    }
+                    case TOK_DD: {
+                        uint64_t num = (uint64_t)string_to_uint(p->currentToken.literal);
+                        if(num > UINT32_MAX) parser_fatal_error(p, "Invalid Size: %ld\n", num);
+                        uint32_t temp = (uint32_t)num;
+                        section_add_data(&program.data,&temp, 4);
+                        break;
+                    }
+                    case TOK_DQ: {
+                        uint64_t num = (uint64_t)string_to_uint(p->currentToken.literal);
+                        section_add_data(&program.data,&num, 8);
+                        break;
+                    }
+                    default:
+                        parser_fatal_error(p, "Unreachable"); 
+                }
+            } else if(p->currentToken.type == TOK_STRING){
+                if(psuedo_instr != TOK_DB) parser_fatal_error(p, "Only byte size strings are allowed\n");
+                section_add_data(&program.data, p->currentToken.literal, strlen(p->currentToken.literal) + 1);
+            } else{
+                parser_fatal_error(p, "Invalid for operand\n");
+            } 
+
+            parser_next_token(p);
+        } while(p->currentToken.type == TOK_COMMA);
     }
 }
 
@@ -939,6 +1000,7 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
         switch (t.type) {
             case TOK_IDENTIFIER:
                 result.mem.label = p->currentToken.literal;
+                //TODO ALLOW BOTH LABEL AND INTEGER OFFSET 
                 mem_set_label(result.mem);
                 break;
             case TOK_REG: {
@@ -1021,6 +1083,26 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
     if(base_size != OPERAND_NOP && index_size != OPERAND_NOP && base_size != index_size){ 
         parser_fatal_error(p, "Invalid: Registers must be the same size\n");
     }
+
+
+    struct {
+            uint8_t rex;
+            uint8_t base; //type reg
+            uint8_t index; //type reg
+
+            //the msb is going to indicate whether the union
+            //is a label or an offset;
+            //1 == label,0 == offset
+            //next bit indicates if we need address size override prefix
+            uint8_t scale;         
+
+            //if value is zero, we aren't using either 
+            union{
+                int offset;            
+                char* label;
+            };
+        } mem;
+
     
     return result;
 }
