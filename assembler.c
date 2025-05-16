@@ -275,14 +275,8 @@ const char* token_to_string(TokenType type) {
 }
 
 
-static char peek_char(FILE* f){
-    fpos_t pos;
-    fgetpos(f, &pos);
-    char c = fgetc(f);
-    fsetpos(f, &pos);
-    return c;
 
-}
+static FileBuffer* current_fb = NULL;
 
 
 
@@ -324,14 +318,14 @@ static int bsearch_string_cmp_lower(const void* a, const void* b) {
 
 
 
-static inline void get_literal(FILE* file, int* col){
+static inline void get_literal(int* col){
     while(true){
-        char next = peek_char(file);
+        char next = file_buffer_peek_char(current_fb);
         //TODO: add more valid labels 
         if(!isalnum(next) && next != '_'){
             break;
         }
-        char c = fgetc(file);
+        char c =file_buffer_get_char(current_fb);
         scratch_buffer_append_char(c); 
         (*col)++;
     }
@@ -343,8 +337,8 @@ static inline void get_literal(FILE* file, int* col){
 /** 
  * Determine if the String is a keyword or identifier 
  */
-static Token id_or_kw(FILE* file, int* col){
-    get_literal(file, col);
+static Token id_or_kw(int* col){
+    get_literal(col);
     char* str = scratch_buffer_as_str();
     //TODO FIX THIS
     uint32_t str_size = 0;
@@ -395,40 +389,12 @@ static Token id_or_kw(FILE* file, int* col){
 }
 
 
-static char* file_get_line(FILE* file, int line){
 
-    //save file pos in case we aren't done tokenizing
-    fpos_t pos;
-    fgetpos(file, &pos);
-
-    rewind(file);
-
-    char c;
-
-    int current_line = 1;
-    while(current_line != line){
-        c = fgetc(file);
-        if(c == '\n') current_line++;
-    }
-
-    scratch_buffer_clear();
-    c = 0;
+static void get_string(uint32_t line, int col){
     while(true){
-        c = fgetc(file);
-        if(feof(file) || c == '\n' || c == ';') break; 
-        scratch_buffer_append_char(c);
-    }
-    fsetpos(file, &pos);
-    return scratch_buffer_as_str();
-}
-
-
-
-static void get_string(FILE* file, uint32_t line, int col){
-    while(true){
-        char next = peek_char(file);
+        char next = file_buffer_peek_char(current_fb);
         if(next == '\"'){
-            fgetc(file);
+            file_buffer_get_char(current_fb);
             scratch_buffer_append_char(0);
             return;
         }
@@ -437,9 +403,9 @@ static void get_string(FILE* file, uint32_t line, int col){
             fprintf(stderr, "Error: String doesn't close\nLine %d, Col %d\n", line, col);
             goto error;
         }
-        char c = fgetc(file);
+        char c = file_buffer_get_char(current_fb);
         if(c == '\\'){
-            c = fgetc(file);
+            c = file_buffer_get_char(current_fb);
             switch (c) {
                 case 'b':
                     scratch_buffer_append_char(8); 
@@ -475,7 +441,7 @@ static void get_string(FILE* file, uint32_t line, int col){
     }
 
 error:
-    fprintf(stderr, "%s\n", file_get_line(file, line));
+    fprintf(stderr, "%s\n", file_get_line(current_fb, line));
     fprintf(stderr,"%*s\n", col, "^");
     exit(EXIT_FAILURE);
 
@@ -484,7 +450,7 @@ error:
 
 
 
-static ArrayList tokenize_file(FILE* file){
+static ArrayList tokenize_file(){
     init_scratch_buffer(); 
 
     ArrayList tokens;
@@ -493,16 +459,15 @@ static ArrayList tokenize_file(FILE* file){
     int line_number = 1;
     int col = 1;
 
-    while(!feof(file)){
-        char c = fgetc(file);  
+    while(!file_buffer_eof(current_fb)){
+        char c = file_buffer_get_char(current_fb);  
          
         while(isspace(c) && c != '\n'){
             col++;
-            c = fgetc(file);
+            c = file_buffer_get_char(current_fb);
         }
 
-
-        if(feof(file)) break;
+        if(file_buffer_eof(current_fb)) break;
 
         Token token;
         token.type = TOK_MAX;
@@ -525,7 +490,7 @@ static ArrayList tokenize_file(FILE* file){
                 token.type = TOK_COMMA;
                 break;
             case '\"':
-                get_string(file,line_number, col);
+                get_string(line_number, col);
                 token.type = TOK_STRING;
                 col++;
                 break;
@@ -547,8 +512,8 @@ static ArrayList tokenize_file(FILE* file){
                 break;
             case ';':
                 while(true){
-                    c = fgetc(file);
-                    if(c == '\n' || feof(file)){
+                    c = file_buffer_get_char(current_fb); 
+                    if(c == '\n' || file_buffer_eof(current_fb)){
                         //if there are other tokens on the line 
                         // we want to put a new line
                         if(tokens.size > 1){
@@ -569,7 +534,7 @@ static ArrayList tokenize_file(FILE* file){
                     int temp = col;
                     col++;
                     scratch_buffer_append_char(c);
-                    token = id_or_kw(file, &col);
+                    token = id_or_kw( &col);
                     token.line_number = line_number;
                     token.col = temp;
                     if(token.type != TOK_IDENTIFIER) scratch_buffer_clear();
@@ -578,12 +543,12 @@ static ArrayList tokenize_file(FILE* file){
                     token.type = TOK_UINT;
                     col++;
                     scratch_buffer_append_char(c);
-                    get_literal(file, &col); 
+                    get_literal(&col); 
                 }else if(c == '-'){
                     col++;
                     scratch_buffer_append_char(c);
                     token.type = TOK_INT;
-                    get_literal(file, &col); 
+                    get_literal( &col); 
                 }
                 else{
                     //unkown token
@@ -611,7 +576,6 @@ static ArrayList tokenize_file(FILE* file){
         scratch_buffer_clear();
     }
 
- 
     /* 
     for(int i = 0; i < tokens.size; i++){
         Token t = array_list_get(tokens, Token, i);
@@ -627,9 +591,8 @@ static ArrayList tokenize_file(FILE* file){
         }
 
     }
-    */
-    
-    
+        
+   */ 
     
     
     
@@ -647,7 +610,6 @@ typedef struct {
     Token currentToken; 
     uint32_t tokenIndex;
     jmp_buf jmp;
-    FILE* file;
 } Parser;
 
 
@@ -745,7 +707,7 @@ noreturn void parser_fatal_error(Parser *p, const char* fmt, ...){
     va_start(list, fmt);
     vfprintf(stderr, fmt, list);
     va_end(list);
-    char* line = file_get_line(p->file, p->currentToken.line_number);
+    char* line = file_get_line(current_fb, p->currentToken.line_number);
     fprintf(stderr, "Line %d, Col %d\n", p->currentToken.line_number, p->currentToken.col);
     fprintf(stderr, "%s\n", line);
     fprintf(stderr,"%*s\n", p->currentToken.col, "^");
@@ -1714,11 +1676,10 @@ static void parse_text_section(Parser* p){
 }
 
 
-static void parse_tokens(FILE* file, ArrayList* tokens){
+static void parse_tokens(ArrayList* tokens){
     Parser p ={0};
     p.tokens = tokens;
     p.currentToken.type = TOK_MAX;
-    p.file = file;
     array_list_create_cap(program.symTable.symbols, SymbolTableEntry, 16);
  
     while(p.tokenIndex < p.tokens->size){
@@ -1773,46 +1734,42 @@ static void parse_tokens(FILE* file, ArrayList* tokens){
 
 
 void assemble_program(MachineType arch, const char* file){
-    FILE* f = fopen(file, "r");
+     current_fb = file_buffer_create(file);
+   
 
-    if(f == NULL){
-        printf("Failed to open file: %s\n", file);
-        exit(EXIT_FAILURE);
-    }
+     ArrayList tokens = tokenize_file(); 
+     parse_tokens(&tokens);
 
-   ArrayList tokens = tokenize_file(f); 
-   parse_tokens(f, &tokens);
+     for(int i = 0; i < program.symTable.symbols.size; i++){
+         SymbolTableEntry* e = &array_list_get(program.symTable.symbols, SymbolTableEntry, i);
+         if(e->section == SECTION_UNDEFINED && e->visibility == VISIBILITY_UNDEFINED){
+             program_fatal_error("Symbol %s used but never defined\n", e->name);
+         }
 
-   for(int i = 0; i < program.symTable.symbols.size; i++){
-       SymbolTableEntry* e = &array_list_get(program.symTable.symbols, SymbolTableEntry, i);
-       if(e->section == SECTION_UNDEFINED && e->visibility == VISIBILITY_UNDEFINED){
-           program_fatal_error("Symbol %s used but never defined\n", e->name);
-       }
+         for(int j = 0; j < e->instances.size; j++){
+             SymbolInstance* instance =  &array_list_get(e->instances, SymbolInstance, j);
 
-       for(int j = 0; j < e->instances.size; j++){
-           SymbolInstance* instance =  &array_list_get(e->instances, SymbolInstance, j);
+             //NOTE WE ONLY ALLOW USING SYMBOLS 
+             //IN THE TEXT SECTION FOR NOW 
+             if(instance->is_relative){
+                 //want the linker to handle relocation
+                 if(e->section == SECTION_EXTERN){
+                     instance->is_relative = false;
+                     instance->offset -= 4;
+                     continue;
+                 } 
+                 //assume size of 4   
+                 uint64_t next_instruction = instance->offset;
+                 uint64_t rip_addr = e->section_offset;
+                 //not sure if this is supposed to be signed or unsigned
+                 int32_t rel_addr = (int32_t)(rip_addr - next_instruction);
+                 memcpy(&program.text.data[instance->offset - 4], &rel_addr, 4);
+             }
 
-           //NOTE WE ONLY ALLOW USING SYMBOLS 
-           //IN THE TEXT SECTION FOR NOW 
-           if(instance->is_relative){
-                //want the linker to handle relocation
-               if(e->section == SECTION_EXTERN){
-                    instance->is_relative = false;
-                    instance->offset -= 4;
-                    continue;
-               } 
-                //assume size of 4   
-                uint64_t next_instruction = instance->offset;
-                uint64_t rip_addr = e->section_offset;
-                //not sure if this is supposed to be signed or unsigned
-                int32_t rel_addr = (int32_t)(rip_addr - next_instruction);
-                memcpy(&program.text.data[instance->offset - 4], &rel_addr, 4);
-           }
+         }
+     }
+     file_buffer_delete(current_fb);
+     write_elf(file, "btest.o", &program);
 
-       }
-   }
-
-   write_elf(file, "btest.o", &program);
-    
 }
 

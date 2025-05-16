@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include <stdio.h>
 
 
 typedef struct{
@@ -62,6 +63,30 @@ void scratch_buffer_append_str(char* str);
 void* scratch_buffer_get_data(uint32_t offset);
 
 char* scratch_buffer_as_str();
+
+#define FILE_BUFFER_CAPACITY 4096
+
+typedef struct {
+    const char* name;
+    FILE* file;
+    char* data;
+    uint64_t size;
+    uint64_t index;
+} FileBuffer;
+
+
+FileBuffer* file_buffer_create(const char* name);
+
+void file_buffer_delete(FileBuffer* buff);
+
+bool file_buffer_eof(FileBuffer* buff);
+
+char file_buffer_get_char(FileBuffer* buff);
+
+char file_buffer_peek_char(FileBuffer* buff);
+
+char* file_get_line(FileBuffer* buff, int line);
+
 
 #define SECTION_EXTERN 0
 #define SECTION_TEXT 1 
