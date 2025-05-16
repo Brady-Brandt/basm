@@ -59,17 +59,16 @@ B   0   Extension of the ModR/M r/m field, SIB base field, or Opcode reg field
 
 
 typedef enum {
-    TOK_INSTRUCTION,
-    TOK_REG,
- 
-    TOK_ADD,
-    TOK_MULTIPLY,
-    TOK_OPENING_BRACKET,
-    TOK_CLOSING_BRACKET,
-    TOK_COMMA,
-    TOK_COLON,
-    TOK_NEW_LINE,
+    TOK_NEW_LINE = '\n',
+    TOK_MULTIPLY = '*',
+    TOK_ADD = '+',
+    TOK_COMMA = ',',
+    TOK_COLON = ':',
+    TOK_OPENING_BRACKET = '[',
+    TOK_CLOSING_BRACKET = ']',
 
+    TOK_INSTRUCTION = 256,
+    TOK_REG, 
     TOK_GLOBAL,
     TOK_EXTERN,
     TOK_SECTION,
@@ -237,7 +236,7 @@ typedef struct {
 
 
 
-const char* token_to_string(TokenType type) {
+const char* token_to_string(TokenType type) { 
     switch (type) {
         case TOK_COMMA:return "TOK_COMMA";
         case TOK_COLON: return "TOK_COLON";
@@ -459,9 +458,11 @@ static ArrayList tokenize_file(){
     int line_number = 1;
     int col = 1;
 
+    char prev_newline = '\n';
+
     while(!file_buffer_eof(current_fb)){
-        char c = file_buffer_get_char(current_fb);  
-         
+        char c = file_buffer_get_char(current_fb);
+   
         while(isspace(c) && c != '\n'){
             col++;
             c = file_buffer_get_char(current_fb);
@@ -483,6 +484,7 @@ static ArrayList tokenize_file(){
             case '\n':
                 line_number++;
                 col = 1;
+                if(prev_newline == '\n') continue;
                 token.type = TOK_NEW_LINE;
                 break;
             case ',':
@@ -516,14 +518,15 @@ static ArrayList tokenize_file(){
                     if(c == '\n' || file_buffer_eof(current_fb)){
                         //if there are other tokens on the line 
                         // we want to put a new line
-                        if(tokens.size > 1){
+                        if(tokens.size > 1 && prev_newline != '\n'){
                             Token last_token = array_list_get(tokens, Token, tokens.size - 1);
                             if(last_token.line_number == line_number){
+                                prev_newline = '\n';
                                 token.type = TOK_NEW_LINE;
                                 array_list_append(tokens, Token, token);
                             }
                         }
-                        col = 0;
+                        col = 1;
                         line_number++;
                         goto comment;
                     } 
@@ -569,14 +572,17 @@ static ArrayList tokenize_file(){
                 exit(EXIT_FAILURE);
             }
             token.literal = dyn_id; 
-        } 
+        }
+
+        prev_newline = c;
 
         array_list_append(tokens, Token, token);
         comment:
         scratch_buffer_clear();
     }
 
-    /* 
+    
+    /*
     for(int i = 0; i < tokens.size; i++){
         Token t = array_list_get(tokens, Token, i);
         if(t.type == TOK_IDENTIFIER || t.type == TOK_UINT || t.type == TOK_INT){
@@ -592,7 +598,8 @@ static ArrayList tokenize_file(){
 
     }
         
-   */ 
+    */
+   
     
     
     
@@ -736,16 +743,6 @@ static Token parser_peek_token(Parser *p){
 }
 
 
-//consumes new line tokens, consumes the next token that is not a new line
-static Token parser_consume_newlines(Parser* p){
-    Token res = p->currentToken;
-    while(p->currentToken.type == TOK_NEW_LINE){
-       res = parser_next_token(p); 
-    }
-    return res;
-}
-
-
 static void parser_expect_token(Parser *p, TokenType expected){
     if(p->currentToken.type != expected){
         parser_fatal_error(p, "Expected %s found %s\n", token_to_string(expected), token_to_string(p->currentToken.type));
@@ -844,15 +841,11 @@ static inline uint64_t string_to_int(char* string, TokenType sign){
 //TODO: ALLOW PSUEDOINSTRUCTIONS WITHOUT LABELS 
 static void parse_bss_section(Parser* p){
     while(p->currentToken.type != TOK_SECTION){
-        parser_consume_newlines(p);
-        if(p->currentToken.type == TOK_SECTION) break;
-
         parser_expect_token(p, TOK_IDENTIFIER); 
         Token id = p->currentToken;
         parser_next_token(p);
         parser_expect_consume_token(p, TOK_COLON); 
 
-        parser_consume_newlines(p);
 
         symbol_table_add(id.literal, program.bss.size, SECTION_BSS, VISIBILITY_LOCAL);
 
@@ -888,15 +881,11 @@ static void parse_bss_section(Parser* p){
 
 static void parse_data_section(Parser* p){ 
     while(p->currentToken.type != TOK_SECTION){
-        parser_consume_newlines(p);
-        if(p->currentToken.type == TOK_SECTION) break;
-
         parser_expect_token(p, TOK_IDENTIFIER); 
         Token id = p->currentToken;
         parser_next_token(p);
         parser_expect_consume_token(p, TOK_COLON); 
 
-        parser_consume_newlines(p);
 
         symbol_table_add(id.literal, program.data.size, SECTION_DATA, VISIBILITY_LOCAL);
 
@@ -968,8 +957,11 @@ static void parse_data_section(Parser* p){
                 parser_fatal_error(p, "Invalid for operand\n");
             } 
 
-            parser_next_token(p);
         } while(p->currentToken.type == TOK_COMMA);
+
+        parser_next_token(p);
+        parser_expect_consume_token(p, TOK_NEW_LINE);
+
     }
 }
 
@@ -1616,7 +1608,6 @@ static void print_text_section(){
 
 static void parse_text_section(Parser* p){
     while(p->currentToken.type != TOK_SECTION){
-        parser_consume_newlines(p);
         if(p->currentToken.type == TOK_SECTION) break;
 
         if(p->currentToken.type == TOK_GLOBAL || p->currentToken.type == TOK_EXTERN){
@@ -1667,6 +1658,8 @@ static void parse_text_section(Parser* p){
                 } else{
                     emit_instruction(found_instruction, operands);
                 }
+
+                parser_expect_consume_token(p, TOK_NEW_LINE);
 
         } else{
             parser_fatal_error(p, "Invalid token found in text section\n");
