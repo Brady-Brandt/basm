@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 
 typedef struct {
@@ -143,6 +144,23 @@ static uint64_t section_pad(Section* section, uint64_t offset, uint64_t alignmen
 }
 
 
+static uint32_t get_reloc_count(Program* p){
+    uint32_t count = 0;
+    //only allow text section relocations for now
+    for(int i = 0; i < p->symTable.symbols.size; i++){
+        SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
+        for(int j = 0; j < e.instances.size; j++){
+            SymbolInstance instance = array_list_get(e.instances, SymbolInstance, j);
+            //skip over the relative instances
+            if(!instance.is_relative){
+                count++;
+            }
+        }
+    }
+    return count;
+}
+
+
 
 
 bool write_elf(const char* input_file, const char* output_file, Program* p){
@@ -190,25 +208,10 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     head.string_table_index = string_table_index;
 
     bool has_text_reloca = false;
-    uint32_t num_text_reloca_entries = 0;
+    uint32_t num_text_reloca_entries = get_reloc_count(p);
+    if(num_text_reloca_entries > 0) has_text_reloca = true;
 
-    //check if the symbols are used to determine if we need 
-    //a text reloca section
-    for(int i = 0; i < p->symTable.symbols.size; i++){
-        SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
-
-        for(int j = 0; j < e.instances.size; j++){
-            SymbolInstance instance = array_list_get(e.instances, SymbolInstance, j);
-            //skip over the relative instances
-            if(!instance.is_relative){
-                has_text_reloca = true;
-                num_text_reloca_entries++;
-            }
-
-
-        }
-    }
-
+ 
     head.section_header_entries += (int)has_text_reloca;
 
     fwrite(&head, sizeof(ElfHeader),1, output_stream);
@@ -529,4 +532,274 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
 }
 
 
+#define PE_X86_64 0x8664
 
+typedef struct {
+    uint16_t machine_type;
+    uint16_t section_count;
+    uint32_t date;
+    uint32_t symbol_table_offset;
+    uint32_t symbol_count;
+    uint16_t opt_header_size;
+    uint16_t flags;
+} PEHeader;
+
+
+
+typedef struct{
+    char name[8];
+    uint32_t virtual_size;
+    uint32_t virtual_addr;
+    uint32_t size;
+    uint32_t offset;
+    uint32_t reloc_offset;
+    uint32_t line_num_offset;
+    uint16_t reloc_count;
+    uint16_t line_num_count;
+    uint32_t flags;
+} PESectionHeader;
+
+typedef enum {
+    PE_SF_INITIALIZED = 0x00000040,
+    PE_SF_UNINITIALIZED = 0x00000080,
+    PE_SF_EXEC= 0x00000020,
+    PE_SF_ALIGN_1 = 0x00100000,
+    PE_SF_EXEC_CODE = 0x20000000,
+    PE_SF_READ = 0x40000000,
+    PE_SF_WRITE = 0x80000000,
+} PESectionFlags;
+
+
+typedef struct {
+    uint32_t virtual_addr; //section offset
+    uint32_t symbol_table_index;
+    uint16_t type;
+} __attribute__((packed)) PERelocatableEntry;
+
+
+typedef enum {
+    PE_RELOC_AMD64_ADDR64 = 0x1,
+    PE_RELOC_AMD64_ADDR32 = 0x2,
+    PE_RELOC_AMD64_REL32 = 0x4,
+} PERelocationTypes;
+
+
+
+typedef struct {
+    union{
+        char name[8]; 
+        uint32_t offset[2];
+    };
+    uint32_t value;
+    int16_t section;
+    uint16_t type;
+    uint8_t storage_class;
+    uint8_t aux_symbol_count;
+} __attribute__((packed)) PESymbolTableEntry;
+
+
+
+typedef struct{
+    uint32_t size;
+    uint16_t reloc_count;
+    uint16_t line_num_count;
+    uint32_t checksum;
+    uint16_t number;
+    uint8_t selection;
+    uint8_t unused[3];
+} __attribute__((packed)) PEAuxiliarySection;
+
+
+
+
+typedef enum {
+    PE_SC_EXTERNAL = 2,
+    PE_SC_STATIC = 3,
+    PE_SC_FILE = 103,
+} PEStorageClass;
+
+
+
+
+static void write_pe_symbol_section(FILE* output_stream, const char* name, int index, uint64_t size, uint32_t reloc_count){
+    PESymbolTableEntry temp_entry = {0};
+    strcpy(temp_entry.name, name);
+    temp_entry.section = index;
+    temp_entry.aux_symbol_count = 1;
+    temp_entry.storage_class = PE_SC_STATIC;
+    fwrite(&temp_entry, sizeof(temp_entry), 1, output_stream);
+
+    PEAuxiliarySection aux = {0};
+    aux.reloc_count = reloc_count;
+    aux.size = size; 
+    fwrite(&aux,sizeof(aux), 1, output_stream);
+}
+
+
+
+bool write_pe(const char* input_file, const char* output_file, Program* p){
+    FILE* output_stream = fopen(output_file, "wb");
+
+    if(output_stream == NULL){
+        printf("Failed to create file %s\n", input_file);
+        return false;
+    }
+
+
+    uint32_t sym_offset = 0;
+
+    PEHeader head = {0};
+    head.machine_type = PE_X86_64;
+    head.date = (uint32_t)time(NULL);
+    head.section_count = 1;
+
+    if(p->bss.size != 0) head.section_count++;
+    if(p->data.size != 0){
+        sym_offset += p->data.size;
+        head.section_count++;
+    } 
+
+    //TODO: CHECK FOR FILE NAMES GREATER THAN 18 BYTES
+    //At least 2 for the file name + One for .Absolut? 
+    //Each section has 2
+    head.symbol_count = 3 + head.section_count * 2 + p->symTable.symbols.size;
+
+
+    uint32_t sym_table_text_offset = 2;
+
+    PESectionHeader text_section = {0};
+
+    strcpy(text_section.name, ".text");
+    text_section.size = p->text.size; 
+    text_section.offset = head.section_count * sizeof(PESectionHeader) + sizeof(PEHeader);
+    text_section.reloc_offset = text_section.offset + p->text.size;
+    text_section.reloc_count = get_reloc_count(p);
+    text_section.flags = PE_SF_ALIGN_1 | PE_SF_READ | PE_SF_EXEC | PE_SF_EXEC_CODE;
+
+    sym_offset += text_section.reloc_offset + text_section.reloc_count * sizeof(PERelocatableEntry);
+    head.symbol_table_offset = sym_offset;
+
+    fwrite(&head, sizeof(PEHeader),1, output_stream);
+    fwrite(&text_section, sizeof(PESectionHeader), 1, output_stream);
+
+
+    if(p->data.size != 0){
+        PESectionHeader data_section = {0};
+        strcpy(data_section.name, ".data");
+        data_section.size = p->data.size; 
+        data_section.offset = text_section.reloc_offset + text_section.reloc_count * sizeof(PERelocatableEntry);
+        data_section.reloc_offset = data_section.offset + p->data.size;
+        data_section.reloc_count = 0; //going to be zero for now
+        data_section.flags = PE_SF_ALIGN_1 | PE_SF_READ | PE_SF_INITIALIZED | PE_SF_WRITE;
+        fwrite(&data_section, sizeof(data_section), 1, output_stream);
+    }
+
+    if(p->bss.size != 0){
+        PESectionHeader bss_section = {0};
+        strcpy(bss_section.name, ".bss");
+        bss_section.size = p->bss.size; 
+        bss_section.offset = 0;
+        bss_section.reloc_offset = 0;
+        bss_section.reloc_count = 0; //going to be zero for now
+        bss_section.flags = PE_SF_ALIGN_1 | PE_SF_READ | PE_SF_UNINITIALIZED| PE_SF_WRITE;
+        fwrite(&bss_section, sizeof(bss_section), 1, output_stream);
+
+    }
+
+    //write the data
+    fwrite(p->text.data, 1, p->text.size, output_stream);
+    if(text_section.reloc_count != 0){
+        for(int i = 0; i < p->symTable.symbols.size; i++){
+            SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
+            for(int j = 0; j < e.instances.size; j++){
+                SymbolInstance instance = array_list_get(e.instances, SymbolInstance, j);
+
+                if(instance.is_relative) continue;
+
+                PERelocatableEntry reloc_e = {0};
+                reloc_e.virtual_addr = instance.offset;
+
+                //each section in the symbol table has an auxiliary section 
+                //thats why we multiply by 2
+                reloc_e.symbol_table_index = sym_table_text_offset + (e.section - 1) * 2;
+
+                if(e.section == SECTION_EXTERN){
+                    reloc_e.type = PE_RELOC_AMD64_REL32; 
+                } else{
+                    reloc_e.type = PE_RELOC_AMD64_ADDR32;
+                }
+                fwrite(&reloc_e, sizeof(reloc_e), 1, output_stream);
+            }
+        }
+    }
+
+    if(p->data.size != 0) fwrite(p->data.data, 1, p->data.size, output_stream);
+
+
+     //TODO: HANDLE FILE NAMES LARGER THAN 18 CHARS
+    PESymbolTableEntry temp_entry = {0};
+    strcpy(temp_entry.name, ".file");
+    temp_entry.section = -2;
+    temp_entry.aux_symbol_count = 1;
+    temp_entry.storage_class = PE_SC_FILE;
+    fwrite(&temp_entry, sizeof(temp_entry),1, output_stream);
+
+    char file_name[18] = {0};
+    strcpy(file_name,input_file);
+    fwrite(file_name, 1, 18, output_stream);
+
+    write_pe_symbol_section(output_stream, ".text", 1, p->text.size, text_section.reloc_count);
+
+    int index = 2;
+    if(p->data.size != 0){
+        write_pe_symbol_section(output_stream, ".data", 2, p->data.size, 0);
+        index++;
+    }
+    if(p->bss.size != 0){
+        write_pe_symbol_section(output_stream, ".bss", index, p->bss.size, 0);
+    }
+
+    memset(&temp_entry, 0,sizeof(temp_entry));
+
+    //write Absolut entry (I don't know what its for)
+    strcpy(temp_entry.name, ".absolut");
+    temp_entry.section = -1;
+    temp_entry.storage_class = PE_SC_STATIC;
+    fwrite(&temp_entry, sizeof(temp_entry), 1, output_stream);
+
+
+    scratch_buffer_clear();
+    for(int i = 0; i < p->symTable.symbols.size; i++){
+        PESymbolTableEntry pe_entry = {0};
+        SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
+        if(strlen(e.name) < 8){
+            strcpy(pe_entry.name, e.name);
+        } else{
+            pe_entry.offset[0] = 0;
+            pe_entry.offset[1] = scratch_buffer_offset() + 4;
+            scratch_buffer_append_str(e.name);
+        }
+        pe_entry.value = e.section_offset; 
+        pe_entry.section = e.section;
+
+        //if there is no data section bss section will be at SECTION_BSS - 1
+        if(e.section == SECTION_BSS && p->data.size == 0){
+            pe_entry.section = 2;    
+        } 
+        pe_entry.storage_class = (e.visibility == VISIBILITY_GLOBAL) ? PE_SC_EXTERNAL : PE_SC_STATIC; 
+        fwrite(&pe_entry, sizeof(pe_entry), 1,output_stream);
+    }
+
+    //write the string table
+    uint32_t string_table_size = scratch_buffer_offset() + 4;
+    fwrite(&string_table_size, 4, 1, output_stream);
+
+    if(string_table_size != 4){
+        fwrite(scratch_buffer_get_data(0), 1,string_table_size - 4, output_stream);
+    }
+
+
+    fclose(output_stream);
+
+    return true; 
+}
