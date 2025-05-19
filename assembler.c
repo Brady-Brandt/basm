@@ -582,6 +582,17 @@ static ArrayList tokenize_file(){
     }
 
     
+    //append new line after last token if there isn't one already 
+    if(tokens.size != 0){
+        Token temp = array_list_get(tokens, Token, tokens.size - 1);
+        if(temp.type != TOK_NEW_LINE){
+            Token new_tok = {TOK_NEW_LINE, 0, line_number, col};
+            array_list_append(tokens, Token, new_tok);
+        }
+
+    }
+    
+   
     /*
     for(int i = 0; i < tokens.size; i++){
         Token t = array_list_get(tokens, Token, i);
@@ -597,12 +608,10 @@ static ArrayList tokenize_file(){
         }
 
     }
-        
     */
-   
-    
-    
-    
+        
+       
+ 
    
     scratch_buffer_clear();
     return tokens;
@@ -1371,7 +1380,6 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
         return;
     }
 
-
     if(operand[1].type == OPERAND_NOP){
         // handle call, jmp, jcc instructions
         if(operand[0].type == OPERAND_L64){
@@ -1748,7 +1756,6 @@ void assemble_program(MachineType arch, const char* file){
                  //want the linker to handle relocation
                  if(e->section == SECTION_EXTERN){
                      instance->is_relative = false;
-                     instance->offset -= 4;
                      continue;
                  } 
                  //assume size of 4   
@@ -1762,7 +1769,8 @@ void assemble_program(MachineType arch, const char* file){
          }
      }
      file_buffer_delete(current_fb);
-     write_elf(file, "btest.o", &program);
+     //write_elf(file, "btest.o", &program);
+     write_pe(file, "btest.o", &program);
 
 }
 

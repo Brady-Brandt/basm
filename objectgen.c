@@ -508,8 +508,9 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
                 ElfRelocatableEntry reloc_e = {0};
 
                 if(e.section == SECTION_EXTERN){
-                    reloc_e.offset = instance.offset;
-                    //still not sure exactly why its this
+                    //still not sure exactly why i need to do -4
+                    //but addend of 0 doesn't work
+                    reloc_e.offset = instance.offset - 4;
                     reloc_e.addend = -4;
                     reloc_e.info = ((uint64_t)(pc_sym_index + i) << 32)| RELOC_PC32;
                 } else{
@@ -719,13 +720,16 @@ bool write_pe(const char* input_file, const char* output_file, Program* p){
                 PERelocatableEntry reloc_e = {0};
                 reloc_e.virtual_addr = instance.offset;
 
-                //each section in the symbol table has an auxiliary section 
-                //thats why we multiply by 2
-                reloc_e.symbol_table_index = sym_table_text_offset + (e.section - 1) * 2;
-
+                
                 if(e.section == SECTION_EXTERN){
+                    //get the index of this symbol in the symbol table
+                    reloc_e.symbol_table_index = sym_table_text_offset + head.section_count * 2 + 1 + i;
                     reloc_e.type = PE_RELOC_AMD64_REL32; 
+                    reloc_e.virtual_addr -= 4;
                 } else{
+                    //each section in the symbol table has an auxiliary section 
+                    //thats why we multiply by 2
+                    reloc_e.symbol_table_index = sym_table_text_offset + (e.section - 1) * 2;
                     reloc_e.type = PE_RELOC_AMD64_ADDR32;
                 }
                 fwrite(&reloc_e, sizeof(reloc_e), 1, output_stream);
