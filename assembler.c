@@ -461,7 +461,7 @@ static ArrayList tokenize_file(){
 
     char prev_newline = '\n';
 
-    while(!file_buffer_eof(current_fb)){
+    do{
         char c = file_buffer_get_char(current_fb);
    
         while(isspace(c) && c != '\n'){
@@ -580,7 +580,7 @@ static ArrayList tokenize_file(){
         array_list_append(tokens, Token, token);
         comment:
         scratch_buffer_clear();
-    }
+    } while(!file_buffer_eof(current_fb));
 
     
     //append new line after last token if there isn't one already 

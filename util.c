@@ -131,7 +131,7 @@ void file_buffer_delete(FileBuffer* buff){
 }
 
 bool file_buffer_eof(FileBuffer* buff){
-    return feof(buff->file) && buff->index >= buff->size;
+    return buff->size < FILE_BUFFER_CAPACITY && buff->index >= buff->size;
 }
 
 
