@@ -1,5 +1,6 @@
 #include "x86/nmemonics.h"
 #include "util.h"
+#include "entry.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <ctype.h>
@@ -1734,8 +1735,10 @@ static void parse_tokens(ArrayList* tokens){
 
 
 
-void assemble_program(MachineType arch, const char* file){
-     current_fb = file_buffer_create(file);
+bool basm_assemble_program(AssemblerFlags* flags){
+     current_fb = file_buffer_create(flags->input_file);
+
+     if(current_fb == NULL) return false;
    
 
      ArrayList tokens = tokenize_file(); 
@@ -1768,9 +1771,65 @@ void assemble_program(MachineType arch, const char* file){
 
          }
      }
-     file_buffer_delete(current_fb);
-     //write_elf(file, "btest.o", &program);
-     write_pe(file, "btest.o", &program);
 
+     file_buffer_delete(current_fb);
+
+     if(flags->ftype == BASM_FILE_ELF){
+        return write_elf(flags->input_file, flags->output_file, &program);
+     } else if(flags->ftype == BASM_FILE_PE){
+        return write_pe(flags->input_file, flags->output_file, &program);
+     } else{
+        fprintf(stderr, "Unknown output file type\n");
+        return false;
+     }
 }
 
+
+
+
+bool basm_parse_flags(AssemblerFlags* flags, int argc, char** argv){
+    if(argc < 2){
+        fprintf(stderr, "./basm input_file\n");
+        return false;
+    }
+    flags->output_file = "a.out";
+
+    for(int i = 1; i < argc; i++){
+        if(strcmp("-f", argv[i]) == 0){
+            i++;
+            if(i == argc){
+                fprintf(stderr, "Invalid File Type\n");
+                return false;
+            }
+            if(strcmp("win", argv[i]) == 0){
+                flags->ftype = BASM_FILE_PE;
+            } else if (strcmp("elf", argv[i]) == 0) { 
+                flags->ftype = BASM_FILE_ELF;
+            } else{
+                fprintf(stderr, "Invalid File Type: %s\n", argv[i]);
+                return false;
+            }
+        } else if (strcmp("-o", argv[i]) == 0) {
+            i++;
+            if(i == argc){
+                fprintf(stderr, "Output file not specified\n");
+                return false;
+            }
+            flags->output_file = argv[i];
+             
+        } else if(string_cmp_lower("--help", argv[i]) == 0){
+            basm_help();
+            return false;
+        }else{
+            flags->input_file = argv[i];
+        }
+    }
+    return true;
+}
+
+void basm_help(){
+    printf("./basm input_file\n");
+    printf("Flags: \n");
+    printf("-f (file type)        -> win | elf\n");
+    printf("-o (output file name) -> output file\n");
+}
