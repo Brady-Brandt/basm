@@ -84,6 +84,7 @@ typedef enum {
     TOK_DW,
     TOK_DD,
     TOK_DQ,
+    TOK_ST,
 
     TOK_BYTE,
     TOK_WORD, 
@@ -230,6 +231,7 @@ typedef struct {
         RegisterType reg;
         char* literal;  
         uint64_t instruction;
+        uint64_t fpu_stack_index;
     };
     int line_number;
     int col;
@@ -268,6 +270,7 @@ const char* token_to_string(TokenType type) {
         case TOK_DATA: return "TOK_DATA";
         case TOK_INSTRUCTION: return "TOK_INSTRUCTION";
         case TOK_REG: return "TOK_REG";
+        case TOK_ST: return "TOK_ST";
         case TOK_MAX: return "TOK_UNKNOWN";
         case TOK_OPENING_BRACKET: return "TOK_OPENING_BRACKET";
         case TOK_CLOSING_BRACKET: return "TOK_CLOSING_BRACKET";
@@ -322,7 +325,7 @@ static inline void get_literal(int* col){
     while(true){
         char next = file_buffer_peek_char(current_fb);
         //TODO: add more valid labels 
-        if(!isalnum(next) && next != '_'){
+        if(!isalnum(next) && next != '_' && next != '.'){
             break;
         }
         char c =file_buffer_get_char(current_fb);
@@ -340,8 +343,7 @@ static inline void get_literal(int* col){
 static Token id_or_kw(int* col){
     get_literal(col);
     char* str = scratch_buffer_as_str();
-    //TODO FIX THIS
-    uint32_t str_size = 0;
+    uint32_t str_size = scratch_buffer_offset();
 
     if(str_size < 5){
         for(int i = 0; i < REG_MAX; i++){
@@ -383,6 +385,12 @@ static Token id_or_kw(int* col){
     if(string_cmp_lower("resw", str) == 0) return (Token){TOK_RESW, 0,0,0};
     if(string_cmp_lower("resd", str) == 0) return (Token){TOK_RESD, 0,0,0};
     if(string_cmp_lower("resq", str) == 0) return (Token){TOK_RESQ, 0,0,0};
+
+    if(str_size == 3 && tolower(str[0]) == 's' && tolower(str[1]) == 't'){
+       if(str[2] >= '0' && str[2] <= '7'){
+            return (Token){TOK_ST, .fpu_stack_index = str[2] - 48, 0,0};
+       } 
+    }
 
    
     return (Token){TOK_IDENTIFIER, 0,0, 0};
@@ -768,6 +776,16 @@ static inline void parser_expect_consume_token(Parser *p, TokenType expected){
 }
 
 
+static bool parser_match_consume_token(Parser* p, TokenType m){
+    if(p->currentToken.type == m){
+        parser_next_token(p);
+        return true;
+
+    }
+    return false;
+}
+
+
 
 bool __match(Parser *p, ...){
     va_list list;
@@ -788,6 +806,16 @@ bool __match(Parser *p, ...){
 
 
 #define match(p,...) __match(p, __VA_ARGS__, TOK_MAX)
+
+
+
+static inline bool is_float(char* literal){
+    int size = strlen(literal);
+    for(int i = 0; i < size; i++){
+        if(literal[i] == '.') return true;
+    }
+    return false;
+}
 
 
 static inline void init_section(Section* section, uint64_t start_size){
@@ -826,7 +854,7 @@ static inline void section_add_data(Section* section, void* data, size_t size){
 
 
 
-static inline uint64_t string_to_int(char* string, TokenType sign){
+static uint64_t string_to_int(char* string, TokenType sign){
     int base = 10;
 
     //check for hexadecimal
@@ -905,9 +933,9 @@ static void parse_data_section(Parser* p){
         }
 
         TokenType psuedo_instr = p->currentToken.type;
+        parser_next_token(p);
 
         do{
-            parser_next_token(p);
             if(p->currentToken.type == TOK_UINT || p->currentToken.type == TOK_INT){
                 switch (psuedo_instr) {
                     case TOK_DB: {
@@ -940,7 +968,13 @@ static void parse_data_section(Parser* p){
                     }
                     case TOK_DD: {
                         uint32_t temp = 0;
-                        if(p->currentToken.type == TOK_UINT){
+                        if(is_float(p->currentToken.literal)){
+                            float num = strtof(p->currentToken.literal, NULL); 
+                            //TODO: CHECK FOR ERRORS
+                            section_add_data(&program.data,&num, 4);
+                            break;
+                        }
+                        else if(p->currentToken.type == TOK_UINT){
                             uint64_t num = string_to_int(p->currentToken.literal, TOK_UINT);
                             if(num > UINT32_MAX) parser_fatal_error(p, "Invalid Size: %ld\n", num);
                             temp = num;
@@ -953,8 +987,14 @@ static void parse_data_section(Parser* p){
                         break;
                     }
                     case TOK_DQ: {
-                        uint64_t num = string_to_int(p->currentToken.literal, p->currentToken.type);
-                        section_add_data(&program.data,&num, 8);
+                        if(is_float(p->currentToken.literal)){
+                            double num = strtod(p->currentToken.literal, NULL); 
+                            //TODO: CHECK FOR ERRORS
+                            section_add_data(&program.data,&num, 8);
+                        } else{
+                            uint64_t num = string_to_int(p->currentToken.literal, p->currentToken.type);
+                            section_add_data(&program.data,&num, 8);
+                        }
                         break;
                     }
                     default:
@@ -966,10 +1006,9 @@ static void parse_data_section(Parser* p){
             } else{
                 parser_fatal_error(p, "Invalid for operand\n");
             } 
+            parser_next_token(p);
+        } while(parser_match_consume_token(p, TOK_COMMA));
 
-        } while(p->currentToken.type == TOK_COMMA);
-
-        parser_next_token(p);
         parser_expect_consume_token(p, TOK_NEW_LINE);
 
     }
@@ -990,6 +1029,8 @@ typedef struct {
             uint8_t registerIndex;
             uint8_t rex;
         } reg;
+
+        uint8_t fpu_stack_index;
         uint8_t imm8;
         uint16_t imm16;
         uint32_t imm32;
@@ -1195,6 +1236,10 @@ static Operand parse_operand(Parser* p){
             result.label = p->currentToken.literal; 
             return result;
 
+        case TOK_ST:
+            result.fpu_stack_index = p->currentToken.fpu_stack_index;
+            result.type = OPERAND_STI;
+            return result;
 
         case TOK_BYTE:
             parser_next_token(p);
@@ -1394,18 +1439,20 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
         } else if (is_general_reg(operand[0].type) && is_extended_reg(operand[0].reg.registerIndex)) {
             operand[0].reg.rex |= REX_B;
             operand[0].reg.registerIndex -= REG_R8; 
-        }
+        } else if (operand[0].type == OPERAND_STI){
+            opcode[instruction->size - 1] += operand[0].fpu_stack_index; 
+        } 
     }
 
    
     if(is_general_reg(operand[0].type)){
         rex |= operand[0].reg.rex;
         //indicates we add register to the opcode
-        if((instruction->r & 0x2)){
+        if((instruction->r & ADD_REG_TO_OPCODE)){
             opcode[instruction->size - 1] += operand[0].reg.registerIndex; 
         } 
         //if we encode both operands in the modrm byte
-        else if ((instruction->r & 0x1)) {
+        else if ((instruction->r & MODRM_CONTAINS_REG_AND_MEM)) {
             if(is_general_reg(operand[1].type)){
                 rex |= operand[1].reg.rex;
                 modrm_size = 1;

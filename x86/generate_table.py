@@ -109,6 +109,14 @@ typedef struct {
 """
 
 
+MODRM_CONTAINS_REG_AND_MEM = 0x1 
+ADD_REG_TO_OPCODE = 0x2
+#ADD_FPU_INDEX_TO_OPCODE = 0x4
+
+instr_packing_macros = """
+#define MODRM_CONTAINS_REG_AND_MEM 0x1 
+#define ADD_REG_TO_OPCODE 0x2
+"""
 
 
 def write_instruction_debug(nmemonic_file):
@@ -210,17 +218,20 @@ def parse_opcode(op):
                digit = int(chunk[1]) 
             elif chunk[1] == "r":
                 chunk = check_superscript(chunk)
-                r = 0x1
+                r = MODRM_CONTAINS_REG_AND_MEM
             else:
                 print(f"Failed: {chunk} in {chunks}")
             assert len(chunk) == 2, f"Chunks containg / should be size 2 not {len(chunk)}"
 
         elif prev == '+':
             if chunk[0] == "i":
-                # TODO FPU
+                # should not have to do anything here 
+                # if one of the operands is an fpu index 
+                # we know we have to add it to the opcode
+                #r = ADD_FPU_INDEX_TO_OPCODE
                 assert len(chunk) == 1, f"Chunks containg +i should be size 1 not {len(chunk)}"
             elif any(check_superscript(chunk) == op for op in low_op):
-                r = 0x2
+                r = ADD_REG_TO_OPCODE
                 assert len(check_superscript(chunk)) == 2, f"Chunks containg +rx should be size 2 not {len(check_superscript(chunk))}"
             else:
                 try:
@@ -331,8 +342,6 @@ operand_types["m" ] =  iota()
 
 operand_types["ST(i)"] = iota()
 
-
-
 operand_types["DR0–DR7"] =  iota()
 
 operand_types["DX"] = 249
@@ -341,6 +350,7 @@ operand_types["AL"] = 250
 operand_types["AX"] = 251
 operand_types["EAX"] = 252
 operand_types["RAX"] = 253
+operand_types["unsupported"] = 255
 
 
 
@@ -364,12 +374,22 @@ def check_operand(nmemonic, op):
     if op[0] == 'r':
         op = check_operand_superscript(op)
     if op == "ST(0)": 
-        return 0
+        # these instructions operate on the fpu stack
+        # meaning they don't have operands
+        return operand_types["NOP"]
+    # convert fpu memory types to just regular memory types 
+    # since there really is no difference between them
+    elif op == "m16int":
+        return operand_types["m16"]
+    elif op == "m32fp" or op == "m32int":
+        return operand_types["m32"]
+    elif op == "m64fp" or op == "m64int":
+        return operand_types["m64"]
     try:
         return operand_types[op]
     except KeyError:
-        return 0
-        #print(f"Operand Not Supported for instruction {nmemonic}: {op}")
+        print(f"Operand Not Supported for instruction {nmemonic}: {op}")
+        return operand_types["unsupported"]
 
 
 
@@ -414,7 +434,17 @@ def parse_operands(desc):
     elif len(op_format_list) == 3:
         op1 = op_format_list[1]
         op2 = op_format_list[2]
-        return (nmemonic, check_operand(nmemonic,op1),check_operand(nmemonic, op2),0)
+
+        op1_type = check_operand(nmemonic, op1)
+        op2_type = check_operand(nmemonic, op2)
+
+        # some fpu instructions have only take one operand but they operate on ST(0)
+        # we convert ST(0) to a no operand so we need to make sure the op2 is not an index 
+        # onto the fpu stack
+        if op1_type == operand_types["NOP"] and op2_type == operand_types["ST(i)"]:
+            return (nmemonic, op2_type, op1_type, 0)
+        else:
+            return (nmemonic,op1_type,op2_type,0)
     elif len(op_format_list ) == 4:
         return (nmemonic,0,0,0)
     else:
@@ -426,9 +456,9 @@ def parse_operands(desc):
 
 # not gonna support fpu instructions yet 
 def check_unsupported(nmemonic):
-    if nmemonic[0] == "F":
-        currently_unsupported.append(nmemonic)
-        return True
+    #if nmemonic[0] == "F":
+        #currently_unsupported.append(nmemonic)
+        #return True
     return False
 
 
@@ -467,10 +497,7 @@ with open("instructions.dat", "r") as f:
 
     sorted_instructions = sorted(instructions)
 
-
-
     write_nmemonics_strings(nmemonic_file, sorted_instructions)
-
 
 
 
@@ -493,6 +520,7 @@ with open("instructions.dat", "r") as f:
     nmemonic_file.write("}OperandType;\n")
 
     nmemonic_file.write(instr_struct)
+    nmemonic_file.write(instr_packing_macros)
 
     # DEBUG FUNCTIONS FOR Instruction struct and enum
     nmemonic_file.write("#ifdef DEBUG\n#include<stdio.h>\n")
