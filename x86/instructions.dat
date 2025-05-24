@@ -1,13 +1,3 @@
-AAA—ASCII
-37                       |AAA
-AAD—ASCII
-D5 0A                    |AAD
-D5 ib                    |AAD imm8
-AAM—ASCII
-D4 0A                    |AAM
-D4 ib                    |AAM imm8
-AAS—ASCII
-3F                       |AAS
 ADC—Add
 14 ib                    |ADC AL, imm8
 15 iw                    |ADC AX, imm16
@@ -22,12 +12,12 @@ REX.W + 81 /2 id         |ADC r/m64, imm32
 83 /2 ib                 |ADC r/m32, imm8
 REX.W + 83 /2 ib         |ADC r/m64, imm8
 10 /r                    |ADC r/m8, r8
-REX + 10 /r              | ADC r/m8 , r8
+REX + 10 /r              |ADC r/m8 , r8
 11 /r                    |ADC r/m16, r16
 11 /r                    |ADC r/m32, r32
 REX.W + 11 /r            |ADC r/m64, r64
 12 /r                    |ADC r8, r/m8
-REX + 12 /r              | ADC r8 , r/m8
+REX + 12 /r              |ADC r8 , r/m8
 13 /r                    |ADC r16, r/m16
 13 /r                    |ADC r32, r/m32
 REX.W + 13 /r            |ADC r64, r/m64
@@ -45,12 +35,12 @@ REX.W + 81 /0 id         |ADD r/m64, imm32
 83 /0 ib                 |ADD r/m32, imm8
 REX.W + 83 /0 ib         |ADD r/m64, imm8
 00 /r                    |ADD r/m8, r8
-REX + 00 /r              | ADD r/m8 , r8
+REX + 00 /r              |ADD r/m8 , r8
 01 /r                    |ADD r/m16, r16
 01 /r                    |ADD r/m32, r32
 REX.W + 01 /r            |ADD r/m64, r64
 02 /r                    |ADD r8, r/m8
-REX + 02 /r              | ADD r8 , r/m8
+REX + 02 /r              |ADD r8 , r/m8
 03 /r                    |ADD r16, r/m16
 03 /r                    |ADD r32, r/m32
 REX.W + 03 /r            |ADD r64, r/m64
@@ -68,20 +58,15 @@ REX.W + 81 /4 id         |AND r/m64, imm32
 83 /4 ib                 |AND r/m32, imm8
 REX.W + 83 /4 ib         |AND r/m64, imm8
 20 /r                    |AND r/m8, r8
-REX + 20 /r              | AND r/m8 , r8
+REX + 20 /r              |AND r/m8 , r8
 21 /r                    |AND r/m16, r16
 21 /r                    |AND r/m32, r32
 REX.W + 21 /r            |AND r/m64, r64
 22 /r                    |AND r8, r/m8
-REX + 22 /r              | AND r8 , r/m8
+REX + 22 /r              |AND r8 , r/m8
 23 /r                    |AND r16, r/m16
 23 /r                    |AND r32, r/m32
 REX.W + 23 /r            |AND r64, r/m64
-ARPL—Adjust
-63 /r                    |ARPL r/m16, r16
-BOUND—Check
-62 /r                    |BOUND r16, m16&16
-62 /r                    |BOUND r32, m32&32
 BSF—Bit
 0F BC /r                 |BSF r16, r/m16
 0F BC /r                 |BSF r32, r/m32
@@ -122,13 +107,8 @@ REX.W + 0F AB /r         |BTS r/m64, r64
 0F BA /5 ib              |BTS r/m32, imm8
 REX.W + 0F BA /5 ib      |BTS r/m64, imm8
 CALL—Call
-E8 cw                    |CALL rel16
 E8 cd                    |CALL rel32
-FF /2                    |CALL r/m16
-FF /2                    |CALL r/m32
 FF /2                    |CALL r/m64
-9A cd                    |CALL ptr16:16
-9A cp                    |CALL ptr16:32
 FF /3                    |CALL m16:16
 FF /3                    |CALL m16:32
 REX.W FF /3              |CALL m16:64
@@ -141,9 +121,9 @@ F8                       |CLC
 CLD—Clear
 FC                       |CLD
 CLFLUSH—Flush
-NP 0F AE /7              |CLFLUSH m8M
+NP 0F AE /7              |CLFLUSH m8
 CLFLUSHOPT—Flush
-NFx 66 0F AE /7          |CLFLUSHOPT m8M
+NFx 66 0F AE /7          |CLFLUSHOPT m8
 CLI—Clear
 FA                       |CLI
 CLTS—Clear
@@ -191,6 +171,7 @@ REX.W + 0F 42 /r         |CMOVNAE r64, r/m64
 0F 43 /r                 |CMOVNB r32, r/m32
 REX.W + 0F 43 /r         |CMOVNB r64, r/m64
 0F 47 /r                 |CMOVNBE r16, r/m16
+CMOVcc—Conditional
 0F 47 /r                 |CMOVNBE r32, r/m32
 REX.W + 0F 47 /r         |CMOVNBE r64, r/m64
 0F 43 /r                 |CMOVNC r16, r/m16
@@ -232,6 +213,7 @@ REX.W + 0F 4A /r         |CMOVP r64, r/m64
 0F 4A /r                 |CMOVPE r16, r/m16
 0F 4A /r                 |CMOVPE r32, r/m32
 REX.W + 0F 4A /r         |CMOVPE r64, r/m64
+CMOVcc—Conditional
 0F 4B /r                 |CMOVPO r16, r/m16
 0F 4B /r                 |CMOVPO r32, r/m32
 REX.W + 0F 4B /r         |CMOVPO r64, r/m64
@@ -255,12 +237,12 @@ REX.W + 81 /7 id         |CMP r/m64, imm32
 83 /7 ib                 |CMP r/m32, imm8
 REX.W + 83 /7 ib         |CMP r/m64, imm8
 38 /r                    |CMP r/m8, r8
-REX + 38 /r              | CMP r/m8 , r8
+REX + 38 /r              |CMP r/m8 , r8
 39 /r                    |CMP r/m16, r16
 39 /r                    |CMP r/m32, r32
 REX.W + 39 /r            |CMP r/m64,r64
 3A /r                    |CMP r8, r/m8
-REX + 3A /r              | CMP r8 , r/m8
+REX + 3A /r              |CMP r8 , r/m8
 3B /r                    |CMP r16, r/m16
 3B /r                    |CMP r32, r/m32
 REX.W + 3B /r            |CMP r64, r/m64
@@ -274,52 +256,46 @@ A7                       |CMPSW
 A7                       |CMPSD
 REX.W + A7               |CMPSQ
 CMPXCHG—Compare
-0F B0/r                  |CMPXCHG r/m8, r8MR
-REX + 0F B0/r            |CMPXCHG r/m8**,r8MR
-0F B1/r                  |CMPXCHG r/m16, r16MR
-0F B1/r                  |CMPXCHG r/m32, r32MR
-REX.W + 0F B1/r          |CMPXCHG r/m64, r64MR
+0F B0/r                  |CMPXCHG r/m8, r8
+REX + 0F B0/r            |CMPXCHG r/m8,r8
+0F B1/r                  |CMPXCHG r/m16, r16
+0F B1/r                  |CMPXCHG r/m32, r32
+REX.W + 0F B1/r          |CMPXCHG r/m64, r64
 CMPXCHG8B/CMPXCHG16B—Compare
-0F C7 /1                 |CMPXCHG8B m64M
-REX.W + 0F C7 /1         |CMPXCHG16B m128M
+0F C7 /1                 |CMPXCHG8B m64
+REX.W + 0F C7 /1         |CMPXCHG16B m128
 CPUID—CPU
 0F A2                    |CPUID
 CRC32—Accumulate
-F2 0F 38 F0 /r           |CRC32 r32, r/m8RM
-F2 REX 0F 38 F0 /r       |CRC32 r32, r/m81RM
-F2 0F 38 F1 /r           |CRC32 r32, r/m16RM
-F2 0F 38 F1 /r           |CRC32 r32, r/m32RM
-F2 REX.W 0F 38 F0 /r     |CRC32 r64, r/m8RM
-F2 REX.W 0F 38 F1 /r     |CRC32 r64, r/m64RM
+F2 0F 38 F0 /r           |CRC32 r32, r/m8
+F2 REX 0F 38 F0 /r       |CRC32 r32, r/m8
+F2 0F 38 F1 /r           |CRC32 r32, r/m16
+F2 0F 38 F1 /r           |CRC32 r32, r/m32
+F2 REX.W 0F 38 F0 /r     |CRC32 r64, r/m8
+F2 REX.W 0F 38 F1 /r     |CRC32 r64, r/m64
 CVTPI2PD—Convert
-66 0F 2A /r              |CVTPI2PD xmm, mm/m641RM
+66 0F 2A /r              |CVTPI2PD xmm, mm/m64
 CVTPI2PS—Convert
-NP 0F 2A /r              |CVTPI2PS xmm, mm/m64RM
+NP 0F 2A /r              |CVTPI2PS xmm, mm/m64
 CVTPS2PI—Convert
-NP 0F 2D /r              |CVTPS2PI mm, xmm/m64RM
+NP 0F 2D /r              |CVTPS2PI mm, xmm/m64
 CVTTPD2PI—Convert
-66 0F 2C /r              |CVTTPD2PI mm, xmm/m128RM
+66 0F 2C /r              |CVTTPD2PI mm, xmm/m128
 CVTTPS2PI—Convert
-NP 0F 2C /r              |CVTTPS2PI mm, xmm/m64RM
+NP 0F 2C /r              |CVTTPS2PI mm, xmm/m64
 CWD/CDQ/CQO—Convert
 99                       |CWD
 99                       |CDQ
 REX.W + 99               |CQO
-DAA—Decimal
-27                       |DAA
-DAS—Decimal
-2F                       |DAS
 DEC—Decrement
 FE /1                    |DEC r/m8
 REX + FE /1              |DEC r/m8
 FF /1                    |DEC r/m16
 FF /1                    |DEC r/m32
 REX.W + FF /1            |DEC r/m64
-48+rw                    |DEC r16
-48+rd                    |DEC r32
 DIV—Unsigned
 F6 /6                    |DIV r/m8
-REX + F6 /6              |DIV r/m81
+REX + F6 /6              |DIV r/m8
 F7 /6                    |DIV r/m16
 F7 /6                    |DIV r/m32
 REX.W + F7 /6            |DIV r/m64
@@ -520,13 +496,13 @@ FXCH—Exchange
 D9 C8+i                  |FXCH ST(i)
 D9 C9                    |FXCH
 FXRSTOR—Restore
-NP 0F AE /1              |FXRSTOR m512byteM
-NP REX.W + 0F AE /1      |FXRSTOR64 m512byteM
+NP 0F AE /1              |FXRSTOR m512byte
+NP REX.W + 0F AE /1      |FXRSTOR64 m512byte
 FXSAVE—Save
-NP 0F AE /0              |FXSAVE m512byteM
-NP REX.W + 0F AE /0      |FXSAVE64 m512byteM
+NP 0F AE /0              |FXSAVE m512byte
+NP REX.W + 0F AE /0      |FXSAVE64 m512byte
 FXTRACT—Extract
-D9 F4                    |FXTRACTValid
+D9 F4                    |FXTRACT
 FYL2X—Compute
 D9 F1                    |FYL2X
 FYL2XP1—Compute
@@ -535,12 +511,12 @@ HLT—Halt
 F4                       |HLT
 IDIV—Signed
 F6 /7                    |IDIV r/m8
-REX + F6 /7              |IDIV r/m81
+REX + F6 /7              |IDIV r/m8
 F7 /7                    |IDIV r/m16
 F7 /7                    |IDIV r/m32
 REX.W + F7 /7            |IDIV r/m64
 IMUL—Signed
-F6 /5                    |IMUL r/m81
+F6 /5                    |IMUL r/m8
 F7 /5                    |IMUL r/m16
 F7 /5                    |IMUL r/m32
 REX.W + F7 /5            |IMUL r/m64
@@ -562,12 +538,10 @@ ED                       |IN AX,DX
 ED                       |IN EAX,DX
 INC—Increment
 FE /0                    |INC r/m8
-REX + FE /0              |INC r/m81
+REX + FE /0              |INC r/m8
 FF /0                    |INC r/m16
 FF /0                    |INC r/m32
 REX.W + FF /0            |INC r/m64
-40+ rw2                  |INC r16
-40+ rd                   |INC r32
 INS/INSB/INSW/INSD—Input
 6C                       |INS m8, DX
 6D                       |INS m16, DX
@@ -589,7 +563,6 @@ Jcc—Jump
 72 cb                    |JB rel8
 76 cb                    |JBE rel8
 72 cb                    |JC rel8
-E3 cb                    |JCXZ rel8
 E3 cb                    |JECXZ rel8
 E3 cb                    |JRCXZ rel8
 74 cb                    |JE rel8
@@ -617,93 +590,53 @@ E3 cb                    |JRCXZ rel8
 7B cb                    |JPO rel8
 78 cb                    |JS rel8
 74 cb                    |JZ rel8
-0F 87 cw                 |JA rel16
 0F 87 cd                 |JA rel32
-0F 83 cw                 |JAE rel16
 0F 83 cd                 |JAE rel32
-0F 82 cw                 |JB rel16
+Jcc—Jump
 0F 82 cd                 |JB rel32
-0F 86 cw                 |JBE rel16
 0F 86 cd                 |JBE rel32
-0F 82 cw                 |JC rel16
 0F 82 cd                 |JC rel32
-0F 84 cw                 |JE rel16
 0F 84 cd                 |JE rel32
-0F 84 cw                 |JZ rel16
 0F 84 cd                 |JZ rel32
-0F 8F cw                 |JG rel16
 0F 8F cd                 |JG rel32
-0F 8D cw                 |JGE rel16
 0F 8D cd                 |JGE rel32
-0F 8C cw                 |JL rel16
 0F 8C cd                 |JL rel32
-0F 8E cw                 |JLE rel16
 0F 8E cd                 |JLE rel32
-0F 86 cw                 |JNA rel16
 0F 86 cd                 |JNA rel32
-0F 82 cw                 |JNAE rel16
 0F 82 cd                 |JNAE rel32
-0F 83 cw                 |JNB rel16
 0F 83 cd                 |JNB rel32
-0F 87 cw                 |JNBE rel16
 0F 87 cd                 |JNBE rel32
-0F 83 cw                 |JNC rel16
 0F 83 cd                 |JNC rel32
-0F 85 cw                 |JNE rel16
+Jcc—Jump
 0F 85 cd                 |JNE rel32
-0F 8E cw                 |JNG rel16
 0F 8E cd                 |JNG rel32
-0F 8C cw                 |JNGE rel16
 0F 8C cd                 |JNGE rel32
-0F 8D cw                 |JNL rel16
 0F 8D cd                 |JNL rel32
-0F 8F cw                 |JNLE rel16
 0F 8F cd                 |JNLE rel32
-0F 81 cw                 |JNO rel16
 0F 81 cd                 |JNO rel32
-0F 8B cw                 |JNP rel16
 0F 8B cd                 |JNP rel32
-0F 89 cw                 |JNS rel16
 0F 89 cd                 |JNS rel32
-0F 85 cw                 |JNZ rel16
 0F 85 cd                 |JNZ rel32
-0F 80 cw                 |JO rel16
 0F 80 cd                 |JO rel32
-0F 8A cw                 |JP rel16
 0F 8A cd                 |JP rel32
-0F 8A cw                 |JPE rel16
 0F 8A cd                 |JPE rel32
-0F 8B cw                 |JPO rel16
 0F 8B cd                 |JPO rel32
-0F 88 cw                 |JS rel16
 0F 88 cd                 |JS rel32
-0F 84 cw                 |JZ rel16
 0F 84 cd                 |JZ rel32
 JMP—Jump
 EB cb                    |JMP rel8
-E9 cw                    |JMP rel16
 E9 cd                    |JMP rel32
-FF /4                    |JMP r/m16
-FF /4                    |JMP r/m32
 FF /4                    |JMP r/m64
-EA cd                    |JMP ptr16:16
-EA cp                    |JMP ptr16:32
 FF /5                    |JMP m16:16
 FF /5                    |JMP m16:32
 REX.W FF /5              |JMP m16:64
-LAHF—Load
-9F                       |LAHF
 LAR—Load
 0F 02 /r                 |LAR r16, r16/m16
-0F 02 /r                 |LAR reg, r32/m161
+0F 02 /r                 |LAR reg, r32/m16
 LDS/LES/LFS/LGS/LSS—Load
-C5 /r                    |LDS r16,m16:16
-C5 /r                    |LDS r32,m16:32
 0F B2 /r                 |LSS r16,m16:16
 0F B2 /r                 |LSS r32,m16:32
 REX + 0F B2 /r           |LSS r64,m16:64
-C4 /r                    |LES r16,m16:16
-C4 /r                    |LES r32,m16:32
 0F B4 /r                 |LFS r16,m16:16
 0F B4 /r                 |LFS r32,m16:32
 REX + 0F B4 /r           |LFS r64,m16:64
@@ -717,10 +650,7 @@ REX.W + 8D /r            |LEA r64,m
 LEAVE—High
 C9                       |LEAVE
 C9                       |LEAVE
-C9                       |LEAVE
 LGDT/LIDT—Load
-0F 01 /2                 |LGDT m16&32
-0F 01 /3                 |LIDT m16&32
 0F 01 /2                 |LGDT m16&64
 0F 01 /3                 |LIDT m16&64
 LLDT—Load
@@ -744,60 +674,58 @@ E1 cb                    |LOOPE rel8
 E0 cb                    |LOOPNE rel8
 LSL—Load
 0F 03 /r                 |LSL r16, r16/m16
-0F 03 /r                 |LSL r32, r32/m161
-REX.W + 0F 03 /r         |LSL r64, r32/m161
+0F 03 /r                 |LSL r32, r32/m16
+REX.W + 0F 03 /r         |LSL r64, r32/m16
 LTR—Load
 0F 00 /3                 |LTR r/m16
 MASKMOVQ—Store
-NP 0F F7 /r              |MASKMOVQ mm1, mm2RM
+NP 0F F7 /r              |MASKMOVQ mm1, mm2
 MONITOR—Set
 0F 01 C8                 |MONITOR
 MOV—Move
 88 /r                    |MOV r/m8, r8
-REX + 88 /r              |MOV r/m81, r81
+REX + 88 /r              |MOV r/m8, r8
 89 /r                    |MOV r/m16, r16
 89 /r                    |MOV r/m32, r32
 REX.W + 89 /r            |MOV r/m64, r64
 8A /r                    |MOV r8, r/m8
-REX + 8A /r              |MOV r81, r/m81
+REX + 8A /r              |MOV r8, r/m8
 8B /r                    |MOV r16, r/m16
 8B /r                    |MOV r32, r/m32
 REX.W + 8B /r            |MOV r64, r/m64
-8C /r                    |MOV r/m16, Sreg2
-8C /r                    |MOV r16/r32/m16, Sreg2
-REX.W + 8C /r            |MOV r64/m16, Sreg2
-8E /r                    |MOV Sreg, r/m162
-REX.W + 8E /r            |MOV Sreg, r/m642
-A0                       |MOV AL, moffs83
-REX.W + A0               |MOV AL, moffs83
-A1                       |MOV AX, moffs163
-A1                       |MOV EAX, moffs323
-REX.W + A1               |MOV RAX, moffs643
+8C /r                    |MOV r/m16, Sreg
+8C /r                    |MOV r16/r32/m16, Sreg
+REX.W + 8C /r            |MOV r64/m16, Sreg
+8E /r                    |MOV Sreg, r/m16
+REX.W + 8E /r            |MOV Sreg, r/m64
+A0                       |MOV AL, moffs8
+REX.W + A0               |MOV AL, moffs8
+A1                       |MOV AX, moffs16
+A1                       |MOV EAX, moffs32
+REX.W + A1               |MOV RAX, moffs64
 A2                       |MOV moffs8, AL
-REX.W + A2               |MOV moffs81, AL
-A3                       |MOV moffs163, AX
-A3                       |MOV moffs323, EAX
-REX.W + A3               |MOV moffs643, RAX
+REX.W + A2               |MOV moffs8, AL
+A3                       |MOV moffs16, AX
+A3                       |MOV moffs32, EAX
+REX.W + A3               |MOV moffs64, RAX
 B0+ rb ib                |MOV r8, imm8
-REX + B0+ rb ib          |MOV r81, imm8
+REX + B0+ rb ib          |MOV r8, imm8
 B8+ rw iw                |MOV r16, imm16
 B8+ rd id                |MOV r32, imm32
 REX.W + B8+ rd io        |MOV r64, imm64
 C6 /0 ib                 |MOV r/m8, imm8
-REX + C6 /0 ib           |MOV r/m81, imm8
+REX + C6 /0 ib           |MOV r/m8, imm8
 C7 /0 iw                 |MOV r/m16, imm16
 C7 /0 id                 |MOV r/m32, imm32
 REX.W + C7 /0 id         |MOV r/m64, imm32
-0F 20/r                  |MOV r32, CR0–CR7MR
-0F 20/r                  |MOV r64, CR0–CR7MR
-REX.R + 0F 20 /0         |MOV r64, CR8MR
-0F 22 /r                 |MOV CR0–CR7, r32RM
-0F 22 /r                 |MOV CR0–CR7, r64RM
-REX.R + 0F 22 /0         |MOV CR8, r64RM
-0F 21/r                  |MOV r32, DR0–DR7MR
-0F 21/r                  |MOV r64, DR0–DR7MR
-0F 23 /r                 |MOV DR0–DR7, r32RM
-0F 23 /r                 |MOV DR0–DR7, r64RM
+MOV—Move
+0F 20/r                  |MOV r64, CR0–CR7
+REX.R + 0F 20 /0         |MOV r64, CR8
+0F 22 /r                 |MOV CR0–CR7, r64
+REX.R + 0F 22 /0         |MOV CR8, r64
+MOV—Move
+0F 21/r                  |MOV r64, DR0–DR7
+0F 23 /r                 |MOV DR0–DR7, r64
 MOVDQ2Q—Move
 F2 0F D6 /r              |MOVDQ2Q mm, xmm
 MOVNTQ—Store
@@ -817,18 +745,18 @@ MOVSX/MOVSXD—Move
 REX.W + 0F BE /r         |MOVSX r64, r/m8
 0F BF /r                 |MOVSX r32, r/m16
 REX.W + 0F BF /r         |MOVSX r64, r/m16
-63 /r1                   |MOVSXD r16, r/m16
-63 /r1                   |MOVSXD r32, r/m32
+63 /r                    |MOVSXD r16, r/m16
+63 /r                    |MOVSXD r32, r/m32
 REX.W + 63 /r            |MOVSXD r64, r/m32
 MOVZX—Move
 0F B6 /r                 |MOVZX r16, r/m8
 0F B6 /r                 |MOVZX r32, r/m8
-REX.W + 0F B6 /r         |MOVZX r64, r/m81
+REX.W + 0F B6 /r         |MOVZX r64, r/m8
 0F B7 /r                 |MOVZX r32, r/m16
 REX.W + 0F B7 /r         |MOVZX r64, r/m16
 MUL—Unsigned
 F6 /4                    |MUL r/m8
-REX + F6 /4              |MUL r/m81
+REX + F6 /4              |MUL r/m8
 F7 /4                    |MUL r/m16
 F7 /4                    |MUL r/m32
 REX.W + F7 /4            |MUL r/m64
@@ -836,7 +764,7 @@ MWAIT—Monitor
 0F 01 C9                 |MWAIT
 NEG—Two's
 F6 /3                    |NEG r/m8
-REX + F6 /3              |NEG r/m81
+REX + F6 /3              |NEG r/m8
 F7 /3                    |NEG r/m16
 F7 /3                    |NEG r/m32
 REX.W + F7 /3            |NEG r/m64
@@ -846,7 +774,7 @@ NP 0F 1F /0              |NOP r/m16
 NP 0F 1F /0              |NOP r/m32
 NOT—One's
 F6 /2                    |NOT r/m8
-REX + F6 /2              |NOT r/m81
+REX + F6 /2              |NOT r/m8
 F7 /2                    |NOT r/m16
 F7 /2                    |NOT r/m32
 REX.W + F7 /2            |NOT r/m64
@@ -856,7 +784,7 @@ OR—Logical
 0D id                    |OR EAX, imm32
 REX.W + 0D id            |OR RAX, imm32
 80 /1 ib                 |OR r/m8, imm8
-REX + 80 /1 ib           |OR r/m81, imm8
+REX + 80 /1 ib           |OR r/m8, imm8
 81 /1 iw                 |OR r/m16, imm16
 81 /1 id                 |OR r/m32, imm32
 REX.W + 81 /1 id         |OR r/m64, imm32
@@ -864,12 +792,12 @@ REX.W + 81 /1 id         |OR r/m64, imm32
 83 /1 ib                 |OR r/m32, imm8
 REX.W + 83 /1 ib         |OR r/m64, imm8
 08 /r                    |OR r/m8, r8
-REX + 08 /r              |OR r/m81, r81
+REX + 08 /r              |OR r/m8, r8
 09 /r                    |OR r/m16, r16
 09 /r                    |OR r/m32, r32
 REX.W + 09 /r            |OR r/m64, r64
 0A /r                    |OR r8, r/m8
-REX + 0A /r              |OR r81, r/m81
+REX + 0A /r              |OR r8, r/m8
 0B /r                    |OR r16, r/m16
 0B /r                    |OR r32, r/m32
 REX.W + 0B /r            |OR r64, r/m64
@@ -891,30 +819,19 @@ PAUSE—Spin
 F3 90                    |PAUSE
 POP—Pop
 8F /0                    |POP r/m16
-8F /0                    |POP r/m32
 8F /0                    |POP r/m64
 58+ rw                   |POP r16
-58+ rd                   |POP r32
 58+ rd                   |POP r64
-1F                       |POP DS
-07                       |POP ES
-17                       |POP SS
-0F A1                    |POP FS
 0F A1                    |POP FS
 0F A1                    |POP FS
 0F A9                    |POP GS
 0F A9                    |POP GS
-0F A9                    |POP GS
-POPA/POPAD—Pop
-61                       |POPA
-61                       |POPAD
 POPCNT—Return
 F3 0F B8 /r              |POPCNT r16, r/m16
 F3 0F B8 /r              |POPCNT r32, r/m32
 F3 REX.W 0F B8 /r        |POPCNT r64, r/m64
 POPF/POPFD/POPFQ—Pop
 9D                       |POPF
-9D                       |POPFD
 9D                       |POPFQ
 PREFETCHh—Prefetch
 0F 18 /1                 |PREFETCHT0 m8
@@ -922,37 +839,27 @@ PREFETCHh—Prefetch
 0F 18 /3                 |PREFETCHT2 m8
 0F 18 /0                 |PREFETCHNTA m8
 PSHUFW—Shuffle
-NP 0F 70 /r ib           |PSHUFW mm1, mm2/m64, imm8RMI
+NP 0F 70 /r ib           |PSHUFW mm1, mm2/m64, imm8
 PUSH—Push
 FF /6                    |PUSH r/m16
-FF /6                    |PUSH r/m32
 FF /6                    |PUSH r/m64
 50+rw                    |PUSH r16
-50+rd                    |PUSH r32
 50+rd                    |PUSH r64
 6A ib                    |PUSH imm8
 68 iw                    |PUSH imm16
 68 id                    |PUSH imm32
-0E                       |PUSH CS
-16                       |PUSH SS
-1E                       |PUSH DS
-06                       |PUSH ES
 0F A0                    |PUSH FS
 0F A8                    |PUSH GS
-PUSHA/PUSHAD—Push
-60                       |PUSHA
-60                       |PUSHAD
 PUSHF/PUSHFD/PUSHFQ—Push
 9C                       |PUSHF
-9C                       |PUSHFD
 9C                       |PUSHFQ
 RCL/RCR/ROL/ROR—Rotate
 D0 /2                    |RCL r/m8, 1
-REX + D0 /2              |RCL r/m82, 1
+REX + D0 /2              |RCL r/m8, 1
 D2 /2                    |RCL r/m8, CL
-REX + D2 /2              |RCL r/m82, CL
+REX + D2 /2              |RCL r/m8, CL
 C0 /2 ib                 |RCL r/m8, imm8
-REX + C0 /2 ib           |RCL r/m82, imm8
+REX + C0 /2 ib           |RCL r/m8, imm8
 D1 /2                    |RCL r/m16, 1
 D3 /2                    |RCL r/m16, CL
 C1 /2 ib                 |RCL r/m16, imm8
@@ -963,11 +870,11 @@ REX.W + D3 /2            |RCL r/m64, CL
 C1 /2 ib                 |RCL r/m32, imm8
 REX.W + C1 /2 ib         |RCL r/m64, imm8
 D0 /3                    |RCR r/m8, 1
-REX + D0 /3              |RCR r/m82, 1
+REX + D0 /3              |RCR r/m8, 1
 D2 /3                    |RCR r/m8, CL
-REX + D2 /3              |RCR r/m82, CL
+REX + D2 /3              |RCR r/m8, CL
 C0 /3 ib                 |RCR r/m8, imm8
-REX + C0 /3 ib           |RCR r/m82, imm8
+REX + C0 /3 ib           |RCR r/m8, imm8
 D1 /3                    |RCR r/m16, 1
 D3 /3                    |RCR r/m16, CL
 C1 /3 ib                 |RCR r/m16, imm8
@@ -978,11 +885,12 @@ REX.W + D3 /3            |RCR r/m64, CL
 C1 /3 ib                 |RCR r/m32, imm8
 REX.W + C1 /3 ib         |RCR r/m64, imm8
 D0 /0                    |ROL r/m8, 1
-REX + D0 /0              |ROL r/m82, 1
+REX + D0 /0              |ROL r/m8, 1
 D2 /0                    |ROL r/m8, CL
-REX + D2 /0              |ROL r/m82, CL
+REX + D2 /0              |ROL r/m8, CL
 C0 /0 ib                 |ROL r/m8, imm8
-REX + C0 /0 ib           |ROL r/m82, imm8
+RCL/RCR/ROL/ROR—Rotate
+REX + C0 /0 ib           |ROL r/m8, imm8
 D1 /0                    |ROL r/m16, 1
 D3 /0                    |ROL r/m16, CL
 C1 /0 ib                 |ROL r/m16, imm8
@@ -993,11 +901,11 @@ REX.W + D3 /0            |ROL r/m64, CL
 C1 /0 ib                 |ROL r/m32, imm8
 REX.W + C1 /0 ib         |ROL r/m64, imm8
 D0 /1                    |ROR r/m8, 1
-REX + D0 /1              |ROR r/m82, 1
+REX + D0 /1              |ROR r/m8, 1
 D2 /1                    |ROR r/m8, CL
-REX + D2 /1              |ROR r/m82, CL
+REX + D2 /1              |ROR r/m8, CL
 C0 /1 ib                 |ROR r/m8, imm8
-REX + C0 /1 ib           |ROR r/m82, imm8
+REX + C0 /1 ib           |ROR r/m8, imm8
 D1 /1                    |ROR r/m16, 1
 D3 /1                    |ROR r/m16, CL
 C1 /1 ib                 |ROR r/m16, imm8
@@ -1029,7 +937,7 @@ F3 A5                    |REP MOVS m16, m16
 F3 A5                    |REP MOVS m32, m32
 F3 REX.W A5              |REP MOVS m64, m64
 F3 6E                    |REP OUTS DX, r/m8
-F3 REX.W 6E              |REP OUTS DX, r/m81
+F3 REX.W 6E              |REP OUTS DX, r/m8
 F3 6F                    |REP OUTS DX, r/m16
 F3 6F                    |REP OUTS DX, r/m32
 F3 REX.W 6F              |REP OUTS DX, r/m32
@@ -1052,6 +960,7 @@ F3 AE                    |REPE SCAS m8
 F3 REX.W AE              |REPE SCAS m8
 F3 AF                    |REPE SCAS m16
 F3 AF                    |REPE SCAS m32
+REP/REPE/REPZ/REPNE/REPNZ—Repeat
 F3 REX.W AF              |REPE SCAS m64
 F2 A6                    |REPNE CMPS m8, m8
 F2 REX.W A6              |REPNE CMPS m8, m8
@@ -1070,15 +979,13 @@ C2 iw                    |RET imm16
 CA iw                    |RET imm16
 RSM—Resume
 0F AA                    |RSM
-SAHF—Store
-9E                       |SAHF
 SAL/SAR/SHL/SHR—Shift
 D0 /4                    |SAL r/m8, 1
-REX + D0 /4              |SAL r/m82, 1
+REX + D0 /4              |SAL r/m8, 1
 D2 /4                    |SAL r/m8, CL
-REX + D2 /4              |SAL r/m82, CL
+REX + D2 /4              |SAL r/m8, CL
 C0 /4 ib                 |SAL r/m8, imm8
-REX + C0 /4 ib           |SAL r/m82, imm8
+REX + C0 /4 ib           |SAL r/m8, imm8
 D1 /4                    |SAL r/m16, 1
 D3 /4                    |SAL r/m16, CL
 C1 /4 ib                 |SAL r/m16, imm8
@@ -1089,11 +996,11 @@ REX.W + D3 /4            |SAL r/m64, CL
 C1 /4 ib                 |SAL r/m32, imm8
 REX.W + C1 /4 ib         |SAL r/m64, imm8
 D0 /7                    |SAR r/m8, 1
-REX + D0 /7              |SAR r/m82, 1
+REX + D0 /7              |SAR r/m8, 1
 D2 /7                    |SAR r/m8, CL
-REX + D2 /7              |SAR r/m82, CL
+REX + D2 /7              |SAR r/m8, CL
 C0 /7 ib                 |SAR r/m8, imm8
-REX + C0 /7 ib           |SAR r/m82, imm8
+REX + C0 /7 ib           |SAR r/m8, imm8
 D1 /7                    |SAR r/m16,1
 D3 /7                    |SAR r/m16, CL
 C1 /7 ib                 |SAR r/m16, imm8
@@ -1104,26 +1011,27 @@ REX.W + D3 /7            |SAR r/m64, CL
 C1 /7 ib                 |SAR r/m32, imm8
 REX.W + C1 /7 ib         |SAR r/m64, imm8
 D0 /4                    |SHL r/m8, 1
-REX + D0 /4              |SHL r/m82, 1
+REX + D0 /4              |SHL r/m8, 1
 D2 /4                    |SHL r/m8, CL
-REX + D2 /4              |SHL r/m82, CL
+REX + D2 /4              |SHL r/m8, CL
 C0 /4 ib                 |SHL r/m8, imm8
-REX + C0 /4 ib           |SHL r/m82, imm8
+REX + C0 /4 ib           |SHL r/m8, imm8
 D1 /4                    |SHL r/m16,1
 D3 /4                    |SHL r/m16, CL
 C1 /4 ib                 |SHL r/m16, imm8
 D1 /4                    |SHL r/m32,1
+SAL/SAR/SHL/SHR—Shift
 REX.W + D1 /4            |SHL r/m64,1
 D3 /4                    |SHL r/m32, CL
 REX.W + D3 /4            |SHL r/m64, CL
 C1 /4 ib                 |SHL r/m32, imm8
 REX.W + C1 /4 ib         |SHL r/m64, imm8
 D0 /5                    |SHR r/m8,1
-REX + D0 /5              |SHR r/m82, 1
+REX + D0 /5              |SHR r/m8, 1
 D2 /5                    |SHR r/m8, CL
-REX + D2 /5              |SHR r/m82, CL
+REX + D2 /5              |SHR r/m8, CL
 C0 /5 ib                 |SHR r/m8, imm8
-REX + C0 /5 ib           |SHR r/m82, imm8
+REX + C0 /5 ib           |SHR r/m8, imm8
 D1 /5                    |SHR r/m16, 1
 D3 /5                    |SHR r/m16, CL
 C1 /5 ib                 |SHR r/m16, imm8
@@ -1139,7 +1047,7 @@ SBB—Integer
 1D id                    |SBB EAX, imm32
 REX.W + 1D id            |SBB RAX, imm32
 80 /3 ib                 |SBB r/m8, imm8
-REX + 80 /3 ib           |SBB r/m81, imm8
+REX + 80 /3 ib           |SBB r/m8, imm8
 81 /3 iw                 |SBB r/m16, imm16
 81 /3 id                 |SBB r/m32, imm32
 REX.W + 81 /3 id         |SBB r/m64, imm32
@@ -1147,12 +1055,12 @@ REX.W + 81 /3 id         |SBB r/m64, imm32
 83 /3 ib                 |SBB r/m32, imm8
 REX.W + 83 /3 ib         |SBB r/m64, imm8
 18 /r                    |SBB r/m8, r8
-REX + 18 /r              |SBB r/m81, r8
+REX + 18 /r              |SBB r/m8, r8
 19 /r                    |SBB r/m16, r16
 19 /r                    |SBB r/m32, r32
 REX.W + 19 /r            |SBB r/m64, r64
 1A /r                    |SBB r8, r/m8
-REX + 1A /r              |SBB r81, r/m81
+REX + 1A /r              |SBB r8, r/m8
 1B /r                    |SBB r16, r/m16
 1B /r                    |SBB r32, r/m32
 REX.W + 1B /r            |SBB r64, r/m64
@@ -1167,65 +1075,66 @@ AF                       |SCASD
 REX.W + AF               |SCASQ
 SETcc—Set
 0F 97                    |SETA r/m8
-REX + 0F 97              |SETA r/m81
+REX + 0F 97              |SETA r/m8
 0F 93                    |SETAE r/m8
-REX + 0F 93              |SETAE r/m81
+REX + 0F 93              |SETAE r/m8
 0F 92                    |SETB r/m8
-REX + 0F 92              |SETB r/m81
+REX + 0F 92              |SETB r/m8
 0F 96                    |SETBE r/m8
-REX + 0F 96              |SETBE r/m81
+REX + 0F 96              |SETBE r/m8
 0F 92                    |SETC r/m8
-REX + 0F 92              |SETC r/m81
+REX + 0F 92              |SETC r/m8
 0F 94                    |SETE r/m8
-REX + 0F 94              |SETE r/m81
+REX + 0F 94              |SETE r/m8
 0F 9F                    |SETG r/m8
-REX + 0F 9F              |SETG r/m81
+REX + 0F 9F              |SETG r/m8
 0F 9D                    |SETGE r/m8
-REX + 0F 9D              |SETGE r/m81
+REX + 0F 9D              |SETGE r/m8
 0F 9C                    |SETL r/m8
-REX + 0F 9C              |SETL r/m81
+REX + 0F 9C              |SETL r/m8
 0F 9E                    |SETLE r/m8
-REX + 0F 9E              |SETLE r/m81
+REX + 0F 9E              |SETLE r/m8
 0F 96                    |SETNA r/m8
-REX + 0F 96              |SETNA r/m81
+REX + 0F 96              |SETNA r/m8
 0F 92                    |SETNAE r/m8
-REX + 0F 92              |SETNAE r/m81
+REX + 0F 92              |SETNAE r/m8
 0F 93                    |SETNB r/m8
-REX + 0F 93              |SETNB r/m81
+REX + 0F 93              |SETNB r/m8
 0F 97                    |SETNBE r/m8
-REX + 0F 97              |SETNBE r/m81
+REX + 0F 97              |SETNBE r/m8
 0F 93                    |SETNC r/m8
-REX + 0F 93              |SETNC r/m81
+REX + 0F 93              |SETNC r/m8
 0F 95                    |SETNE r/m8
-REX + 0F 95              |SETNE r/m81
+REX + 0F 95              |SETNE r/m8
 0F 9E                    |SETNG r/m8
-REX + 0F 9E              |SETNG r/m81
+REX + 0F 9E              |SETNG r/m8
 0F 9C                    |SETNGE r/m8
-REX + 0F 9C              |SETNGE r/m81
+REX + 0F 9C              |SETNGE r/m8
 0F 9D                    |SETNL r/m8
-REX + 0F 9D              |SETNL r/m81
+REX + 0F 9D              |SETNL r/m8
 0F 9F                    |SETNLE r/m8
-REX + 0F 9F              |SETNLE r/m81
+REX + 0F 9F              |SETNLE r/m8
+SETcc—Set
 0F 91                    |SETNO r/m8
-REX + 0F 91              |SETNO r/m81
+REX + 0F 91              |SETNO r/m8
 0F 9B                    |SETNP r/m8
-REX + 0F 9B              |SETNP r/m81
+REX + 0F 9B              |SETNP r/m8
 0F 99                    |SETNS r/m8
-REX + 0F 99              |SETNS r/m81
+REX + 0F 99              |SETNS r/m8
 0F 95                    |SETNZ r/m8
-REX + 0F 95              |SETNZ r/m81
+REX + 0F 95              |SETNZ r/m8
 0F 90                    |SETO r/m8
-REX + 0F 90              |SETO r/m81
+REX + 0F 90              |SETO r/m8
 0F 9A                    |SETP r/m8
-REX + 0F 9A              |SETP r/m81
+REX + 0F 9A              |SETP r/m8
 0F 9A                    |SETPE r/m8
-REX + 0F 9A              |SETPE r/m81
+REX + 0F 9A              |SETPE r/m8
 0F 9B                    |SETPO r/m8
-REX + 0F 9B              |SETPO r/m81
+REX + 0F 9B              |SETPO r/m8
 0F 98                    |SETS r/m8
-REX + 0F 98              |SETS r/m81
+REX + 0F 98              |SETS r/m8
 0F 94                    |SETZ r/m8
-REX + 0F 94              |SETZ r/m81
+REX + 0F 94              |SETZ r/m8
 SFENCE—Store
 NP 0F AE F8              |SFENCE
 SGDT—Store
@@ -1275,7 +1184,7 @@ SUB—Subtract
 2D id                    |SUB EAX, imm32
 REX.W + 2D id            |SUB RAX, imm32
 80 /5 ib                 |SUB r/m8, imm8
-REX + 80 /5 ib           |SUB r/m81, imm8
+REX + 80 /5 ib           |SUB r/m8, imm8
 81 /5 iw                 |SUB r/m16, imm16
 81 /5 id                 |SUB r/m32, imm32
 REX.W + 81 /5 id         |SUB r/m64, imm32
@@ -1283,12 +1192,12 @@ REX.W + 81 /5 id         |SUB r/m64, imm32
 83 /5 ib                 |SUB r/m32, imm8
 REX.W + 83 /5 ib         |SUB r/m64, imm8
 28 /r                    |SUB r/m8, r8
-REX + 28 /r              |SUB r/m81, r81
+REX + 28 /r              |SUB r/m8, r8
 29 /r                    |SUB r/m16, r16
 29 /r                    |SUB r/m32, r32
 REX.W + 29 /r            |SUB r/m64, r64
 2A /r                    |SUB r8, r/m8
-REX + 2A /r              |SUB r81, r/m81
+REX + 2A /r              |SUB r8, r/m8
 2B /r                    |SUB r16, r/m16
 2B /r                    |SUB r32, r/m32
 REX.W + 2B /r            |SUB r64, r/m64
@@ -1310,12 +1219,12 @@ A9 iw                    |TEST AX, imm16
 A9 id                    |TEST EAX, imm32
 REX.W + A9 id            |TEST RAX, imm32
 F6 /0 ib                 |TEST r/m8, imm8
-REX + F6 /0 ib           |TEST r/m81, imm8
+REX + F6 /0 ib           |TEST r/m8, imm8
 F7 /0 iw                 |TEST r/m16, imm16
 F7 /0 id                 |TEST r/m32, imm32
 REX.W + F7 /0 id         |TEST r/m64, imm32
 84 /r                    |TEST r/m8, r8
-REX + 84 /r              |TEST r/m81, r81
+REX + 84 /r              |TEST r/m8, r8
 85 /r                    |TEST r/m16, r16
 85 /r                    |TEST r/m32, r32
 REX.W + 85 /r            |TEST r/m64, r64
@@ -1333,9 +1242,6 @@ WBINVD—Write
 0F 09                    |WBINVD
 WRMSR—Write
 0F 30                    |WRMSR
-XACQUIRE/XRELEASE—Hardware
-F2                       |XACQUIREV/V
-F3                       |XRELEASEV/V
 XADD—Exchange
 0F C0 /r                 |XADD r/m8, r8
 REX + 0F C0 /r           |XADD r/m8, r8

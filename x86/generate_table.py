@@ -171,12 +171,6 @@ class Instruction:
 
 
 
-def check_superscript(chunk):
-    if chunk[-1] == '1' or chunk[-1] == '2':
-        return chunk[:-1]
-    else:
-        return chunk
-
 
 def parse_opcode(op):
     new_op = ""
@@ -217,11 +211,10 @@ def parse_opcode(op):
             if chunk[1].isdigit():
                digit = int(chunk[1]) 
             elif chunk[1] == "r":
-                chunk = check_superscript(chunk)
                 r = MODRM_CONTAINS_REG_AND_MEM
             else:
                 print(f"Failed: {chunk} in {chunks}")
-            assert len(chunk) == 2, f"Chunks containg / should be size 2 not {len(chunk)}"
+            assert len(chunk) == 2, f"Chunks containg / should be size 2 not {len(chunk), {chunk}}"
 
         elif prev == '+':
             if chunk[0] == "i":
@@ -230,9 +223,9 @@ def parse_opcode(op):
                 # we know we have to add it to the opcode
                 #r = ADD_FPU_INDEX_TO_OPCODE
                 assert len(chunk) == 1, f"Chunks containg +i should be size 1 not {len(chunk)}"
-            elif any(check_superscript(chunk) == op for op in low_op):
+            elif any(chunk == op for op in low_op):
                 r = ADD_REG_TO_OPCODE
-                assert len(check_superscript(chunk)) == 2, f"Chunks containg +rx should be size 2 not {len(check_superscript(chunk))}"
+                assert len(chunk) == 2, f"Chunks containg +rx should be size 2 not {len(chunk)}"
             else:
                 try:
                     op = int(chunk, 16) 
@@ -312,6 +305,7 @@ operand_types["r8" ] =  iota()
 operand_types["r16" ] =  iota()
 operand_types["r32" ] =  iota()
 operand_types["r64" ] =  iota()
+#operand_types["xmm"] = iota()
 
 
 operand_types["mem_any" ] =  iota()
@@ -358,21 +352,7 @@ operand_types["unsupported"] = 255
 
 
 
-
-
-
-# when parsing the file the super scripts didn't get parsed as such 
-# we need to be extra careful about that
-def check_operand_superscript(op):
-    if op[-1] == '1' or (op[-2] != '3' and op[-1] == '2'):
-        return op[:-1]
-    else:
-        return op
-
-
 def check_operand(nmemonic, op):
-    if op[0] == 'r':
-        op = check_operand_superscript(op)
     if op == "ST(0)": 
         # these instructions operate on the fpu stack
         # meaning they don't have operands
@@ -392,11 +372,6 @@ def check_operand(nmemonic, op):
         return operand_types["unsupported"]
 
 
-
-# these instructions I want to support after getting something 
-# basic up and running
-currently_unsupported = []
-
 def parse_operands(desc):
     op_format_list= []
 
@@ -412,6 +387,7 @@ def parse_operands(desc):
     if temp != '':
         op_format_list.append(temp)
 
+
  
     nmemonic = op_format_list[0]
 
@@ -422,10 +398,7 @@ def parse_operands(desc):
     for x in op_format_list:
         if "REP" in x:
             op_format_list.remove(x)
-   
-    if nmemonic in currently_unsupported:
-        return False 
-
+ 
     if len(op_format_list) == 1:
         return (nmemonic,0,0,0)
     elif len(op_format_list) == 2:
@@ -454,14 +427,6 @@ def parse_operands(desc):
 
 
 
-# not gonna support fpu instructions yet 
-def check_unsupported(nmemonic):
-    #if nmemonic[0] == "F":
-        #currently_unsupported.append(nmemonic)
-        #return True
-    return False
-
-
 with open("instructions.dat", "r") as f:
     instructions = {}
     op_code_table = []
@@ -471,13 +436,14 @@ with open("instructions.dat", "r") as f:
         dash = line.find(chr(0x2014))
         if dash != -1:
             inst_name = line[:dash].strip()
+            # many instructions that are seperated by a dash
             if "/" in inst_name:
                 for instr in inst_name.split('/'):
-                    if not check_unsupported(instr):
+                    if instr not in instructions:
                         instructions[instr] = []
             else:
-                if not check_unsupported(inst_name):
-                    instructions[inst_name] = []
+                if inst_name not in instructions:
+                        instructions[inst_name] = []
         else:
             op_row = line.split('|')
             opcode = op_row[0].strip()
