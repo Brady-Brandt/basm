@@ -66,7 +66,7 @@ MODRM_CONTAINS_REG_AND_MEM = 0x1
 ADD_REG_TO_OPCODE = 0x2
 REX = 0x4
 TWO_BYTE_VEX = 0x8
-THREE_BYTE_VEX = 0x16
+THREE_BYTE_VEX = 0x10
 
 
 
@@ -178,7 +178,7 @@ def parse_opcode(op):
                 if chunk[1].isdigit():
                    digit = int(chunk[1]) 
                 elif chunk[1] == "r":
-                    r = MODRM_CONTAINS_REG_AND_MEM
+                    r |= MODRM_CONTAINS_REG_AND_MEM
                 elif chunk[1] == 'i':
                     continue
                 else:
@@ -197,7 +197,7 @@ def parse_opcode(op):
                 #r = ADD_FPU_INDEX_TO_OPCODE
                 assert len(chunk) == 1, f"Chunks containg +i should be size 1 not {len(chunk)}"
             elif any(chunk == op for op in low_op):
-                r = ADD_REG_TO_OPCODE
+                r |= ADD_REG_TO_OPCODE
                 assert len(chunk) == 2, f"Chunks containg +rx should be size 2 not {len(chunk)}"
             else:
                 try:
@@ -233,8 +233,6 @@ def parse_opcode(op):
                     vex |= 2
                 elif enc == "F2":
                     vex |= 3
-                elif enc == "0F":
-                    two_vex |= 1
                 elif enc == "0F38":
                     two_vex |= 2
                 elif enc == "0F3A":
@@ -244,7 +242,7 @@ def parse_opcode(op):
                 elif enc == "W1":
                     vex |= 128
                 elif enc == "Wig":
-                    pass
+                    pass 
             
             if two_vex != 0:
                 r |= THREE_BYTE_VEX
@@ -288,12 +286,12 @@ def parse_opcode(op):
                 return None
 
         prev = chunk
-    if not (r & TWO_BYTE_VEX) and not (r & THREE_BYTE_VEX):
+
+    if (r & TWO_BYTE_VEX) or (r & THREE_BYTE_VEX):
+        return Instruction(two_vex << 16 | vex, opcode, digit, ib, r)
+    else:
         r |= REX
         return Instruction(rex, opcode, digit, ib, r)
-    else:
-        return Instruction(two_vex << 16 | vex, opcode, digit, ib, r)
-
 
 
 
@@ -487,7 +485,7 @@ def parse_operands(desc):
         op3 = op_format_list[3]
         return ParsedOperands(nmemonic,check_operand(nmemonic, op1),check_operand(nmemonic,op2),check_operand(nmemonic, op3), 0)
     elif len(op_format_list) == 5:
-        print("Four operands not supported yet")
+        print(f"{nmemonic}, Four operands not supported yet")
         return None 
     else:
         print(f"Error unkown operands: {op_format_list}")
@@ -536,6 +534,7 @@ with open("instructions.dat", "r") as f:
 
     sorted_instructions = sorted(instructions)
 
+                                
     write_nmemonics_strings(nmemonic_file, sorted_instructions)
 
 
