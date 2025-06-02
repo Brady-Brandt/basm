@@ -1238,6 +1238,8 @@ static bool check_operand_type(OperandType table_instr, OperandType input_instr)
         if(input_instr == OPERAND_XMM) return true;
 
     }
+ 
+    if(table_instr >= OPERAND_YMMM256 && input_instr == OPERAND_YMM) return true;
 
 
 
@@ -1378,17 +1380,19 @@ Three byte
 
 */
 
-//R bit gets inverted 
-#define REX_TO_ONE_BYTE_VEX(rex) ((~(rex >> 2)) << 7)
-
-#define ONE_VEX_TO_TWO_BYTE_VEX(vex) ((vex | 0x60) << 8)
-
-#define VEX_REGISTER(reg) (((~(reg)) & 0xF) << 3)
-
 #define VEX_TWO_BYTE_R 0x8000
 #define VEX_TWO_BYTE_X 0x4000
 #define VEX_TWO_BYTE_B 0x2000
 #define VEX_UNUSED_REG 0x78
+
+
+
+//R bit gets inverted 
+#define REX_TO_ONE_BYTE_VEX(rex) ((~(rex >> 2)) << 7)
+
+#define ONE_VEX_TO_TWO_BYTE_VEX(vex) (((VEX_TWO_BYTE_R) & ((vex & 0x80) << 8)) | vex & 0x7F7F)
+#define VEX_REGISTER(reg) (((~(reg)) & 0xF) << 3)
+
 
 static void emit_vex_instruction(Instruction* instruction, Operand operand[3]){
     uint16_t vex = 0xE000;
@@ -1402,29 +1406,46 @@ static void emit_vex_instruction(Instruction* instruction, Operand operand[3]){
     if(is_advanced_reg(operand[0].type)){
         vex |= (uint8_t)REX_TO_ONE_BYTE_VEX(operand[0].reg.rex);
         if(is_advanced_reg(operand[1].type)){
-            //if this is set we need to use 3 byte vex
-            if(operand[1].reg.rex & REX_B){
-                vex = ONE_VEX_TO_TWO_BYTE_VEX(vex);
-                vex ^= VEX_TWO_BYTE_B;
-            } 
+            uint8_t reg_portion_modrm = 0;
+            uint8_t rm_portion_modrm = 0;
+
+            if(is_advanced_reg(operand[2].type)){
+                if(operand[1].reg.rex & REX_B){
+                    operand[1].reg.registerIndex += 8;
+                }
+                rm_portion_modrm = 2;
+                vex |= VEX_REGISTER(operand[1].reg.registerIndex);
+            }
+
+
             if(operand[2].type == OPERAND_NOP){
                 vex |= VEX_UNUSED_REG; 
-                modrm_size = 1;
-                modrm_sib[MODRM_INDEX] |= 192;
-                modrm_sib[MODRM_INDEX] |=(operand[0].reg.registerIndex << 3);
-                modrm_sib[MODRM_INDEX] |= operand[1].reg.registerIndex; 
+                rm_portion_modrm = operand[1].reg.registerIndex;
             }
+
+
+            //if this is set we need to use 3 byte vex
+            if(operand[rm_portion_modrm].reg.rex & REX_B){
+                vex ^= VEX_TWO_BYTE_B;
+            }
+ 
+            modrm_size = 1;
+            modrm_sib[MODRM_INDEX] |= 192;
+            modrm_sib[MODRM_INDEX] |=(operand[reg_portion_modrm].reg.registerIndex << 3);
+            modrm_sib[MODRM_INDEX] |= operand[rm_portion_modrm].reg.registerIndex; 
         }
     }
 
 
-    vex |= instruction->three_vex;
 
     if((instruction->r & INSTR_USES_2VEX) && ((vex & 0xE000) == 0xE000)){
+        vex |= instruction->three_vex;
         uint8_t tmp = 0xC5;
         section_add_data(&program.text, &tmp, 1); 
         section_add_data(&program.text, &vex, 1); 
     } else {
+        vex = ONE_VEX_TO_TWO_BYTE_VEX(vex);
+        vex |= instruction->three_vex;
         //instruction that can be encoded with 2 byte
         //needs to be encoded with 3 byte vex
         //set mmmmm part to 1
@@ -1780,9 +1801,10 @@ static void match_operand_triples(Operand* op1, Operand *op2, Operand* op3){
         op2->reg.registerIndex -= 8;
     }
 
-
-
-
+    if(is_advanced_reg(op3->type) && is_extended_reg(op3->reg.registerIndex)){
+        op3->reg.rex |= REX_B;
+        op3->reg.registerIndex -= 8;
+    }
 }
 
 
