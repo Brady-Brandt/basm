@@ -47,9 +47,9 @@ instr_struct = """
 typedef struct {
     uint16_t instr;
     union {
-        uint8_t rex;
-        uint8_t two_vex;
         uint16_t three_vex;
+        uint8_t two_vex;
+        uint8_t rex;
     };
     OperandType op1;
     OperandType op2; 
@@ -288,7 +288,7 @@ def parse_opcode(op):
         prev = chunk
 
     if (r & TWO_BYTE_VEX) or (r & THREE_BYTE_VEX):
-        return Instruction(two_vex << 16 | vex, opcode, digit, ib, r)
+        return Instruction((two_vex << 8) | vex, opcode, digit, ib, r)
     else:
         r |= REX
         return Instruction(rex, opcode, digit, ib, r)
