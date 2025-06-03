@@ -70,6 +70,9 @@ THREE_BYTE_VEX = 0x10
 
 
 
+# encode the fourth parameter in the immediate byte of the struct
+# only valid in vex instructions
+INSTR_OP4_IS_REG = 0x2
 
 instr_packing_macros = """
 #define MODRM_CONTAINS_REG_AND_MEM 0x1 
@@ -77,6 +80,7 @@ instr_packing_macros = """
 #define INSTR_USES_REX 0x4
 #define INSTR_USES_2VEX 0x8
 #define INSTR_USES_3VEX 0x10
+#define INSTR_OP4_IS_REG 0x2
 """
 
 
@@ -111,8 +115,6 @@ class Instruction:
         self.op1 = 0
         self.op2 = 0
         self.op3 = 0
-        self.op4 = 0
-
 
     def to_c_struct(self): 
         begin = "{" 
@@ -140,7 +142,7 @@ def parse_opcode(op):
     new_op = ""
     prev = ' '
 
-    # ensuring that / and front have a space before them
+    # ensuring that / and + have a space before them
     # this will just make it easier to parse
     for c in op:
         if (c == '+' or c == '/') and prev != ' ':
@@ -179,8 +181,10 @@ def parse_opcode(op):
                    digit = int(chunk[1]) 
                 elif chunk[1] == "r":
                     r |= MODRM_CONTAINS_REG_AND_MEM
-                elif chunk[1] == 'i':
-                    continue
+                elif chunk[1:] == 'is4':
+                    ib = INSTR_OP4_IS_REG 
+                elif chunk[1:] == 'ib':
+                    ib = 1
                 else:
                     print(f"Failed: {chunk} in {chunks}")
             except IndexError:
@@ -334,6 +338,9 @@ operand_types["m64" ] =  iota()
 operand_types["m128" ] =  iota()
 operand_types["m256" ] =  iota()
 
+# put this after because it doesn't really fit in with the rest
+operand_types["m80" ] =  iota()
+
 operand_types["r/m8"] = iota()
 operand_types["r/m16"] = iota()
 operand_types["r/m32"] = iota()
@@ -369,6 +376,8 @@ operand_types["mm"] = iota()
 operand_types["xmm"] = iota()
 operand_types["ymm"] = iota()
 
+operand_types["xmm/m8"] = iota()
+operand_types["xmm/m16"] = iota()
 operand_types["xmm/m32"] = iota()
 operand_types["xmm/m64"] = iota()
 operand_types["xmm/m128"] = iota()
@@ -390,7 +399,6 @@ operand_types["unsupported"] = 255
 
 
 
-print(enum_var)
 
 
 
@@ -403,7 +411,14 @@ def check_operand(nmemonic, op):
         op = op.replace("mm1", "mm")
         op = op.replace("mm2", "mm")
         op = op.replace("mm3", "mm")
-
+        op = op.replace("mm4", "mm")
+    if op.startswith("m80"):
+        op = op[:3]
+    
+    # implicit defined in instruction encoding so we 
+    # treat them like no operand
+    if op == "<XMM0>" or op == "<YMM0>":
+        return operand_types["NOP"]
     if op == "ST(0)": 
         # these instructions operate on the fpu stack
         # meaning they don't have operands
@@ -419,7 +434,7 @@ def check_operand(nmemonic, op):
     try:
         return operand_types[op]
     except KeyError:
-        #print(f"Operand Not Supported for instruction {nmemonic}: {op}")
+        print(f"Operand Not Supported for instruction {nmemonic}: {op}")
         return operand_types["unsupported"]
 
 
@@ -485,8 +500,11 @@ def parse_operands(desc):
         op3 = op_format_list[3]
         return ParsedOperands(nmemonic,check_operand(nmemonic, op1),check_operand(nmemonic,op2),check_operand(nmemonic, op3), 0)
     elif len(op_format_list) == 5:
-        print(f"{nmemonic}, Four operands not supported yet")
-        return None 
+        op1 = op_format_list[1]
+        op2 = op_format_list[2]
+        op3 = op_format_list[3]
+        op4 = check_operand(nmemonic, op_format_list[4])
+        return ParsedOperands(nmemonic,check_operand(nmemonic, op1),check_operand(nmemonic,op2),check_operand(nmemonic, op3), op4)
     else:
         print(f"Error unkown operands: {op_format_list}")
         return None 
@@ -525,7 +543,7 @@ with open("instructions.dat", "r") as f:
                 parsed_instruction.op1 = parsed_operands.op1 
                 parsed_instruction.op2 = parsed_operands.op2
                 parsed_instruction.op3 = parsed_operands.op3
-
+ 
                 try:
                     instructions[parsed_operands.nmemonic].append(parsed_instruction)
                 except KeyError:

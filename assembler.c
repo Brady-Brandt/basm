@@ -1277,7 +1277,7 @@ static bool check_operand_type(OperandType table_instr, OperandType input_instr)
 
 
     if(table_instr >= OPERAND_XMMM32 && table_instr <= OPERAND_XMMM128){
-        if(input_instr == OPERAND_XMM || (input_instr + (OPERAND_XMMM32 - OPERAND_M32)) == table_instr ) return true;
+        if(input_instr == OPERAND_XMM || (input_instr + (OPERAND_XMMM8 - OPERAND_M8)) == table_instr ) return true;
     }
  
     if(table_instr >= OPERAND_YMMM256 && input_instr == OPERAND_YMM) return true;
@@ -1290,7 +1290,7 @@ static bool check_operand_type(OperandType table_instr, OperandType input_instr)
 
 
 
-static Instruction* find_instruction(uint64_t instr, Operand operand[3]){
+static Instruction* find_instruction(uint64_t instr, Operand operand[4]){
     uint64_t op_table_index = INSTRUCTION_TABLE_LOOK_UP[instr];    
     Instruction instruct = INSTRUCTION_TABLE[op_table_index];
 
@@ -1302,7 +1302,14 @@ static Instruction* find_instruction(uint64_t instr, Operand operand[3]){
         if(!op2_bool) goto continue_loop;
         bool op3_bool = check_operand_type(instruct.op3, operand[2].type);
         if(!op3_bool) goto continue_loop;
-
+        if(operand[3].type != OPERAND_NOP){
+            if(instruct.ib & INSTR_OP4_IS_REG){
+                //if the 4 operand is a reg it must be the same type of register as the first
+                if(operand[3].type != operand[0].type) goto continue_loop;
+            } else {
+                if(operand[3].type != OPERAND_IMM8 && instruct.ib != 1) goto continue_loop;
+            }
+        } 
 
 
         return (Instruction*)&INSTRUCTION_TABLE[op_table_index];
@@ -1435,7 +1442,7 @@ Three byte
 #define VEX_REGISTER(reg) (((~(reg)) & 0xF) << 3)
 
 
-static void emit_vex_instruction(Instruction* instruction, Operand operand[3]){
+static void emit_vex_instruction(Instruction* instruction, Operand operand[4]){
     uint16_t vex = 0xE000;
 
     uint8_t modrm_sib[6] = {0};
@@ -1447,16 +1454,19 @@ static void emit_vex_instruction(Instruction* instruction, Operand operand[3]){
     if(is_advanced_reg(operand[0].type)){
         vex |= (uint8_t)REX_TO_ONE_BYTE_VEX(operand[0].reg.rex);
         if(is_advanced_reg(operand[1].type)){
+            imm_index++;
             uint8_t reg_portion_modrm = 0;
             uint8_t rm_portion_modrm = 0;
 
             if(is_advanced_reg(operand[2].type)){
+                imm_index++;
                 if(operand[1].reg.rex & REX_B){
                     operand[1].reg.registerIndex += 8;
                 }
                 rm_portion_modrm = 2;
                 vex |= VEX_REGISTER(operand[1].reg.registerIndex);
             } else if(is_mem(operand[2].type)){
+                imm_index++;
                 vex ^= operand[2].mem.rex << 13;
                 if(operand[1].reg.rex & REX_B){
                     operand[1].reg.registerIndex += 8;
@@ -1480,6 +1490,7 @@ static void emit_vex_instruction(Instruction* instruction, Operand operand[3]){
             modrm_sib[MODRM_INDEX] |=(operand[reg_portion_modrm].reg.registerIndex << 3);
             modrm_sib[MODRM_INDEX] |= operand[rm_portion_modrm].reg.registerIndex; 
         } else if (is_mem(operand[1].type)){
+            imm_index++;
             vex ^= (uint8_t)(operand[0].reg.rex << 7);
             vex ^= operand[1].mem.rex << 13;
             vex |= VEX_UNUSED_REG; 
@@ -1529,11 +1540,24 @@ static void emit_vex_instruction(Instruction* instruction, Operand operand[3]){
     if(lbl != NULL){
         symbol_table_add_instance(lbl, program.text.size - DISPLACEMENT_SIZE, false);
     }
+
+    
+    if(instruction->ib != -1){
+        if(instruction->ib & INSTR_OP4_IS_REG){
+            uint8_t payload = (operand[3].reg.registerIndex) << 4; 
+            section_add_data(&program.text, &payload, 1); 
+        } else{ 
+            section_add_data(&program.text, &operand[imm_index].imm8, 1); 
+        }
+    }
+
+
+
 }
 
 
 
-static void emit_instruction(Instruction* instruction, Operand operand[3]){
+static void emit_instruction(Instruction* instruction, Operand operand[4]){
     uint8_t rex = instruction->rex;
 
     if((instruction->r & INSTR_USES_2VEX) || (instruction->r & INSTR_USES_3VEX)){
@@ -1902,7 +1926,7 @@ static void parse_text_section(Parser* p){
             parser_next_token(p);
             symbol_table_add(id.literal, program.text.size, SECTION_TEXT, VISIBILITY_LOCAL);
         } else if (p->currentToken.type == TOK_INSTRUCTION) {
-                Operand operands[3] = {0};
+                Operand operands[4] = {0};
                 int operand_count = 0;
                 uint64_t instr = p->currentToken.instruction; 
                 while(p->currentToken.type != TOK_NEW_LINE){
@@ -1920,8 +1944,13 @@ static void parse_text_section(Parser* p){
                 }
 
                 if(operand_count == 2)match_operand_pairs(&operands[0], &operands[1]);
-
                 else if(operand_count == 3) match_operand_triples(&operands[0], &operands[1], &operands[2]);
+                else if (operand_count == 4){
+                    if(operands[3].type == OPERAND_IMM64){
+                        operands[3].type = OPERAND_IMM8;
+                    }
+                    match_operand_triples(&operands[0], &operands[1], &operands[2]);
+                }
 
                 Instruction* found_instruction = find_instruction(instr, operands);
                 
