@@ -1,26 +1,25 @@
 section .data 
-    hello: db "Hello, World!"
-    goodbye: db "Adios"
+    hello: db "Hello, World!\n" ; Strings are automatically null terminated
+    goodbye: db "Adios\n"
 
 section .text
 
 global _start
 
+extern printf 
+extern exit
+
 _start:
-    mov rax, 1 
-    mov rdi, 1 
-    lea esi, [hello]
-    mov rdx, 13
-    syscall
+    ; uses linux calling convention
+    lea rdi, [hello]
+    call printf
+
+    lea rdi, [goodbye]
+    call printf 
 
 
-    mov rax, 1 
-    mov rdi, 1 
-    lea esi, [goodbye]
-    mov rdx, 5
-    syscall
+    xor rdi,rdi
+    call exit
     
 
-    mov rax, 60
-    xor rdi, rdi
-    syscall 
+    
