@@ -80,16 +80,23 @@ typedef enum {
     TOK_RESW,
     TOK_RESD,
     TOK_RESQ,
+    TOK_REST,
+    TOK_RESDQ,
+    TOK_RESY,
+
     TOK_DB,
     TOK_DW,
     TOK_DD,
     TOK_DQ,
+    TOK_DT,
     TOK_ST,
 
     TOK_BYTE,
     TOK_WORD, 
     TOK_DWORD,
-    TOK_QWORD, 
+    TOK_QWORD,
+    TOK_TWORD,
+    TOK_DQWORD,
 
     TOK_INT,
     TOK_UINT,
@@ -146,7 +153,7 @@ the LSB needs to be 1
 #define is_immediate(i) (i >= OPERAND_IMM8 && i <= OPERAND_IMM64)
 #define is_label(l) (l >= OPERAND_L8 && l <= OPERAND_L64)
 #define is_general_reg(r) (r >= OPERAND_R8 && r <= OPERAND_R64)
-#define is_mem(m) (m >= OPERAND_M8 && m <= OPERAND_M64)
+#define is_mem(m) (m >= OPERAND_M8 && m <= OPERAND_M128)
 #define is_relative(x) (x >= OPERAND_REL8 && x <= OPERAND_REL32)
 
 
@@ -186,14 +193,20 @@ const char* token_to_string(TokenType type) {
         case TOK_RESW:return "TOK_RESW";
         case TOK_RESD:return "TOK_RESD";
         case TOK_RESQ:return "TOK_RESQ";
+        case TOK_REST: return "TOK_REST";
+        case TOK_RESDQ: return "TOK_RESDQ";
+        case TOK_RESY: return "TOK_RESY";
         case TOK_DB: return "TOK_DB";
         case TOK_DW: return "TOK_DW";
         case TOK_DD: return "TOK_DD";
         case TOK_DQ: return "TOK_DQ";
+        case TOK_DT: return "TOK_DT";
         case TOK_BYTE: return "TOK_BYTE";
         case TOK_WORD: return "TOK_WORD";
         case TOK_DWORD: return "TOK_DWORD";
         case TOK_QWORD: return "TOK_QWORD";
+        case TOK_TWORD: return "TOK_TWORD";
+        case TOK_DQWORD: return "TOK_DQWORD";
         case TOK_SECTION: return "TOK_SECTION";
         case TOK_BSS: return "TOK_BSS";
         case TOK_TEXT: return "TOK_TEXT";
@@ -309,14 +322,20 @@ static Token id_or_kw(int* col){
     if(string_cmp_lower("dw", str) == 0) return (Token){TOK_DW, 0,0,0};
     if(string_cmp_lower("dd", str) == 0) return (Token){TOK_DD, 0,0,0};
     if(string_cmp_lower("dq", str) == 0) return (Token){TOK_DQ, 0,0,0};
+    if(string_cmp_lower("dt", str) == 0) return (Token){TOK_DT, 0,0,0};
     if(string_cmp_lower("byte", str) == 0) return (Token){TOK_BYTE, 0,0,0};
     if(string_cmp_lower("word", str) == 0) return (Token){TOK_WORD, 0,0,0};
     if(string_cmp_lower("dword", str) == 0) return (Token){TOK_DWORD, 0,0,0};
     if(string_cmp_lower("qword", str) == 0) return (Token){TOK_QWORD, 0,0,0};
+    if(string_cmp_lower("tword", str) == 0) return (Token){TOK_TWORD, 0,0,0};
+    if(string_cmp_lower("dqword", str) == 0) return (Token){TOK_DQWORD, 0,0,0};
     if(string_cmp_lower("resb", str) == 0) return (Token){TOK_RESB, 0,0,0};
     if(string_cmp_lower("resw", str) == 0) return (Token){TOK_RESW, 0,0,0};
     if(string_cmp_lower("resd", str) == 0) return (Token){TOK_RESD, 0,0,0};
     if(string_cmp_lower("resq", str) == 0) return (Token){TOK_RESQ, 0,0,0};
+    if(string_cmp_lower("rest", str) == 0) return (Token){TOK_REST, 0,0,0};
+    if(string_cmp_lower("resdq", str) == 0) return (Token){TOK_RESDQ, 0,0,0};
+    if(string_cmp_lower("resy", str) == 0) return (Token){TOK_RESY, 0,0,0};
 
     if(str_size == 3 && tolower(str[0]) == 's' && tolower(str[1]) == 't'){
        if(str[2] >= '0' && str[2] <= '7'){
@@ -833,10 +852,17 @@ static void parse_bss_section(Parser* p){
             case TOK_RESQ:
                 num = 8;
                 break;
+            case TOK_REST:
+                num = 10;
+                break;
+            case TOK_RESDQ:
+                num = 16;
+                break;
+            case TOK_RESY:
+                num = 32;
+                break;
             default:
                 parser_fatal_error(p, "Invalid bss section instruction\n");
-
-
         }
         parser_next_token(p); 
         parser_expect_token(p, TOK_UINT);
@@ -860,7 +886,7 @@ static void parse_data_section(Parser* p){
         symbol_table_add(id.literal, program.data.size, SECTION_DATA, VISIBILITY_LOCAL);
 
 
-        if(!match(p, TOK_DB, TOK_DW, TOK_DD, TOK_DQ)){
+        if(!match(p, TOK_DB, TOK_DW, TOK_DD, TOK_DQ,TOK_DT)){
             parser_fatal_error(p, "Invalid Data Section Instruction\n");
         }
 
@@ -927,6 +953,14 @@ static void parse_data_section(Parser* p){
                             uint64_t num = string_to_int(p->currentToken.literal, p->currentToken.type);
                             section_add_data(&program.data,&num, 8);
                         }
+                        break;
+                    }
+                    case TOK_DT: {
+                        if(sizeof(long double) < 10){
+                            parser_fatal_error(p, "Error: Don't support machines that don't have 128 bit floats yet");
+                        }
+                        long double num = strtold(p->currentToken.literal, NULL);
+                        section_add_data(&program.data,&num, 10);
                         break;
                     }
                     default:
@@ -1204,7 +1238,15 @@ static Operand parse_operand(Parser* p){
             parser_next_token(p);
             parser_expect_token(p, TOK_OPENING_BRACKET);
             return parse_memory(p, OPERAND_M64); 
-
+        case TOK_TWORD:
+            program_fatal_error("Operand Type not supported yet: %s\n",token_to_string(p->currentToken.type));
+            parser_next_token(p);
+            parser_expect_token(p, TOK_OPENING_BRACKET);
+            break;
+        case TOK_DQWORD:
+            parser_next_token(p);
+            parser_expect_token(p, TOK_OPENING_BRACKET);
+            return parse_memory(p, OPERAND_M128); 
         case TOK_OPENING_BRACKET:
             return parse_memory(p, OPERAND_MEM_ANY); 
         default:
@@ -1235,8 +1277,7 @@ static bool check_operand_type(OperandType table_instr, OperandType input_instr)
 
 
     if(table_instr >= OPERAND_XMMM32 && table_instr <= OPERAND_XMMM128){
-        if(input_instr == OPERAND_XMM) return true;
-
+        if(input_instr == OPERAND_XMM || (input_instr + (OPERAND_XMMM32 - OPERAND_M32)) == table_instr ) return true;
     }
  
     if(table_instr >= OPERAND_YMMM256 && input_instr == OPERAND_YMM) return true;
@@ -1415,14 +1456,19 @@ static void emit_vex_instruction(Instruction* instruction, Operand operand[3]){
                 }
                 rm_portion_modrm = 2;
                 vex |= VEX_REGISTER(operand[1].reg.registerIndex);
-            }
-
-
-            if(operand[2].type == OPERAND_NOP){
+            } else if(is_mem(operand[2].type)){
+                vex ^= operand[2].mem.rex << 13;
+                if(operand[1].reg.rex & REX_B){
+                    operand[1].reg.registerIndex += 8;
+                }
+                vex |= VEX_REGISTER(operand[1].reg.registerIndex);
+                modrm_sib[MODRM_INDEX] |= (operand[0].reg.registerIndex << 3);
+                modrm_size = modrm_sib_fields(&operand[2], modrm_sib, &lbl);
+                goto encode_vex;
+            } else{
                 vex |= VEX_UNUSED_REG; 
-                rm_portion_modrm = operand[1].reg.registerIndex;
+                rm_portion_modrm = 1;
             }
-
 
             //if this is set we need to use 3 byte vex
             if(operand[rm_portion_modrm].reg.rex & REX_B){
@@ -1433,11 +1479,24 @@ static void emit_vex_instruction(Instruction* instruction, Operand operand[3]){
             modrm_sib[MODRM_INDEX] |= 192;
             modrm_sib[MODRM_INDEX] |=(operand[reg_portion_modrm].reg.registerIndex << 3);
             modrm_sib[MODRM_INDEX] |= operand[rm_portion_modrm].reg.registerIndex; 
+        } else if (is_mem(operand[1].type)){
+            vex ^= (uint8_t)(operand[0].reg.rex << 7);
+            vex ^= operand[1].mem.rex << 13;
+            vex |= VEX_UNUSED_REG; 
+            modrm_sib[MODRM_INDEX] |= (operand[0].reg.registerIndex << 3);
+            modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl);
         }
+    } else if(is_mem(operand[0].type)){
+        vex |= 0x80;
+        vex ^= (uint8_t)(operand[1].reg.rex << 7);
+        vex ^= operand[0].mem.rex << 13;
+        vex |= VEX_UNUSED_REG; 
+        modrm_sib[MODRM_INDEX] |= (operand[1].reg.registerIndex << 3);
+        modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
     }
 
 
-
+    encode_vex:
     if((instruction->r & INSTR_USES_2VEX) && ((vex & 0xE000) == 0xE000)){
         vex |= instruction->three_vex;
         uint8_t tmp = 0xC5;
@@ -1732,6 +1791,7 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
         case OPERAND_M16:
         case OPERAND_M32:
         case OPERAND_M64:
+        case OPERAND_M128:
         case OPERAND_XMM:
         case OPERAND_YMM:
         case OPERAND_MM:
