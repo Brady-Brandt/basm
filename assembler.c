@@ -97,6 +97,7 @@ typedef enum {
     TOK_QWORD,
     TOK_TWORD,
     TOK_DQWORD,
+    TOK_YWORD,
 
     TOK_INT,
     TOK_UINT,
@@ -153,7 +154,7 @@ the LSB needs to be 1
 #define is_immediate(i) (i >= OPERAND_IMM8 && i <= OPERAND_IMM64)
 #define is_label(l) (l >= OPERAND_L8 && l <= OPERAND_L64)
 #define is_general_reg(r) (r >= OPERAND_R8 && r <= OPERAND_R64)
-#define is_mem(m) (m >= OPERAND_M8 && m <= OPERAND_M128)
+#define is_mem(m) (m >= OPERAND_M8 && m <= OPERAND_M80)
 #define is_relative(x) (x >= OPERAND_REL8 && x <= OPERAND_REL32)
 
 
@@ -207,6 +208,7 @@ const char* token_to_string(TokenType type) {
         case TOK_QWORD: return "TOK_QWORD";
         case TOK_TWORD: return "TOK_TWORD";
         case TOK_DQWORD: return "TOK_DQWORD";
+        case TOK_YWORD: return "TOK_YWORD";
         case TOK_SECTION: return "TOK_SECTION";
         case TOK_BSS: return "TOK_BSS";
         case TOK_TEXT: return "TOK_TEXT";
@@ -329,6 +331,7 @@ static Token id_or_kw(int* col){
     if(string_cmp_lower("qword", str) == 0) return (Token){TOK_QWORD, 0,0,0};
     if(string_cmp_lower("tword", str) == 0) return (Token){TOK_TWORD, 0,0,0};
     if(string_cmp_lower("dqword", str) == 0) return (Token){TOK_DQWORD, 0,0,0};
+    if(string_cmp_lower("yword", str) == 0) return (Token){TOK_YWORD, 0,0,0};
     if(string_cmp_lower("resb", str) == 0) return (Token){TOK_RESB, 0,0,0};
     if(string_cmp_lower("resw", str) == 0) return (Token){TOK_RESW, 0,0,0};
     if(string_cmp_lower("resd", str) == 0) return (Token){TOK_RESD, 0,0,0};
@@ -1239,14 +1242,17 @@ static Operand parse_operand(Parser* p){
             parser_expect_token(p, TOK_OPENING_BRACKET);
             return parse_memory(p, OPERAND_M64); 
         case TOK_TWORD:
-            program_fatal_error("Operand Type not supported yet: %s\n",token_to_string(p->currentToken.type));
             parser_next_token(p);
             parser_expect_token(p, TOK_OPENING_BRACKET);
-            break;
+            return parse_memory(p, OPERAND_M80); 
         case TOK_DQWORD:
             parser_next_token(p);
             parser_expect_token(p, TOK_OPENING_BRACKET);
-            return parse_memory(p, OPERAND_M128); 
+            return parse_memory(p, OPERAND_M128);
+        case TOK_YWORD:
+            parser_next_token(p);
+            parser_expect_token(p, TOK_OPENING_BRACKET);
+            return parse_memory(p, OPERAND_M256);
         case TOK_OPENING_BRACKET:
             return parse_memory(p, OPERAND_MEM_ANY); 
         default:
@@ -1280,7 +1286,7 @@ static bool check_operand_type(OperandType table_instr, OperandType input_instr)
         if(input_instr == OPERAND_XMM || (input_instr + (OPERAND_XMMM8 - OPERAND_M8)) == table_instr ) return true;
     }
  
-    if(table_instr >= OPERAND_YMMM256 && input_instr == OPERAND_YMM) return true;
+    if(table_instr >= OPERAND_YMMM256 && input_instr == OPERAND_YMM || input_instr == OPERAND_M256) return true;
 
 
 
