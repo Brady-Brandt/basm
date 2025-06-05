@@ -150,7 +150,7 @@ the LSB needs to be 1
 
 //potentially remove mm and make rename this to is_sse_reg
 #define is_advanced_reg(r) (r >= OPERAND_MM && r <= OPERAND_YMM)
-
+#define is_reg32_or_64(type) (type == OPERAND_R32 || type == OPERAND_R64)
 #define is_immediate(i) (i >= OPERAND_IMM8 && i <= OPERAND_IMM64)
 #define is_label(l) (l >= OPERAND_L8 && l <= OPERAND_L64)
 #define is_general_reg(r) (r >= OPERAND_R8 && r <= OPERAND_R64)
@@ -1456,15 +1456,28 @@ static void emit_vex_instruction(Instruction* instruction, Operand operand[4]){
     char* lbl = NULL;
     int imm_index = 1;
 
+    
+    if(is_reg32_or_64(operand[0].type)){
+        //these few instructions have a different operand order encoding then all the other ones
+        // so we just swap the second and third operand to keep it consistent
+        if(instruction->op2 == OPERAND_RM32 || instruction->op2 == OPERAND_RM64){
+           Operand tmp = operand[1];
+           operand[1] = operand[2];
+           operand[2] = tmp;
+        }
+    }
 
-    if(is_advanced_reg(operand[0].type)){
+
+
+
+    if(is_advanced_reg(operand[0].type) || is_reg32_or_64(operand[0].type)){
         vex |= (uint8_t)REX_TO_ONE_BYTE_VEX(operand[0].reg.rex);
-        if(is_advanced_reg(operand[1].type)){
+        if(is_advanced_reg(operand[1].type) || is_reg32_or_64(operand[1].type)){
             imm_index++;
             uint8_t reg_portion_modrm = 0;
             uint8_t rm_portion_modrm = 0;
 
-            if(is_advanced_reg(operand[2].type)){
+            if(is_advanced_reg(operand[2].type) || is_reg32_or_64(operand[2].type)){
                 imm_index++;
                 if(operand[1].reg.rex & REX_B){
                     operand[1].reg.registerIndex += 8;
@@ -1499,7 +1512,19 @@ static void emit_vex_instruction(Instruction* instruction, Operand operand[4]){
             imm_index++;
             vex ^= (uint8_t)(operand[0].reg.rex << 7);
             vex ^= operand[1].mem.rex << 13;
-            vex |= VEX_UNUSED_REG; 
+
+            // for most vex instructions if second operand
+            // is a memory address then its only a 2 operand instruction
+            // but for some instructions that operate on rm32/64 like BEXTR this is not the case
+            if(operand[2].type != OPERAND_NOP){
+                if(operand[2].reg.rex & REX_B){
+                    operand[2].reg.registerIndex += 8;
+                }
+                vex |= VEX_REGISTER(operand[2].reg.registerIndex);
+            } else{
+                vex |= VEX_UNUSED_REG; 
+            }
+
             modrm_sib[MODRM_INDEX] |= (operand[0].reg.registerIndex << 3);
             modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl);
         }
@@ -1862,7 +1887,7 @@ static void match_operand_triples(Operand* op1, Operand *op2, Operand* op3){
         }  
     }
 
-    if(is_general_reg(op1->type) && is_general_reg(op2->type)){
+    if(is_general_reg(op1->type) && is_general_reg(op2->type) && !is_general_reg(op3->type)){
         uint8_t tmp = op1->reg.registerIndex;        
         // the order of how 2 registers is packed into modrm is different 
         // for instructions with three parameters so we just swap them 
@@ -1875,7 +1900,7 @@ static void match_operand_triples(Operand* op1, Operand *op2, Operand* op3){
     if((is_general_reg(op1->type) || is_advanced_reg(op1->type)) && is_extended_reg(op1->reg.registerIndex)){
         //if op2 is a memory address, the first operand goes into  
         // the reg portion of modrm instead of the r/m portion
-        if(op2->type >= OPERAND_MEM_ANY && op2->type <= OPERAND_M64 || is_advanced_reg(op2->type)){
+        if((op2->type >= OPERAND_MEM_ANY && op2->type <= OPERAND_M64) || is_advanced_reg(op2->type) || is_reg32_or_64(op3->type)){
             op1->reg.rex |= REX_R;
         } else{
             op1->reg.rex |= REX_B;
@@ -1883,7 +1908,7 @@ static void match_operand_triples(Operand* op1, Operand *op2, Operand* op3){
         op1->reg.registerIndex -= 8;
     }
     if((is_general_reg(op2->type) || is_advanced_reg(op2->type)) && is_extended_reg(op2->reg.registerIndex)){
-        if((op1->type >= OPERAND_MEM_ANY && op1->type <= OPERAND_M64) || is_general_reg(op1->type)){
+        if((op1->type >= OPERAND_MEM_ANY && op1->type <= OPERAND_M64) || (is_general_reg(op1->type) && !is_reg32_or_64(op3->type))){
             op2->reg.rex |= REX_R;
         } else{
             op2->reg.rex |= REX_B;
@@ -1891,7 +1916,7 @@ static void match_operand_triples(Operand* op1, Operand *op2, Operand* op3){
         op2->reg.registerIndex -= 8;
     }
 
-    if(is_advanced_reg(op3->type) && is_extended_reg(op3->reg.registerIndex)){
+    if((is_advanced_reg(op3->type) || is_reg32_or_64(op3->type)) && is_extended_reg(op3->reg.registerIndex)){
         op3->reg.rex |= REX_B;
         op3->reg.registerIndex -= 8;
     }

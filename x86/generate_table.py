@@ -145,6 +145,11 @@ def parse_opcode(op):
     # ensuring that / and + have a space before them
     # this will just make it easier to parse
     for c in op:
+        # VEX.LZ. 0F38.W1 F2 /r ANDN
+        # there is an unwanted space in this instruction opcode
+        # we need to remove here is we can parse it properly
+        if c == ' ' and prev == '.':
+            continue
         if (c == '+' or c == '/') and prev != ' ':
             new_op += ' ' + c
         else:
@@ -171,6 +176,7 @@ def parse_opcode(op):
 
     prev = None
     for chunk in chunks:
+        chunk = chunk.strip()
         if chunk == '+':
             prev = '+'
             continue
@@ -384,7 +390,6 @@ operand_types["xmm/m128"] = iota()
 
 
 operand_types["ymm/m256"] = iota()
-operand_types["ymm/m256"] = iota()
 
 
 operand_types["bnd"] = iota()
@@ -412,6 +417,10 @@ def check_operand(nmemonic, op):
         op = op.replace("mm2", "mm")
         op = op.replace("mm3", "mm")
         op = op.replace("mm4", "mm")
+
+    # the a's and b's don't mean anything to us and so we get rid of them 
+    if op == 'r32a' or op == 'r32b' or op == 'r64a' or op == 'r64b':
+        op = op[:-1]
     if op.startswith("m80"):
         op = op[:3]
     
