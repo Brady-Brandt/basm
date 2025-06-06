@@ -119,7 +119,7 @@ FileBuffer* file_buffer_create(const char* name){
     fb->file = file;
     fb->size = 0;
     fb->index = 0;
-    fb->data = (char*)(fb + sizeof(FileBuffer));
+    fb->data = (char*)((uint8_t*)fb + sizeof(FileBuffer));
 
     return fb;
 }
@@ -131,17 +131,17 @@ void file_buffer_delete(FileBuffer* buff){
 }
 
 bool file_buffer_eof(FileBuffer* buff){
-    return buff->size < FILE_BUFFER_CAPACITY && buff->index >= buff->size;
+    return buff->size < FILE_BUFFER_CAPACITY && buff->index >= buff->size - 1;
 }
 
 
 char file_buffer_get_char(FileBuffer* buff){
-    if(buff->size == 0){ 
+    if(buff->size == 0 || buff->index >= buff->size){ 
         size_t size = fread(buff->data, 1, FILE_BUFFER_CAPACITY, buff->file);
-        if(size == 0) return EOF;
+        if(size == 0) return EOF; 
         buff->size = size;
         buff->index = 0;
-    }
+    } 
     return buff->data[buff->index++];
 }
 
@@ -149,11 +149,11 @@ char file_buffer_peek_char(FileBuffer* buff){
     if(buff->size == 0){ 
         size_t size = fread(buff->data, 1, FILE_BUFFER_CAPACITY, buff->file);
         if(size == 0) return EOF;
-        buff->size = size;
+        buff->size = size; 
         buff->index = 0;
     }
 
-    else if(buff->index >= buff->size){
+    else if(buff->index >= buff->size - 1){
         fpos_t pos;
         fgetpos(buff->file, &pos);
         char c = fgetc(buff->file);
