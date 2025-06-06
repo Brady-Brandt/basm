@@ -232,6 +232,8 @@ def parse_opcode(op):
             vex_encoding = chunk.split('.')
             vex_encoding = vex_encoding[1:]
 
+            is_three_byte = False
+            
             for enc in vex_encoding:
                 if enc == "128" or enc == "LZ" or enc == "L0" or enc == "LIG":
                     vex |= 0
@@ -244,17 +246,20 @@ def parse_opcode(op):
                 elif enc == "F2":
                     vex |= 3
                 elif enc == "0F38":
+                    is_three_byte = True
                     two_vex |= 2
                 elif enc == "0F3A":
+                    is_three_byte = True
                     two_vex |= 3
                 elif enc == "W0":
-                    pass
+                    is_three_byte = True
                 elif enc == "W1":
+                    is_three_byte = True
                     vex |= 128
                 elif enc == "Wig":
                     pass 
             
-            if two_vex != 0:
+            if is_three_byte:
                 r |= THREE_BYTE_VEX
             else:
                 r |= TWO_BYTE_VEX 
@@ -423,10 +428,15 @@ def check_operand(nmemonic, op):
         op = op[:-1]
     if op.startswith("m80"):
         op = op[:3]
+
+    if op == "r64/m64":
+        return operand_types["r/m64"]
+    if op == "r32/m32":
+        return operand_types["r/m32"]
     
     # implicit defined in instruction encoding so we 
     # treat them like no operand
-    if op == "<XMM0>" or op == "<YMM0>":
+    if op == "<XMM0>" or op == "<YMM0>" or op.lower() == '<eax>' or op=='<edx>':
         return operand_types["NOP"]
     if op == "ST(0)": 
         # these instructions operate on the fpu stack
