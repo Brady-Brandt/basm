@@ -194,10 +194,12 @@ def parse_opcode(op):
                 else:
                     print(f"Failed: {chunk} in {chunks}")
             except IndexError:
-                print(f"Failed: {chunk} in {chunks}")
-                return None
-
-            #assert len(chunk) == 2, f"Chunks containg / should be size 2 not {len(chunk), {chunk}}"
+                if chunks[1] == '6E':
+                    # again more inconsistency 
+                    r |= MODRM_CONTAINS_REG_AND_MEM
+                else:
+                    print(f"Failed: {chunk} in {chunks}")
+                    return None
 
         elif prev == '+':
             if chunk[0] == "i":
@@ -264,7 +266,7 @@ def parse_opcode(op):
             else:
                 r |= TWO_BYTE_VEX 
 
-        elif chunk == "ib":
+        elif chunk == "ib" or chunk == "ib1" or chunk == "imm8":
             ib = 1
         elif chunk == "iw":
             ib = 2
@@ -469,6 +471,10 @@ class ParsedOperands:
 
 
 def parse_operands(desc):
+    # some inconsistency in the intel pdf 
+    desc = desc.replace('ymm3 /m256', 'ymm3/m256')
+    desc = desc.replace('ymm3/.m256', 'ymm3/m256')
+
     op_format_list= []
 
     temp = ""
