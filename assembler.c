@@ -1301,7 +1301,6 @@ static Instruction* find_instruction(uint64_t instr, Operand operand[4]){
     Instruction instruct = INSTRUCTION_TABLE[op_table_index];
 
     while(instr == instruct.instr){
-
         bool op1_bool = check_operand_type(instruct.op1, operand[0].type);
         if(!op1_bool) goto continue_loop;
         bool op2_bool = check_operand_type(instruct.op2, operand[1].type); 
@@ -1458,15 +1457,22 @@ static void emit_vex_instruction(Instruction* instruction, Operand operand[4]){
 
     
     if(is_reg32_or_64(operand[0].type)){
+        if(operand[0].reg.rex & REX_B) operand[0].reg.rex |= REX_R; 
+
         //these few instructions have a different operand order encoding then all the other ones
         // so we just swap the second and third operand to keep it consistent
         if(instruction->op2 == OPERAND_RM32 || instruction->op2 == OPERAND_RM64){
-           Operand tmp = operand[1];
-           operand[1] = operand[2];
-           operand[2] = tmp;
+            Operand tmp = operand[1];
+            operand[1] = operand[2];
+            operand[2] = tmp;
+        } else if (instruction->op2 == OPERAND_XMM) {
+            if(operand[0].reg.rex & REX_R) operand[0].reg.rex |= REX_B; 
+            //swap rex prefixes as well
+            Operand tmp = operand[0];
+            operand[0] = operand[1];
+            operand[1] = tmp; 
         }
     }
-
 
 
 
@@ -1530,6 +1536,7 @@ static void emit_vex_instruction(Instruction* instruction, Operand operand[4]){
         }
     } else if(is_mem(operand[0].type)){
         vex |= 0x80;
+        if(operand[1].reg.rex & REX_R) operand[1].reg.rex |= REX_B; 
         vex ^= (uint8_t)(operand[1].reg.rex << 7);
         vex ^= operand[0].mem.rex << 13;
         vex |= VEX_UNUSED_REG; 
@@ -1887,7 +1894,7 @@ static void match_operand_triples(Operand* op1, Operand *op2, Operand* op3){
         }  
     }
 
-    if(is_general_reg(op1->type) && is_general_reg(op2->type) && !is_general_reg(op3->type)){
+    if(is_general_reg(op1->type) && is_general_reg(op2->type) && is_immediate(op3->type)){
         uint8_t tmp = op1->reg.registerIndex;        
         // the order of how 2 registers is packed into modrm is different 
         // for instructions with three parameters so we just swap them 
@@ -1895,12 +1902,12 @@ static void match_operand_triples(Operand* op1, Operand *op2, Operand* op3){
         op2->reg.registerIndex = tmp;
     }
 
-    //if we have extended registers r8-r15
+    //if we have extended registers r/xmm/ymm8-r/xmm/ymm15
     //convert them to their respected index  and set the REX prefix accordingly
     if((is_general_reg(op1->type) || is_advanced_reg(op1->type)) && is_extended_reg(op1->reg.registerIndex)){
         //if op2 is a memory address, the first operand goes into  
         // the reg portion of modrm instead of the r/m portion
-        if((op2->type >= OPERAND_MEM_ANY && op2->type <= OPERAND_M64) || is_advanced_reg(op2->type) || is_reg32_or_64(op3->type)){
+        if((op2->type >= OPERAND_MEM_ANY && op2->type <= OPERAND_M64) || is_advanced_reg(op2->type)){
             op1->reg.rex |= REX_R;
         } else{
             op1->reg.rex |= REX_B;
@@ -1908,7 +1915,7 @@ static void match_operand_triples(Operand* op1, Operand *op2, Operand* op3){
         op1->reg.registerIndex -= 8;
     }
     if((is_general_reg(op2->type) || is_advanced_reg(op2->type)) && is_extended_reg(op2->reg.registerIndex)){
-        if((op1->type >= OPERAND_MEM_ANY && op1->type <= OPERAND_M64) || (is_general_reg(op1->type) && !is_reg32_or_64(op3->type))){
+        if((op1->type >= OPERAND_MEM_ANY && op1->type <= OPERAND_M64)){
             op2->reg.rex |= REX_R;
         } else{
             op2->reg.rex |= REX_B;
