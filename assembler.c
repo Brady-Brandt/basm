@@ -1286,9 +1286,11 @@ static bool check_operand_type(OperandType table_instr, OperandType input_instr)
         if(input_instr == OPERAND_XMM || (input_instr + (OPERAND_XMMM8 - OPERAND_M8)) == table_instr ) return true;
     }
  
-    if(table_instr >= OPERAND_YMMM256 && input_instr == OPERAND_YMM || input_instr == OPERAND_M256) return true;
+    if(table_instr == OPERAND_YMMM256 && (input_instr == OPERAND_YMM || input_instr == OPERAND_M256)) return true;
 
-
+    if(table_instr == OPERAND_MMM32 || table_instr == OPERAND_MMM64){
+        return input_instr == OPERAND_MM || table_instr == input_instr + (OPERAND_MMM32 - OPERAND_M32);
+    }
 
     
     return false;
