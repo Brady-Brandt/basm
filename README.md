@@ -62,7 +62,7 @@ It should only be used for simple, hobby projects right now.
 
 ### Planned Features (Not in a Particular Order) 
 - [ ] Mach File Support (Macos Support)
-- [ ] SSE/AVX instructions (currently in progress)
+- [x] SSE/AVX instructions (Most have been added, not supporting EVEX right now)
 - [ ] Preprocessor
 - [ ] Support for instruction prefixes
 - [ ] Implementing Hashmaps for the Symbol Tables
