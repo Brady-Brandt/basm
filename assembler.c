@@ -80,16 +80,24 @@ typedef enum {
     TOK_RESW,
     TOK_RESD,
     TOK_RESQ,
+    TOK_REST,
+    TOK_RESDQ,
+    TOK_RESY,
+
     TOK_DB,
     TOK_DW,
     TOK_DD,
     TOK_DQ,
+    TOK_DT,
     TOK_ST,
 
     TOK_BYTE,
     TOK_WORD, 
     TOK_DWORD,
-    TOK_QWORD, 
+    TOK_QWORD,
+    TOK_TWORD,
+    TOK_DQWORD,
+    TOK_YWORD,
 
     TOK_INT,
     TOK_UINT,
@@ -125,98 +133,28 @@ the LSB needs to be 1
 7 R15B R15W R15D R15
 */
 
-typedef enum {
-    REG_RAX = 0,
-    REG_RCX,
-    REG_RDX,
-    REG_RBX,
-    REG_RSP,
-    REG_RBP,
-    REG_RSI,
-    REG_RDI,
-
-    REG_R8 = 8,
-    REG_R9,
-    REG_R10,
-    REG_R11,
-    REG_R12,
-    REG_R13,
-    REG_R14,
-    REG_R15,
-
-    REG_EAX = 16,
-    REG_ECX,
-    REG_EDX,
-    REG_EBX,
-    REG_ESP,
-    REG_EBP,
-    REG_ESI,
-    REG_EDI,
 
 
-    REG_R8D = 24,
-    REG_R9D,
-    REG_R10D,
-    REG_R11D,
-    REG_R12D,
-    REG_R13D,
-    REG_R14D,
-    REG_R15D,
-
-    REG_AX = 32,
-    REG_CX,
-    REG_DX,
-    REG_BX,
-    REG_SP,
-    REG_BP,
-    REG_SI,
-    REG_DI,
-
-    REG_R8W = 40,
-    REG_R9W,
-    REG_R10W,
-    REG_R11W,
-    REG_R12W,
-    REG_R13W,
-    REG_R14W,
-    REG_R15W,
-
-
-    REG_AL = 48,
-    REG_CL,
-    REG_DL,
-    REG_BL,
-    REG_AH,
-    REG_CH,
-    REG_DH,
-    REG_BH,
-
-    REG_R8B = 56,
-    REG_R9B,
-    REG_R10B,
-    REG_R11B,
-    REG_R12B,
-    REG_R13B,
-    REG_R14B,
-    REG_R15B,
-    REG_MAX,
-} RegisterType;
-
-
-
-#define is_extended_reg(type) (type >= REG_R8 && type <= REG_R15)
-
-
+#define is_r256(reg) (reg >= REG_YMM0 && reg <= REG_YMM15)
+#define is_r128(reg) (reg >= REG_XMM0 && reg <= REG_XMM15)
+#define is_mmx(reg) (reg >= REG_MM0 && reg <= REG_MM7)
 #define is_r64(reg) (reg >= REG_RAX && reg <= REG_R15)
 #define is_r32(reg) (reg >= REG_EAX && reg <= REG_R15D)
 #define is_r16(reg) (reg >= REG_AX && reg <= REG_R15W)
 #define is_r8(reg) (reg >= REG_AL && reg <= REG_R15B)
 
 
+//THIS MACRO SHOULD ONLY BE CALLED AFTER THE REGISTER HAS BEEN 
+// CONVERTED TO AN INDEX 0-15
+#define is_extended_reg(type) (type >= 8 && type <= 15)
+
+//potentially remove mm and make rename this to is_sse_reg
+#define is_advanced_reg(r) (r >= OPERAND_MM && r <= OPERAND_YMM)
+#define is_reg32_or_64(type) (type == OPERAND_R32 || type == OPERAND_R64)
 #define is_immediate(i) (i >= OPERAND_IMM8 && i <= OPERAND_IMM64)
 #define is_label(l) (l >= OPERAND_L8 && l <= OPERAND_L64)
 #define is_general_reg(r) (r >= OPERAND_R8 && r <= OPERAND_R64)
-#define is_mem(m) (m >= OPERAND_M8 && m <= OPERAND_M64)
+#define is_mem(m) (m >= OPERAND_M8 && m <= OPERAND_M80)
 #define is_relative(x) (x >= OPERAND_REL8 && x <= OPERAND_REL32)
 
 
@@ -256,14 +194,21 @@ const char* token_to_string(TokenType type) {
         case TOK_RESW:return "TOK_RESW";
         case TOK_RESD:return "TOK_RESD";
         case TOK_RESQ:return "TOK_RESQ";
+        case TOK_REST: return "TOK_REST";
+        case TOK_RESDQ: return "TOK_RESDQ";
+        case TOK_RESY: return "TOK_RESY";
         case TOK_DB: return "TOK_DB";
         case TOK_DW: return "TOK_DW";
         case TOK_DD: return "TOK_DD";
         case TOK_DQ: return "TOK_DQ";
+        case TOK_DT: return "TOK_DT";
         case TOK_BYTE: return "TOK_BYTE";
         case TOK_WORD: return "TOK_WORD";
         case TOK_DWORD: return "TOK_DWORD";
         case TOK_QWORD: return "TOK_QWORD";
+        case TOK_TWORD: return "TOK_TWORD";
+        case TOK_DQWORD: return "TOK_DQWORD";
+        case TOK_YWORD: return "TOK_YWORD";
         case TOK_SECTION: return "TOK_SECTION";
         case TOK_BSS: return "TOK_BSS";
         case TOK_TEXT: return "TOK_TEXT";
@@ -345,7 +290,9 @@ static Token id_or_kw(int* col){
     char* str = scratch_buffer_as_str();
     uint32_t str_size = scratch_buffer_offset();
 
-    if(str_size < 5){
+
+    //NEED A HASHMAP OR SOMETHING
+    if(str_size < 6){
         for(int i = 0; i < REG_MAX; i++){
             if(string_cmp_lower(REGISTER_TABLE[i], str) == 0){
                 Token result;
@@ -377,14 +324,21 @@ static Token id_or_kw(int* col){
     if(string_cmp_lower("dw", str) == 0) return (Token){TOK_DW, 0,0,0};
     if(string_cmp_lower("dd", str) == 0) return (Token){TOK_DD, 0,0,0};
     if(string_cmp_lower("dq", str) == 0) return (Token){TOK_DQ, 0,0,0};
+    if(string_cmp_lower("dt", str) == 0) return (Token){TOK_DT, 0,0,0};
     if(string_cmp_lower("byte", str) == 0) return (Token){TOK_BYTE, 0,0,0};
     if(string_cmp_lower("word", str) == 0) return (Token){TOK_WORD, 0,0,0};
     if(string_cmp_lower("dword", str) == 0) return (Token){TOK_DWORD, 0,0,0};
     if(string_cmp_lower("qword", str) == 0) return (Token){TOK_QWORD, 0,0,0};
+    if(string_cmp_lower("tword", str) == 0) return (Token){TOK_TWORD, 0,0,0};
+    if(string_cmp_lower("dqword", str) == 0) return (Token){TOK_DQWORD, 0,0,0};
+    if(string_cmp_lower("yword", str) == 0) return (Token){TOK_YWORD, 0,0,0};
     if(string_cmp_lower("resb", str) == 0) return (Token){TOK_RESB, 0,0,0};
     if(string_cmp_lower("resw", str) == 0) return (Token){TOK_RESW, 0,0,0};
     if(string_cmp_lower("resd", str) == 0) return (Token){TOK_RESD, 0,0,0};
     if(string_cmp_lower("resq", str) == 0) return (Token){TOK_RESQ, 0,0,0};
+    if(string_cmp_lower("rest", str) == 0) return (Token){TOK_REST, 0,0,0};
+    if(string_cmp_lower("resdq", str) == 0) return (Token){TOK_RESDQ, 0,0,0};
+    if(string_cmp_lower("resy", str) == 0) return (Token){TOK_RESY, 0,0,0};
 
     if(str_size == 3 && tolower(str[0]) == 's' && tolower(str[1]) == 't'){
        if(str[2] >= '0' && str[2] <= '7'){
@@ -601,8 +555,7 @@ static ArrayList tokenize_file(){
 
     }
     
-   
-    /*
+    /* 
     for(int i = 0; i < tokens.size; i++){
         Token t = array_list_get(tokens, Token, i);
         if(t.type == TOK_IDENTIFIER || t.type == TOK_UINT || t.type == TOK_INT){
@@ -617,6 +570,7 @@ static ArrayList tokenize_file(){
         }
 
     }
+    
     */
         
        
@@ -901,10 +855,17 @@ static void parse_bss_section(Parser* p){
             case TOK_RESQ:
                 num = 8;
                 break;
+            case TOK_REST:
+                num = 10;
+                break;
+            case TOK_RESDQ:
+                num = 16;
+                break;
+            case TOK_RESY:
+                num = 32;
+                break;
             default:
                 parser_fatal_error(p, "Invalid bss section instruction\n");
-
-
         }
         parser_next_token(p); 
         parser_expect_token(p, TOK_UINT);
@@ -928,7 +889,7 @@ static void parse_data_section(Parser* p){
         symbol_table_add(id.literal, program.data.size, SECTION_DATA, VISIBILITY_LOCAL);
 
 
-        if(!match(p, TOK_DB, TOK_DW, TOK_DD, TOK_DQ)){
+        if(!match(p, TOK_DB, TOK_DW, TOK_DD, TOK_DQ,TOK_DT)){
             parser_fatal_error(p, "Invalid Data Section Instruction\n");
         }
 
@@ -995,6 +956,14 @@ static void parse_data_section(Parser* p){
                             uint64_t num = string_to_int(p->currentToken.literal, p->currentToken.type);
                             section_add_data(&program.data,&num, 8);
                         }
+                        break;
+                    }
+                    case TOK_DT: {
+                        if(sizeof(long double) < 10){
+                            parser_fatal_error(p, "Error: Don't support machines that don't have 128 bit floats yet");
+                        }
+                        long double num = strtold(p->currentToken.literal, NULL);
+                        section_add_data(&program.data,&num, 10);
                         break;
                     }
                     default:
@@ -1088,10 +1057,11 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
                     OperandType size = OPERAND_NOP;
                     uint8_t reg = REG_MAX;
 
+                    
                     if(is_r64(p->currentToken.reg)){
                         result.mem.rex |= REX_W;
                         size = OPERAND_R64;
-                        reg = p->currentToken.reg;
+                        reg = p->currentToken.reg - REG_RAX;
                     } else if(is_r32(p->currentToken.reg)){
                         size = OPERAND_R32;
                         reg = p->currentToken.reg - REG_EAX;
@@ -1104,14 +1074,14 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
                     if(result.mem.base == REG_MAX && parser_peek_token(p).type != TOK_MULTIPLY){
                         if(is_extended_reg(reg)){
                             result.mem.rex |= REX_B;
-                            reg -= REG_R8;
+                            reg -= 8;
                         }
                         base_size = size;
                         result.mem.base = reg;
                     } else if(result.mem.index == REG_MAX){
                         if(is_extended_reg(reg)){
                             result.mem.rex |= REX_X;
-                            reg -= REG_R8;
+                            reg -= 8;
                         }
                         index_size = size;
                         result.mem.index = reg;
@@ -1202,11 +1172,22 @@ static Operand parse_operand(Parser* p){
     switch (p->currentToken.type) {
         case TOK_REG: {
             uint8_t w = 0;
-
-            if(is_r64(p->currentToken.reg)){
+            
+            if(is_r256(p->currentToken.reg)){
+                result.type = OPERAND_YMM;
+                result.reg.registerIndex = p->currentToken.reg - REG_YMM0;
+            }
+            else if(is_r128(p->currentToken.reg)){
+                result.type = OPERAND_XMM;
+                result.reg.registerIndex = p->currentToken.reg - REG_XMM0;
+            } else if(is_mmx(p->currentToken.reg)){
+                result.type = OPERAND_MM;
+                result.reg.registerIndex = p->currentToken.reg - REG_MM0;
+            }
+            else if(is_r64(p->currentToken.reg)){
                 w = 1;
                 result.type = OPERAND_R64;
-                result.reg.registerIndex = p->currentToken.reg;
+                result.reg.registerIndex = p->currentToken.reg - REG_RAX;
             } else if(is_r32(p->currentToken.reg)){
                 result.type = OPERAND_R32;
                 result.reg.registerIndex = p->currentToken.reg - REG_EAX;
@@ -1260,7 +1241,18 @@ static Operand parse_operand(Parser* p){
             parser_next_token(p);
             parser_expect_token(p, TOK_OPENING_BRACKET);
             return parse_memory(p, OPERAND_M64); 
-
+        case TOK_TWORD:
+            parser_next_token(p);
+            parser_expect_token(p, TOK_OPENING_BRACKET);
+            return parse_memory(p, OPERAND_M80); 
+        case TOK_DQWORD:
+            parser_next_token(p);
+            parser_expect_token(p, TOK_OPENING_BRACKET);
+            return parse_memory(p, OPERAND_M128);
+        case TOK_YWORD:
+            parser_next_token(p);
+            parser_expect_token(p, TOK_OPENING_BRACKET);
+            return parse_memory(p, OPERAND_M256);
         case TOK_OPENING_BRACKET:
             return parse_memory(p, OPERAND_MEM_ANY); 
         default:
@@ -1290,27 +1282,49 @@ static bool check_operand_type(OperandType table_instr, OperandType input_instr)
     if(table_instr == OPERAND_REL32 && input_instr == OPERAND_L64) return true;
 
 
+    if(table_instr >= OPERAND_XMMM32 && table_instr <= OPERAND_XMMM128){
+        if(input_instr == OPERAND_XMM || (input_instr + (OPERAND_XMMM8 - OPERAND_M8)) == table_instr ) return true;
+    }
+ 
+    if(table_instr == OPERAND_YMMM256 && (input_instr == OPERAND_YMM || input_instr == OPERAND_M256)) return true;
+
+    if(table_instr == OPERAND_MMM32 || table_instr == OPERAND_MMM64){
+        return input_instr == OPERAND_MM || table_instr == input_instr + (OPERAND_MMM32 - OPERAND_M32);
+    }
+
+    
     return false;
 }
 
 
 
-static Instruction* find_instruction(uint64_t instr, Operand operand[3]){
+static Instruction* find_instruction(uint64_t instr, Operand operand[4]){
     uint64_t op_table_index = INSTRUCTION_TABLE_LOOK_UP[instr];    
     Instruction instruct = INSTRUCTION_TABLE[op_table_index];
 
     while(instr == instruct.instr){
-
         bool op1_bool = check_operand_type(instruct.op1, operand[0].type);
+        if(!op1_bool) goto continue_loop;
         bool op2_bool = check_operand_type(instruct.op2, operand[1].type); 
+        if(!op2_bool) goto continue_loop;
         bool op3_bool = check_operand_type(instruct.op3, operand[2].type);
+        if(!op3_bool) goto continue_loop;
+        if(operand[3].type != OPERAND_NOP){
+            if(instruct.ib & INSTR_OP4_IS_REG){
+                //if the 4 operand is a reg it must be the same type of register as the first
+                if(operand[3].type != operand[0].type) goto continue_loop;
+            } else {
+                if(operand[3].type != OPERAND_IMM8 && instruct.ib != 1) goto continue_loop;
+            }
+        } 
 
-        if(op1_bool && op2_bool && op3_bool){
-            return (Instruction*)&INSTRUCTION_TABLE[op_table_index];
-        }
 
-        if(op_table_index == INSTRUCTION_TABLE_SIZE - 1) break;
-        instruct = INSTRUCTION_TABLE[++op_table_index];
+        return (Instruction*)&INSTRUCTION_TABLE[op_table_index];
+        
+
+        continue_loop:
+            if(op_table_index == INSTRUCTION_TABLE_SIZE - 1) break;
+            instruct = INSTRUCTION_TABLE[++op_table_index];
     }
 
     return NULL;
@@ -1400,11 +1414,196 @@ static int modrm_sib_fields(Operand* op, uint8_t *data, char** label){
     return size;
 }
 
+/*
+W   3   0 = Operand size determined by CS.D
+        1 = 64 Bit Operand Size
+R   2   Extension of the ModR/M reg field
+X   1   Extension of the SIB index field
+B   0   Extension of the ModR/M r/m field, SIB base field, or Opcode reg field
+*/
+
+/*
+Two Byte 
+
+0xC5 R vvvv L pp 
+R - > Extension of reg field
+vvvv -> ~register index ones complement
+
+Three byte
+0xC4 R X B mmmmm   W vvvv L pp
 
 
-static void emit_instruction(Instruction* instruction, Operand operand[3]){
+*/
 
+#define VEX_TWO_BYTE_R 0x8000
+#define VEX_TWO_BYTE_X 0x4000
+#define VEX_TWO_BYTE_B 0x2000
+#define VEX_UNUSED_REG 0x78
+
+
+
+//R bit gets inverted 
+#define REX_TO_ONE_BYTE_VEX(rex) ((~(rex >> 2)) << 7)
+
+#define ONE_VEX_TO_TWO_BYTE_VEX(vex) (((VEX_TWO_BYTE_R) & ((vex & 0x80) << 8)) | vex & 0x7F7F)
+#define VEX_REGISTER(reg) (((~(reg)) & 0xF) << 3)
+
+
+static void emit_vex_instruction(Instruction* instruction, Operand operand[4]){
+    uint16_t vex = 0xE000;
+
+    uint8_t modrm_sib[6] = {0};
+    uint8_t modrm_size = 0;
+    char* lbl = NULL;
+    int imm_index = 1;
+
+    
+    if(is_reg32_or_64(operand[0].type)){
+        if(operand[0].reg.rex & REX_B) operand[0].reg.rex |= REX_R; 
+
+        //these few instructions have a different operand order encoding then all the other ones
+        // so we just swap the second and third operand to keep it consistent
+        if(instruction->op2 == OPERAND_RM32 || instruction->op2 == OPERAND_RM64){
+            Operand tmp = operand[1];
+            operand[1] = operand[2];
+            operand[2] = tmp;
+        } else if (instruction->op2 == OPERAND_XMM) {
+            if(operand[0].reg.rex & REX_R) operand[0].reg.rex |= REX_B; 
+            //swap rex prefixes as well
+            Operand tmp = operand[0];
+            operand[0] = operand[1];
+            operand[1] = tmp; 
+        }
+    }
+
+
+
+    if(is_advanced_reg(operand[0].type) || is_reg32_or_64(operand[0].type)){
+        vex |= (uint8_t)REX_TO_ONE_BYTE_VEX(operand[0].reg.rex);
+        if(is_advanced_reg(operand[1].type) || is_reg32_or_64(operand[1].type)){
+            imm_index++;
+            uint8_t reg_portion_modrm = 0;
+            uint8_t rm_portion_modrm = 0;
+
+            if(is_advanced_reg(operand[2].type) || is_reg32_or_64(operand[2].type)){
+                imm_index++;
+                if(operand[1].reg.rex & REX_B){
+                    operand[1].reg.registerIndex += 8;
+                }
+                rm_portion_modrm = 2;
+                vex |= VEX_REGISTER(operand[1].reg.registerIndex);
+            } else if(is_mem(operand[2].type)){
+                imm_index++;
+                vex ^= operand[2].mem.rex << 13;
+                if(operand[1].reg.rex & REX_B){
+                    operand[1].reg.registerIndex += 8;
+                }
+                vex |= VEX_REGISTER(operand[1].reg.registerIndex);
+                modrm_sib[MODRM_INDEX] |= (operand[0].reg.registerIndex << 3);
+                modrm_size = modrm_sib_fields(&operand[2], modrm_sib, &lbl);
+                goto encode_vex;
+            } else{
+                vex |= VEX_UNUSED_REG; 
+                rm_portion_modrm = 1;
+            }
+
+            //if this is set we need to use 3 byte vex
+            if(operand[rm_portion_modrm].reg.rex & REX_B){
+                vex ^= VEX_TWO_BYTE_B;
+            }
+ 
+            modrm_size = 1;
+            modrm_sib[MODRM_INDEX] |= 192;
+            modrm_sib[MODRM_INDEX] |=(operand[reg_portion_modrm].reg.registerIndex << 3);
+            modrm_sib[MODRM_INDEX] |= operand[rm_portion_modrm].reg.registerIndex; 
+        } else if (is_mem(operand[1].type)){
+            imm_index++;
+            vex ^= (uint8_t)(operand[0].reg.rex << 7);
+            vex ^= operand[1].mem.rex << 13;
+
+            // for most vex instructions if second operand
+            // is a memory address then its only a 2 operand instruction
+            // but for some instructions that operate on rm32/64 like BEXTR this is not the case
+            if(operand[2].type != OPERAND_NOP){
+                if(operand[2].reg.rex & REX_B){
+                    operand[2].reg.registerIndex += 8;
+                }
+                vex |= VEX_REGISTER(operand[2].reg.registerIndex);
+            } else{
+                vex |= VEX_UNUSED_REG; 
+            }
+
+            modrm_sib[MODRM_INDEX] |= (operand[0].reg.registerIndex << 3);
+            modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl);
+        }
+    } else if(is_mem(operand[0].type)){
+        vex |= 0x80;
+        if(operand[1].reg.rex & REX_R) operand[1].reg.rex |= REX_B; 
+        vex ^= (uint8_t)(operand[1].reg.rex << 7);
+        vex ^= operand[0].mem.rex << 13;
+        vex |= VEX_UNUSED_REG; 
+        modrm_sib[MODRM_INDEX] |= (operand[1].reg.registerIndex << 3);
+        modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
+    }
+
+
+    encode_vex:
+    if((instruction->r & INSTR_USES_2VEX) && ((vex & 0xE000) == 0xE000)){
+        vex |= instruction->three_vex;
+        uint8_t tmp = 0xC5;
+        section_add_data(&program.text, &tmp, 1); 
+        section_add_data(&program.text, &vex, 1); 
+    } else {
+        vex = ONE_VEX_TO_TWO_BYTE_VEX(vex);
+        vex |= instruction->three_vex;
+        //instruction that can be encoded with 2 byte
+        //needs to be encoded with 3 byte vex
+        //set mmmmm part to 1
+        if(((vex >> 8) & 0x1F) == 0){
+            vex |= (1 << 8);
+        }
+        uint8_t tmp = 0xC4;
+        section_add_data(&program.text, &tmp, 1); 
+
+        //on little endian lsb goes first
+        //need to put the upper 16 bits in first though
+        uint8_t upper = vex >> 8;
+        uint8_t lower = (0x00FF & vex);
+        section_add_data(&program.text, &upper, 1);  
+        section_add_data(&program.text, &lower, 1);  
+    }
+
+
+    section_add_data(&program.text, instruction->bytes, instruction->size); 
+    if(modrm_size != 0) section_add_data(&program.text, modrm_sib, modrm_size);
+
+    if(lbl != NULL){
+        symbol_table_add_instance(lbl, program.text.size - DISPLACEMENT_SIZE, false);
+    }
+
+    
+    if(instruction->ib != -1){
+        if(instruction->ib & INSTR_OP4_IS_REG){
+            uint8_t payload = (operand[3].reg.registerIndex) << 4; 
+            section_add_data(&program.text, &payload, 1); 
+        } else{ 
+            section_add_data(&program.text, &operand[imm_index].imm8, 1); 
+        }
+    }
+
+
+
+}
+
+
+
+static void emit_instruction(Instruction* instruction, Operand operand[4]){
     uint8_t rex = instruction->rex;
+
+    if((instruction->r & INSTR_USES_2VEX) || (instruction->r & INSTR_USES_3VEX)){
+        emit_vex_instruction(instruction, operand);
+        return;
+    }
 
     uint8_t opcode[4] = {0};
     memcpy(opcode, instruction->bytes, instruction->size);
@@ -1413,6 +1612,9 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
     uint8_t modrm_sib[6] = {0};
     uint8_t modrm_size = 0;
     char* lbl = NULL;
+
+    int imm_index = 1;
+
 
     //indicate opcode extension in the reg portion of modrm
     if(instruction->digit != -1){
@@ -1438,14 +1640,14 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
             return;
         } else if (is_general_reg(operand[0].type) && is_extended_reg(operand[0].reg.registerIndex)) {
             operand[0].reg.rex |= REX_B;
-            operand[0].reg.registerIndex -= REG_R8; 
+            operand[0].reg.registerIndex -= 8; 
         } else if (operand[0].type == OPERAND_STI){
             opcode[instruction->size - 1] += operand[0].fpu_stack_index; 
         } 
     }
 
    
-    if(is_general_reg(operand[0].type)){
+    if(is_general_reg(operand[0].type) || is_advanced_reg(operand[0].type)){
         rex |= operand[0].reg.rex;
         //indicates we add register to the opcode
         if((instruction->r & ADD_REG_TO_OPCODE)){
@@ -1459,11 +1661,18 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
                 modrm_sib[MODRM_INDEX] |= 192;
                 modrm_sib[MODRM_INDEX] |=(operand[1].reg.registerIndex << 3);
                 modrm_sib[MODRM_INDEX] |= operand[0].reg.registerIndex; 
-            } else{
+            } else if(is_advanced_reg(operand[1].type)){
+                rex |= operand[1].reg.rex;  
+                modrm_size = 1;
+                modrm_sib[MODRM_INDEX] |= 192;
+                modrm_sib[MODRM_INDEX] |=(operand[0].reg.registerIndex << 3);
+                modrm_sib[MODRM_INDEX] |= operand[1].reg.registerIndex; 
+            }else{
                rex |= operand[1].mem.rex;
                modrm_sib[MODRM_INDEX] |= (operand[0].reg.registerIndex << 3);
                modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl);
             }
+            imm_index++;
         } 
         // if we have an opcode extension but still need to encode data in the modrm
         else {
@@ -1480,14 +1689,23 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
             modrm_size = 1;
             modrm_sib[MODRM_INDEX] |= operand[1].reg.registerIndex << 3; 
             modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
-
+            imm_index++;
         } else if(is_immediate(operand[1].type) || operand[1].type == OPERAND_NOP){
             modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
         }   
+    }     
+
+
+    if(rex > 0x40){
+        //rex prefix must come right before escape prefix
+        if(opcode[1] == 0x0f){ 
+            section_add_data(&program.text, &opcode[0], 1);
+            opcode[0] = rex;
+        } else{
+            section_add_data(&program.text, &rex, 1);
+        }
     }
-
-
-    if(rex > 0x40) section_add_data(&program.text, &rex, 1);
+         
     section_add_data(&program.text, opcode, instruction->size); 
     if(modrm_size != 0) section_add_data(&program.text, modrm_sib, modrm_size);
 
@@ -1503,24 +1721,20 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
         case -1:
             break;
         case 1: 
-            section_add_data(&program.text, &operand[1].imm8, 1);
+            section_add_data(&program.text, &operand[imm_index].imm8, 1);
             break;
         case 2: {
-            section_add_data(&program.text, &operand[1].imm16, 2);
+            section_add_data(&program.text, &operand[imm_index].imm16, 2);
             break;
         }
         case 4: {
-            section_add_data(&program.text, &operand[1].imm32, 4);
+            section_add_data(&program.text, &operand[imm_index].imm32, 4);
             break;
         }
-
-        case 8: {
-            section_add_data(&program.text, &operand[1].imm64, 8);
+       case 8: {
+            section_add_data(&program.text, &operand[imm_index].imm64, 8);
             break;
         }
-        case 10:
-            program_fatal_error("10 byte immediate offsets not supported\n");
-            break;
         default:
             program_fatal_error("Unreachable\n");
         
@@ -1528,33 +1742,32 @@ static void emit_instruction(Instruction* instruction, Operand operand[3]){
         
 }
 
-
-
 static void match_operand_pairs(Operand* op1, Operand *op2){
     uint16_t operand_override_prefix = 0x66;
 
     //if we have extended registers r8-r15
     //convert them to their respected index  and set the REX prefix accordingly
-    if(is_general_reg(op1->type) && is_extended_reg(op1->reg.registerIndex)){
+    if((is_general_reg(op1->type) || is_advanced_reg(op1->type)) && is_extended_reg(op1->reg.registerIndex)){
         //if op2 is a memory address, the first operand goes into  
         // the reg portion of modrm instead of the r/m portion
-        if(op2->type >= OPERAND_MEM_ANY && op2->type <= OPERAND_M64){
+        if(op2->type >= OPERAND_MEM_ANY && op2->type <= OPERAND_M64 || is_advanced_reg(op2->type)){
             op1->reg.rex |= REX_R;
         } else{
             op1->reg.rex |= REX_B;
         }
-        op1->reg.registerIndex -= REG_R8;
+        op1->reg.registerIndex -= 8;
     }
-    if(is_general_reg(op2->type) && is_extended_reg(op2->reg.registerIndex)){
-        if(op1->type >= OPERAND_MEM_ANY && op1->type <= OPERAND_M64 || is_general_reg(op1->type)){
+    if((is_general_reg(op2->type) || is_advanced_reg(op2->type)) && is_extended_reg(op2->reg.registerIndex)){
+        if((op1->type >= OPERAND_MEM_ANY && op1->type <= OPERAND_M64) || is_general_reg(op1->type)){
             op2->reg.rex |= REX_R;
         } else{
             op2->reg.rex |= REX_B;
         }
-        op2->reg.registerIndex -= REG_R8;
+        op2->reg.registerIndex -= 8;
     }
 
-
+ 
+     
     if(op2->type == OPERAND_IMM64 || op2->type == OPERAND_SIGNED){
         switch (op1->type) {
             case OPERAND_R64:
@@ -1637,15 +1850,84 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
                 }
             }
             return;
+        //TODO: TURN THIS SWITCH INTO IF STATEMENTS
         case OPERAND_M8:
         case OPERAND_M16:
         case OPERAND_M32:
         case OPERAND_M64:
+        case OPERAND_M128:
+        case OPERAND_XMM:
+        case OPERAND_YMM:
+        case OPERAND_MM:
             return;
         default:
             program_fatal_error("Operand Combo not supported yet: %s, %s\n", 
                     operand_to_string(op1->type), operand_to_string(op2->type));
 
+    }
+}
+
+
+
+
+
+static void match_operand_triples(Operand* op1, Operand *op2, Operand* op3){
+    if(op3->type == OPERAND_IMM64){
+         if (op3->imm64 <= UINT8_MAX) {
+            op3->type = OPERAND_IMM8;
+            op3->imm8 = (uint8_t)(op3->imm64); 
+        } else if(op3->imm64 <= UINT16_MAX){
+            op3->type = OPERAND_IMM16;
+            op3->imm16 = (uint16_t)(op3->imm64);
+        } else if(op3->imm64 <= UINT32_MAX){
+            op3->type = OPERAND_IMM32;
+            op3->imm32 = (uint32_t)(op3->imm64);
+        } 
+    } else if (op3->type == OPERAND_SIGNED) {
+        if(is_int8(op3->imm64)){
+            op3->type = OPERAND_IMM8;
+            op3->imm8 = (int8_t)(op3->imm64);
+        }else if(is_int16(op3->imm64)){
+            op3->type = OPERAND_IMM16;
+            op3->imm16 = (int16_t)(op3->imm64);
+        }else if(is_int32(op3->imm64)){
+            op3->type = OPERAND_IMM32;
+            op3->imm32 = (int32_t)(op3->imm64);
+        }  
+    }
+
+    if(is_general_reg(op1->type) && is_general_reg(op2->type) && is_immediate(op3->type)){
+        uint8_t tmp = op1->reg.registerIndex;        
+        // the order of how 2 registers is packed into modrm is different 
+        // for instructions with three parameters so we just swap them 
+        op1->reg.registerIndex = op2->reg.registerIndex;
+        op2->reg.registerIndex = tmp;
+    }
+
+    //if we have extended registers r/xmm/ymm8-r/xmm/ymm15
+    //convert them to their respected index  and set the REX prefix accordingly
+    if((is_general_reg(op1->type) || is_advanced_reg(op1->type)) && is_extended_reg(op1->reg.registerIndex)){
+        //if op2 is a memory address, the first operand goes into  
+        // the reg portion of modrm instead of the r/m portion
+        if((op2->type >= OPERAND_MEM_ANY && op2->type <= OPERAND_M64) || is_advanced_reg(op2->type)){
+            op1->reg.rex |= REX_R;
+        } else{
+            op1->reg.rex |= REX_B;
+        }
+        op1->reg.registerIndex -= 8;
+    }
+    if((is_general_reg(op2->type) || is_advanced_reg(op2->type)) && is_extended_reg(op2->reg.registerIndex)){
+        if((op1->type >= OPERAND_MEM_ANY && op1->type <= OPERAND_M64)){
+            op2->reg.rex |= REX_R;
+        } else{
+            op2->reg.rex |= REX_B;
+        }
+        op2->reg.registerIndex -= 8;
+    }
+
+    if((is_advanced_reg(op3->type) || is_reg32_or_64(op3->type)) && is_extended_reg(op3->reg.registerIndex)){
+        op3->reg.rex |= REX_B;
+        op3->reg.registerIndex -= 8;
     }
 }
 
@@ -1684,7 +1966,7 @@ static void parse_text_section(Parser* p){
             parser_next_token(p);
             symbol_table_add(id.literal, program.text.size, SECTION_TEXT, VISIBILITY_LOCAL);
         } else if (p->currentToken.type == TOK_INSTRUCTION) {
-                Operand operands[3] = {0};
+                Operand operands[4] = {0};
                 int operand_count = 0;
                 uint64_t instr = p->currentToken.instruction; 
                 while(p->currentToken.type != TOK_NEW_LINE){
@@ -1702,6 +1984,13 @@ static void parse_text_section(Parser* p){
                 }
 
                 if(operand_count == 2)match_operand_pairs(&operands[0], &operands[1]);
+                else if(operand_count == 3) match_operand_triples(&operands[0], &operands[1], &operands[2]);
+                else if (operand_count == 4){
+                    if(operands[3].type == OPERAND_IMM64){
+                        operands[3].type = OPERAND_IMM8;
+                    }
+                    match_operand_triples(&operands[0], &operands[1], &operands[2]);
+                }
 
                 Instruction* found_instruction = find_instruction(instr, operands);
                 
