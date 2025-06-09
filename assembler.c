@@ -1267,7 +1267,7 @@ static Operand parse_operand(Parser* p){
 //converts an instruction of operand type register or memory to operand type RM 
 #define TO_RM(input_instr, reg8_or_m8) (input_instr + (OPERAND_RM8 - reg8_or_m8))
 
-static bool check_operand_type(OperandType table_instr, OperandType input_instr){
+static bool check_operand_type(OperandType table_instr, OperandType input_instr, uint8_t reg_index){
     if(table_instr == input_instr) return true;
 
     //these instructions either take a memory location or registers
@@ -1292,7 +1292,21 @@ static bool check_operand_type(OperandType table_instr, OperandType input_instr)
         return input_instr == OPERAND_MM || table_instr == input_instr + (OPERAND_MMM32 - OPERAND_M32);
     }
 
-    
+    if(table_instr >= OPERAND_AL && table_instr <= OPERAND_RAX){
+        if(input_instr == OPERAND_R64 && reg_index == 0){
+            return table_instr == OPERAND_RAX;
+        } else if (input_instr == OPERAND_R32 && reg_index == 0) { 
+            return table_instr == OPERAND_EAX;
+        } else if (input_instr == OPERAND_R16) {
+            if(reg_index == 0 && table_instr == OPERAND_AX) return true; 
+            else if(reg_index == 2 && table_instr == OPERAND_DX) return true; 
+        } else if (input_instr == OPERAND_R8) {
+            if(reg_index == 0 && table_instr == OPERAND_AL) return true;
+            else if(reg_index == 1 && table_instr == OPERAND_CL) return true;  
+        }
+    }
+
+ 
     return false;
 }
 
@@ -1302,12 +1316,13 @@ static Instruction* find_instruction(uint64_t instr, Operand operand[4]){
     uint64_t op_table_index = INSTRUCTION_TABLE_LOOK_UP[instr];    
     Instruction instruct = INSTRUCTION_TABLE[op_table_index];
 
+    
     while(instr == instruct.instr){
-        bool op1_bool = check_operand_type(instruct.op1, operand[0].type);
+        bool op1_bool = check_operand_type(instruct.op1, operand[0].type, operand[0].reg.registerIndex);
         if(!op1_bool) goto continue_loop;
-        bool op2_bool = check_operand_type(instruct.op2, operand[1].type); 
+        bool op2_bool = check_operand_type(instruct.op2, operand[1].type, operand[1].reg.registerIndex); 
         if(!op2_bool) goto continue_loop;
-        bool op3_bool = check_operand_type(instruct.op3, operand[2].type);
+        bool op3_bool = check_operand_type(instruct.op3, operand[2].type, operand[2].reg.registerIndex);
         if(!op3_bool) goto continue_loop;
         if(operand[3].type != OPERAND_NOP){
             if(instruct.ib & INSTR_OP4_IS_REG){

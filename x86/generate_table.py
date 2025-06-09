@@ -376,10 +376,6 @@ operand_types["ST(i)"] = iota()
 operand_types["DR0–DR7"] =  iota()
 
 
-operand_types["k1"] = iota()
-operand_types["k2"] = iota()
-operand_types["k3"] = iota()
-
 
 operand_types["mm/m32"] = iota()
 operand_types["mm/m64"] = iota()
@@ -401,10 +397,10 @@ operand_types["ymm/m256"] = iota()
 
 operand_types["bnd"] = iota()
 
-operand_types["DX"] = 249
+operand_types["AL"] = 248
 operand_types["CL"] = 249
-operand_types["AL"] = 250
-operand_types["AX"] = 251
+operand_types["AX"] = 250
+operand_types["DX"] = 251
 operand_types["EAX"] = 252
 operand_types["RAX"] = 253
 operand_types["unsupported"] = 255
@@ -609,9 +605,6 @@ with open("instructions.dat", "r") as f:
     nmemonic_file.write("    switch(type){\n")
 
     for operand_field in operand_enum:
-        # cl has the same enum value as another
-        if operand_field == "OPERAND_CL":
-            continue
         nmemonic_file.write(f"    case {operand_field}: return \"{operand_field}\";\n")
         
     nmemonic_file.write("    default: return \"INVALID OPERAND\";\n}}\n")
