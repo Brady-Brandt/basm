@@ -225,9 +225,6 @@ def parse_opcode(op):
             rex = 0x40
             if chunk[-1] == "W":
                 rex |= 0x8
-        # skip over these instructions for now
-        elif "EVEX" in chunk:
-           return None 
 
         elif "VEX" in chunk:
             chunk = chunk.strip()
@@ -554,6 +551,11 @@ with open("instructions.dat", "r") as f:
             op_row = line.split('|')
             opcode = op_row[0].strip()
             operands= op_row[1].strip()
+
+            # there is a formatting issue with ROUNDPS in instructions.dat
+            if operands.startswith('/r ib'):
+                opcode += ' ' + operands[:7]
+                operands = operands[6:]
 
             parsed_instruction= parse_opcode(opcode)
             if parsed_instruction == None:
