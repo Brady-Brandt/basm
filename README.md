@@ -58,7 +58,8 @@ It should only be used for simple, hobby projects right now.
 - Moving a label as in (mov rax, label) does not move the address of the label into rax
 - Windows doesn't support file names larger than 18 chars or labels larger than 8
 - Currently assume all jump addresses are rel32
-- Some instructions like INS won't work because of how we handle operands
+- Some instructions cannot infer the size of the memory operand
+- Issues regarding immediate sizes 
 
 ### Planned Features (Not in a Particular Order) 
 - [ ] Mach File Support (Macos Support)
