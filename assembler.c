@@ -54,60 +54,6 @@ B   0   Extension of the ModR/M r/m field, SIB base field, or Opcode reg field
 
 
 
-//addr = scale * index + base
-
-//call -> E8 (addr relative to the next instruction)
-
-
-typedef enum {
-    TOK_NEW_LINE = '\n',
-    TOK_MULTIPLY = '*',
-    TOK_ADD = '+',
-    TOK_COMMA = ',',
-    TOK_COLON = ':',
-    TOK_OPENING_BRACKET = '[',
-    TOK_CLOSING_BRACKET = ']',
-
-    TOK_INSTRUCTION = 256,
-    TOK_REG, 
-    TOK_GLOBAL,
-    TOK_EXTERN,
-    TOK_SECTION,
-    TOK_TEXT,
-    TOK_DATA,
-    TOK_BSS,
-    TOK_RESB,
-    TOK_RESW,
-    TOK_RESD,
-    TOK_RESQ,
-    TOK_REST,
-    TOK_RESDQ,
-    TOK_RESY,
-
-    TOK_DB,
-    TOK_DW,
-    TOK_DD,
-    TOK_DQ,
-    TOK_DT,
-    TOK_ST,
-
-    TOK_BYTE,
-    TOK_WORD, 
-    TOK_DWORD,
-    TOK_QWORD,
-    TOK_TWORD,
-    TOK_DQWORD,
-    TOK_YWORD,
-
-    TOK_INT,
-    TOK_UINT,
-    TOK_IDENTIFIER,
-    TOK_STRING,
-
-    TOK_MAX,
-} TokenType;
-
-
 /*
 0 AL AX EAX RAX
 1 CL CX ECX RCX
@@ -118,22 +64,6 @@ typedef enum {
 6 DH, SIL 1 SI ESI RSI
 7 BH, DIL 1 DI EDI RDI
 */
-
-
-/*
-Need to use REX prefix to use these instructions 
-the LSB needs to be 1
-0 R8B R8W R8D R8
-1 R9B R9W R9D R9
-2 R10B R10W R10D R10
-3 R11B R11W R11D R11
-4 R12B R12W R12D R12
-5 R13B R13W R13D R13
-6 R14B R14W R14D R14
-7 R15B R15W R15D R15
-*/
-
-
 
 #define is_r256(reg) (reg >= REG_YMM0 && reg <= REG_YMM15)
 #define is_r128(reg) (reg >= REG_XMM0 && reg <= REG_XMM15)
@@ -169,7 +99,6 @@ typedef struct {
         RegisterType reg;
         char* literal;  
         uint64_t instruction;
-        uint64_t fpu_stack_index;
     };
     int line_number;
     int col;
@@ -177,56 +106,7 @@ typedef struct {
 
 
 
-const char* token_to_string(TokenType type) { 
-    switch (type) {
-        case TOK_COMMA:return "TOK_COMMA";
-        case TOK_COLON: return "TOK_COLON";
-        case TOK_ADD: return "TOK_ADD";
-        case TOK_MULTIPLY: return "TOK_MULTIPLY";
-        case TOK_NEW_LINE: return "TOK_NEW_LINE";
-        case TOK_INT: return "TOK_INT";
-        case TOK_UINT: return "TOK_UINT";
-        case TOK_STRING: return "TOK_STRING";
-        case TOK_IDENTIFIER: return "TOK_IDENTIFIER";
-        case TOK_GLOBAL: return "TOK_GLOBAL";
-        case TOK_EXTERN: return "TOK_EXTERN";
-        case TOK_RESB: return "TOK_RESB";
-        case TOK_RESW:return "TOK_RESW";
-        case TOK_RESD:return "TOK_RESD";
-        case TOK_RESQ:return "TOK_RESQ";
-        case TOK_REST: return "TOK_REST";
-        case TOK_RESDQ: return "TOK_RESDQ";
-        case TOK_RESY: return "TOK_RESY";
-        case TOK_DB: return "TOK_DB";
-        case TOK_DW: return "TOK_DW";
-        case TOK_DD: return "TOK_DD";
-        case TOK_DQ: return "TOK_DQ";
-        case TOK_DT: return "TOK_DT";
-        case TOK_BYTE: return "TOK_BYTE";
-        case TOK_WORD: return "TOK_WORD";
-        case TOK_DWORD: return "TOK_DWORD";
-        case TOK_QWORD: return "TOK_QWORD";
-        case TOK_TWORD: return "TOK_TWORD";
-        case TOK_DQWORD: return "TOK_DQWORD";
-        case TOK_YWORD: return "TOK_YWORD";
-        case TOK_SECTION: return "TOK_SECTION";
-        case TOK_BSS: return "TOK_BSS";
-        case TOK_TEXT: return "TOK_TEXT";
-        case TOK_DATA: return "TOK_DATA";
-        case TOK_INSTRUCTION: return "TOK_INSTRUCTION";
-        case TOK_REG: return "TOK_REG";
-        case TOK_ST: return "TOK_ST";
-        case TOK_MAX: return "TOK_UNKNOWN";
-        case TOK_OPENING_BRACKET: return "TOK_OPENING_BRACKET";
-        case TOK_CLOSING_BRACKET: return "TOK_CLOSING_BRACKET";
-    }
-}
-
-
-
 static FileBuffer* current_fb = NULL;
-
-
 
 static int string_cmp_lower(const void* a, const void* b) {
     const char* s1 = (const char*)a;
@@ -247,25 +127,6 @@ static int string_cmp_lower(const void* a, const void* b) {
 }
 
 
-static int bsearch_string_cmp_lower(const void* a, const void* b) {
-    const char* s1 = *(const char**)a;
-    const char* s2 = *(const char**)b; // assuming bsearch is being used on an array of `char*`
-    while (*s1 && *s2) {
-        int c1 = tolower((unsigned char)*s1);
-        int c2 = tolower((unsigned char)*s2);
-
-        if (c1 != c2)
-            return c1 - c2;
-
-        s1++;
-        s2++;
-    }
-
-    return tolower((unsigned char)*s1) - tolower((unsigned char)*s2);
-}
-
-
-
 static inline void get_literal(int* col){
     while(true){
         char next = file_buffer_peek_char(current_fb);
@@ -280,8 +141,6 @@ static inline void get_literal(int* col){
 }
 
 
-
-
 /** 
  * Determine if the String is a keyword or identifier 
  */
@@ -291,63 +150,23 @@ static Token id_or_kw(int* col){
     uint32_t str_size = scratch_buffer_offset();
 
 
-    //NEED A HASHMAP OR SOMETHING
-    if(str_size < 6){
-        for(int i = 0; i < REG_MAX; i++){
-            if(string_cmp_lower(REGISTER_TABLE[i], str) == 0){
-                Token result;
-                result.type = TOK_REG;
-                result.reg = i;
-                return result;
-            }
+    const struct Keyword* kw = find_keyword(str, str_size); 
+    if(kw != NULL){
+        if(kw->type == TOK_REG){
+            return (Token){TOK_REG, .reg = kw->value, 0, 0};
+        } else if (kw->type == TOK_INSTRUCTION) {
+            // in order to not lose information about the 
+            // instruction we are going to store the index 
+            // into the KEYWORD table of the instruction in the token 
+            uint64_t index = ((uint8_t*)kw - (uint8_t*)KEYWORD_TABLE) / sizeof(struct Keyword); 
+            return (Token){TOK_INSTRUCTION, .instruction = index, 0, 0};    
+        } else{
+            // plain keyword
+            return (Token){kw->type, 0, 0, 0};
         }
-    }
-
-    char** instruction = (char**)bsearch(&str, NMEMONIC_TABLE, NMEMONIC_TABLE_SIZE,sizeof(char*), bsearch_string_cmp_lower);
-
-    if(instruction != NULL){
-        Token result;
-        result.type = TOK_INSTRUCTION;
-        //compute the index into the nmemonic table
-        result.instruction = ((void*)instruction - (void*)NMEMONIC_TABLE) / sizeof(char*);
-        return result;
-    }
-
-    
-    if(string_cmp_lower("section", str) == 0) return (Token){TOK_SECTION, 0,0,0};
-    if(string_cmp_lower("global", str) == 0) return (Token){TOK_GLOBAL, 0,0,0};
-    if(string_cmp_lower("extern", str) == 0) return (Token){TOK_EXTERN, 0,0,0};
-    if(string_cmp_lower(".bss", str) == 0) return (Token){TOK_BSS, 0,0,0};
-    if(string_cmp_lower(".data", str) == 0) return (Token){TOK_DATA, 0,0,0};
-    if(string_cmp_lower(".text", str) == 0) return (Token){TOK_TEXT, 0,0,0};
-    if(string_cmp_lower("db", str) == 0) return (Token){TOK_DB, 0,0,0};
-    if(string_cmp_lower("dw", str) == 0) return (Token){TOK_DW, 0,0,0};
-    if(string_cmp_lower("dd", str) == 0) return (Token){TOK_DD, 0,0,0};
-    if(string_cmp_lower("dq", str) == 0) return (Token){TOK_DQ, 0,0,0};
-    if(string_cmp_lower("dt", str) == 0) return (Token){TOK_DT, 0,0,0};
-    if(string_cmp_lower("byte", str) == 0) return (Token){TOK_BYTE, 0,0,0};
-    if(string_cmp_lower("word", str) == 0) return (Token){TOK_WORD, 0,0,0};
-    if(string_cmp_lower("dword", str) == 0) return (Token){TOK_DWORD, 0,0,0};
-    if(string_cmp_lower("qword", str) == 0) return (Token){TOK_QWORD, 0,0,0};
-    if(string_cmp_lower("tword", str) == 0) return (Token){TOK_TWORD, 0,0,0};
-    if(string_cmp_lower("dqword", str) == 0) return (Token){TOK_DQWORD, 0,0,0};
-    if(string_cmp_lower("yword", str) == 0) return (Token){TOK_YWORD, 0,0,0};
-    if(string_cmp_lower("resb", str) == 0) return (Token){TOK_RESB, 0,0,0};
-    if(string_cmp_lower("resw", str) == 0) return (Token){TOK_RESW, 0,0,0};
-    if(string_cmp_lower("resd", str) == 0) return (Token){TOK_RESD, 0,0,0};
-    if(string_cmp_lower("resq", str) == 0) return (Token){TOK_RESQ, 0,0,0};
-    if(string_cmp_lower("rest", str) == 0) return (Token){TOK_REST, 0,0,0};
-    if(string_cmp_lower("resdq", str) == 0) return (Token){TOK_RESDQ, 0,0,0};
-    if(string_cmp_lower("resy", str) == 0) return (Token){TOK_RESY, 0,0,0};
-
-    if(str_size == 3 && tolower(str[0]) == 's' && tolower(str[1]) == 't'){
-       if(str[2] >= '0' && str[2] <= '7'){
-            return (Token){TOK_ST, .fpu_stack_index = str[2] - 48, 0,0};
-       } 
-    }
-
-   
-    return (Token){TOK_IDENTIFIER, 0,0, 0};
+    } else{
+        return (Token){TOK_IDENTIFIER, 0,0, 0};
+    } 
 }
 
 
@@ -672,12 +491,6 @@ void symbol_table_add_instance(char* symbol_name, uint32_t offset, bool is_relat
     array_list_append(e.instances, SymbolInstance, c); 
     array_list_append(program.symTable.symbols, SymbolTableEntry, e);
 }
-
-
-typedef enum {
-    MACHINE_X86_64 = 62,
-    MACHINE_ARM = 40,
-} MachineType;
 
 
 noreturn void parser_fatal_error(Parser *p, const char* fmt, ...){
@@ -1217,9 +1030,16 @@ static Operand parse_operand(Parser* p){
             result.label = p->currentToken.literal; 
             return result;
 
-        case TOK_ST:
-            result.fpu_stack_index = p->currentToken.fpu_stack_index;
+        case TOK_ST0:
+        case TOK_ST1:
+        case TOK_ST2:
+        case TOK_ST3:
+        case TOK_ST4:
+        case TOK_ST5:
+        case TOK_ST6:
+        case TOK_ST7:
             result.type = OPERAND_STI;
+            result.fpu_stack_index = p->currentToken.type - TOK_ST0;
             return result;
 
         case TOK_BYTE:
@@ -1313,33 +1133,31 @@ static bool check_operand_type(OperandType table_instr, OperandType input_instr,
 
 
 static Instruction* find_instruction(uint64_t instr, Operand operand[4]){
-    uint64_t op_table_index = INSTRUCTION_TABLE_LOOK_UP[instr];    
-    Instruction instruct = INSTRUCTION_TABLE[op_table_index];
+    //get the location in the instruction instruction variant table
+    uint64_t op_table_index = KEYWORD_TABLE[instr].value;    
+    int instruction_variant_count = INSTRUCTION_TABLE[op_table_index].variant_count;
 
-    
-    while(instr == instruct.instr){
-        bool op1_bool = check_operand_type(instruct.op1, operand[0].type, operand[0].reg.registerIndex);
-        if(!op1_bool) goto continue_loop;
-        bool op2_bool = check_operand_type(instruct.op2, operand[1].type, operand[1].reg.registerIndex); 
-        if(!op2_bool) goto continue_loop;
-        bool op3_bool = check_operand_type(instruct.op3, operand[2].type, operand[2].reg.registerIndex);
-        if(!op3_bool) goto continue_loop;
+
+    // loop through each variant of the instruction check if the operands match 
+    for(int i = op_table_index + 1; i < op_table_index + instruction_variant_count + 1; i++){ 
+        Instruction instruct_var = INSTRUCTION_TABLE[i];
+        bool op1_bool = check_operand_type(instruct_var.op1, operand[0].type, operand[0].reg.registerIndex);
+        if(!op1_bool) continue;
+        bool op2_bool = check_operand_type(instruct_var.op2, operand[1].type, operand[1].reg.registerIndex); 
+        if(!op2_bool) continue;
+        bool op3_bool = check_operand_type(instruct_var.op3, operand[2].type, operand[2].reg.registerIndex);
+        if(!op3_bool)continue;;
         if(operand[3].type != OPERAND_NOP){
-            if(instruct.ib & INSTR_OP4_IS_REG){
+            if(instruct_var.ib & INSTR_OP4_IS_REG){
                 //if the 4 operand is a reg it must be the same type of register as the first
-                if(operand[3].type != operand[0].type) goto continue_loop;
+                if(operand[3].type != operand[0].type) continue;
             } else {
-                if(operand[3].type != OPERAND_IMM8 && instruct.ib != 1) goto continue_loop;
+                if(operand[3].type != OPERAND_IMM8 && instruct_var.ib != 1) continue;
             }
         } 
 
 
-        return (Instruction*)&INSTRUCTION_TABLE[op_table_index];
-        
-
-        continue_loop:
-            if(op_table_index == INSTRUCTION_TABLE_SIZE - 1) break;
-            instruct = INSTRUCTION_TABLE[++op_table_index];
+        return (Instruction*)&INSTRUCTION_TABLE[i];
     }
 
     return NULL;
@@ -2014,7 +1832,7 @@ static void parse_text_section(Parser* p){
                         scratch_buffer_fmt("%s ", operand_to_string(operands[i].type));
                     }
                     char* temp = scratch_buffer_as_str();
-                    parser_fatal_error(p,"Couldn't find instruction for nmemonic: %s %s", NMEMONIC_TABLE[instr], temp); 
+                    parser_fatal_error(p,"Couldn't find instruction for nmemonic: %s %s", KEYWORD_TABLE[instr].name, temp); 
                 } else{
                     emit_instruction(found_instruction, operands);
                 }
