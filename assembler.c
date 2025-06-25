@@ -822,6 +822,89 @@ void preprocessor_add_symbol(Parser* assembler, ArrayList* symbols){
 }
 
 
+void evaluate_preprocessor_statement(Parser* p, ArrayList* new_tokens, ArrayList* preprocess_symbols){
+    Token t = parser_next_token(p);
+    switch (t.type) {
+        case TOK_DEFINE:{
+            preprocessor_add_symbol(p, preprocess_symbols);
+            break;
+        }
+        case TOK_IDENTIFIER: {
+            bool found_symbol = false;
+            for(int i = 0; i < preprocess_symbols->size; i++){
+                PreprocesserSymbol s = array_list_get((*preprocess_symbols), PreprocesserSymbol, i);
+                if(strcmp(t.literal,s.name) == 0){
+                    for(int i = s.starti; i < s.endi; i++){
+                        Token macro_token = array_list_get((*p->tokens), Token, i);
+                        macro_token.line_number = t.line_number;
+                        array_list_append((*new_tokens), Token, macro_token); 
+                    } 
+                    free(t.literal);
+                    found_symbol = true;
+                    break;
+                }
+            }
+            if(!found_symbol){
+                array_list_append((*new_tokens), Token, t); 
+            } 
+            break;
+        }
+        case TOK_IFDEF: {
+            parser_next_token(p);
+            parser_expect_token(p, TOK_IDENTIFIER);
+            char* m_name = p->currentToken.literal;
+            bool is_defined = false;
+            if(strncmp("__", m_name, 2) == 0){
+                #if defined(__linux__)
+                    if(strcmp(m_name, "__LINUX__") == 0){
+                        is_defined = true;
+                        goto add_body;
+                    }  
+                #elif defined (_WIN64)
+                    if(strcmp(m_name, "__WINDOWS__") == 0){ 
+                        is_defined = true;
+                        goto add_body;
+                    }
+                #endif
+            } 
+            for(int i = 0; i < preprocess_symbols->size; i++){
+                PreprocesserSymbol s = array_list_get((*preprocess_symbols), PreprocesserSymbol, i);
+                if(strcmp(m_name,s.name) == 0){ 
+                    is_defined = true;
+                    break;
+                }
+            }
+        add_body:
+            parser_next_token(p);
+            parser_expect_token(p, TOK_NEW_LINE);
+            if(is_defined){
+                while(parser_peek_token(p).type != TOK_ENDIF){
+                    if(p->tokenIndex == p->tokens->size - 1){
+                        parser_fatal_error(p, "IF statement missing closing #endif\n");
+                    }
+                    evaluate_preprocessor_statement(p, new_tokens, preprocess_symbols);
+                }
+            } else{
+                //if macro is not defined skip over all these tokens
+                while(parser_peek_token(p).type != TOK_ENDIF){
+                    parser_next_token(p);
+                }
+            }
+            
+            parser_next_token(p);
+            parser_expect_consume_token(p, TOK_ENDIF);
+            parser_expect_token(p, TOK_NEW_LINE);
+            break;
+        }
+        case TOK_ENDIF: {
+            parser_fatal_error(p, "Missing if statement\n");
+            return;
+        } 
+        default:
+            array_list_append((*new_tokens), Token, t);
+    } 
+}
+
 ArrayList preprocess_tokens(ArrayList* tokens){ 
     ArrayList preprocess_symbols;
     array_list_create_cap(preprocess_symbols,PreprocesserSymbol, 16);
@@ -834,47 +917,10 @@ ArrayList preprocess_tokens(ArrayList* tokens){
     p.tokens = tokens;
     p.currentToken.type = TOK_MAX;
     array_list_create_cap(program.symTable.symbols, SymbolTableEntry, 16);
- 
-    Token t = parser_next_token(&p); 
-    for(int i = 0; i < tokens->size; i++){
+
+    while(1){
         if(setjmp(p.jmp) == 1) break;
-
-
-        switch (t.type) {
-            case TOK_DEFINE:{
-                preprocessor_add_symbol(&p, &preprocess_symbols);
-                break;
-            }
-            case TOK_IDENTIFIER: {
-                bool found_symbol = false;
-                for(int i = 0; i < preprocess_symbols.size; i++){
-                    PreprocesserSymbol s = array_list_get(preprocess_symbols, PreprocesserSymbol, i);
-                    if(strcmp(t.literal,s.name) == 0){
-                        for(int i = s.starti; i < s.endi; i++){
-                            Token macro_token = array_list_get((*tokens), Token, i);
-                            macro_token.line_number = t.line_number;
-                            array_list_append(new_tokens, Token, macro_token); 
-                        } 
-                        free(t.literal);
-                        found_symbol = true;
-                        break;
-                    }
-                }
-                if(!found_symbol){
-                    array_list_append(new_tokens, Token, t); 
-                } 
-                break;
-            } 
-            case TOK_IF: {
-
-
-
-                break;
-            }
-            default:
-                array_list_append(new_tokens, Token, t);
-        } 
-        t = parser_next_token(&p); 
+        evaluate_preprocessor_statement(&p, &new_tokens, &preprocess_symbols); 
     }
    
     array_list_delete((*tokens));
