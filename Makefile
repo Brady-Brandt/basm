@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS = -DDEBUG -Wextra -g
+CFLAGS = -DDEBUG -Wextra -g -Wno-old-style-definition
 
 TARGET = bin/basm 
 
