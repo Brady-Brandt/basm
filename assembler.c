@@ -134,7 +134,7 @@ static inline void get_literal(int* col){
         if(!isalnum(next) && next != '_' && next != '.'){
             break;
         }
-        char c =file_buffer_get_char(current_fb);
+        char c = file_buffer_get_char(current_fb);
         scratch_buffer_append_char(c); 
         (*col)++;
     }
@@ -145,6 +145,12 @@ static inline void get_literal(int* col){
  * Determine if the String is a keyword or identifier 
  */
 static Token id_or_kw(int* col){
+    char* temp = scratch_buffer_get_data(0);
+    bool preprocess = false;
+    if(*temp == '#'){
+        scratch_buffer_clear();
+        preprocess = true;
+    } 
     get_literal(col);
     char* str = scratch_buffer_as_str();
     uint32_t str_size = scratch_buffer_offset();
@@ -161,6 +167,13 @@ static Token id_or_kw(int* col){
             uint64_t index = ((uint8_t*)kw - (uint8_t*)KEYWORD_TABLE) / sizeof(struct Keyword); 
             return (Token){TOK_INSTRUCTION, .instruction = index, 0, 0};    
         } else{
+            if(kw->type > TOK_END_KEYWORDS && kw->type < TOK_END_PREPROCESSOR){
+                if(preprocess){
+                    return (Token){kw->type, 0, 0, 0};
+                } else{
+                    return (Token){TOK_IDENTIFIER, 0,0, 0};
+                }
+            }
             // plain keyword
             return (Token){kw->type, 0, 0, 0};
         }
@@ -277,7 +290,7 @@ static ArrayList tokenize_file(){
                 get_string(line_number, col);
                 token.type = TOK_STRING;
                 col++;
-                break;
+                break; 
             case '[':
                 col++;
                 token.type = TOK_OPENING_BRACKET;
@@ -286,9 +299,41 @@ static ArrayList tokenize_file(){
                 col++;
                 token.type = TOK_CLOSING_BRACKET;
                 break;
+            case '(':
+                token.type = TOK_OPENING_PAREN;
+                col++;
+                break;
+            case ')':
+                token.type = TOK_CLOSING_PAREN;
+                col++;
+                break;
             case '+':
                 col++;
                 token.type = TOK_ADD;
+                break;
+            case '-':
+                col++;
+                token.type = TOK_SUB;
+                break;
+            case '~':
+                col++;
+                token.type = TOK_NEG;
+                break;
+            case '/':
+                col++;
+                token.type = TOK_DIVIDE;
+                break;
+            case '^':
+                col++;
+                token.type = TOK_XOR;
+                break;
+            case '|':
+                col++;
+                token.type = TOK_OR;
+                break;
+            case '&':
+                col++;
+                token.type = TOK_AND;
                 break;
             case '*':
                 col++;
@@ -315,7 +360,7 @@ static ArrayList tokenize_file(){
                 } 
                 break;
             default: {
-                if (isalpha(c) || c == '_' || c == '.'){
+                if (isalpha(c) || c == '_' || c == '.' || c == '#'){
                     int temp = col;
                     col++;
                     scratch_buffer_append_char(c);
@@ -325,17 +370,11 @@ static ArrayList tokenize_file(){
                     if(token.type != TOK_IDENTIFIER) scratch_buffer_clear();
 
                 }else if(isdigit(c)){
-                    token.type = TOK_UINT;
+                    token.type = TOK_INT;
                     col++;
                     scratch_buffer_append_char(c);
                     get_literal(&col); 
-                }else if(c == '-'){
-                    col++;
-                    scratch_buffer_append_char(c);
-                    token.type = TOK_INT;
-                    get_literal( &col); 
-                }
-                else{
+                }else{
                     //unkown token
                     col++;
                     printf("%c\n", c);
@@ -388,13 +427,9 @@ static ArrayList tokenize_file(){
             printf("%s, %ld, %d\n", token_to_string(t.type), t.instruction, t.line_number);
         }
 
-    }
-    
+    }    
     */
-        
-       
- 
-   
+     
     scratch_buffer_clear();
     return tokens;
 }
@@ -493,7 +528,7 @@ void symbol_table_add_instance(char* symbol_name, uint32_t offset, bool is_relat
 }
 
 
-noreturn void parser_fatal_error(Parser *p, const char* fmt, ...){
+noreturn void parser_fatal_error(Parser* p, const char* fmt, ...){
     fprintf(stderr,"Error: ");
     va_list list;
     va_start(list, fmt);
@@ -520,7 +555,7 @@ static Token parser_next_token(Parser* p){
 
 
 
-static Token parser_peek_token(Parser *p){
+static Token parser_peek_token(Parser* p){
     if(p->tokenIndex < p->tokens->size){
         return array_list_get((*p->tokens), Token, p->tokenIndex);
     }
@@ -528,7 +563,7 @@ static Token parser_peek_token(Parser *p){
 }
 
 
-static void parser_expect_token(Parser *p, TokenType expected){
+static void parser_expect_token(Parser* p, TokenType expected){
     if(p->currentToken.type != expected){
         parser_fatal_error(p, "Expected %s found %s\n", token_to_string(expected), token_to_string(p->currentToken.type));
     }
@@ -536,7 +571,7 @@ static void parser_expect_token(Parser *p, TokenType expected){
 
 
 
-static inline void parser_expect_consume_token(Parser *p, TokenType expected){
+static inline void parser_expect_consume_token(Parser* p, TokenType expected){
     parser_expect_token(p, expected);
     parser_next_token(p);
 
@@ -553,8 +588,7 @@ static bool parser_match_consume_token(Parser* p, TokenType m){
 }
 
 
-
-bool __match(Parser *p, ...){
+bool __match(Parser* p, ...){
     va_list list;
     va_start(list, p);
 
@@ -573,6 +607,285 @@ bool __match(Parser *p, ...){
 
 
 #define match(p,...) __match(p, __VA_ARGS__, TOK_MAX)
+
+
+
+
+typedef struct {
+    char* name;
+    //indices into token arraylist
+    int starti; 
+    int endi;
+} PreprocesserSymbol;
+
+
+static inline bool is_operator(TokenType type){
+    return type == '+' || type == '*' || type =='/' || type == '-' || \
+                 type == '~' || type == '^' || type == '&' || type == '|';
+}
+
+static inline bool is_start_expr(TokenType type){
+    return type == '(' || type == TOK_INT || type == '-' || type == '+' || type == '~';
+}
+
+static inline bool is_end_expr(TokenType type){
+    return type == TOK_NEW_LINE || type == TOK_COMMA || type == ')';
+}
+
+static inline int get_precendence(TokenType type){
+    switch (type) {
+        case TOK_OR:
+            return 1;
+        case TOK_XOR:
+            return 2;
+        case TOK_AND:
+            return 3;
+        case TOK_ADD:
+        case TOK_SUB:
+            return 4;
+        case TOK_MULTIPLY:
+        case '/':
+            return 5;
+        default:
+            return 0; 
+    }
+}
+
+
+typedef struct{
+    Token atom;
+    struct Expression* lhs;
+    struct Expression* rhs;
+} Expression;
+
+
+static Expression* parse_expression(Parser* assembler, int min_precendence){
+    Token t = parser_next_token(assembler);
+    Expression* lhs = NULL;
+    if(t.type == TOK_INT){
+        lhs = malloc(sizeof(Expression));
+        memset(lhs, 0, sizeof(Expression));
+        lhs->atom = t;
+    } else if (t.type == '(') {
+        lhs = parse_expression(assembler, 0);
+        parser_next_token(assembler);
+        parser_expect_token(assembler, ')');
+    } else if(t.type == '-' || t.type == '+' || t.type == '~'){
+        lhs = malloc(sizeof(Expression));
+        memset(lhs, 0, sizeof(Expression));
+        lhs->lhs = (struct Expression*)parse_expression(assembler, 254);
+        lhs->atom = t;
+    }
+    else{ 
+        parser_fatal_error(assembler, "Invalid Token: %s\n", token_to_string(t.type));
+    }
+     
+    while(true){
+        Token op = parser_peek_token(assembler);
+        if(is_end_expr(op.type)){
+            break;
+        }
+
+        int left_precendence = get_precendence(op.type);
+
+        if(left_precendence < min_precendence) break;
+    
+        parser_next_token(assembler);
+        Expression* rhs = parse_expression(assembler, left_precendence);
+
+        Expression* tmp = malloc(sizeof(Expression));
+        memset(tmp, 0, sizeof(Expression)); 
+        tmp->lhs = (struct Expression*)lhs;
+        lhs = tmp;
+
+        lhs->atom = op;
+        lhs->rhs = (struct Expression*)rhs; 
+    }
+    return lhs;
+}
+
+
+static uint64_t string_to_int(char* string){
+    int base = 10;
+
+    //check for hexadecimal
+    int size = strlen(string);
+    if(size > 2){
+        if(string[0] == '0' && string[1] == 'x'){
+            base = 16;
+
+        }  
+    }
+    return strtoull(string, NULL, base);
+}
+
+static int evaluate_expression(Parser* assembler, Expression* expr){
+    if(expr->atom.type == TOK_INT){
+        int result = string_to_int(expr->atom.literal);     
+        free(expr);
+        return result;
+    }else {
+        int lhs = evaluate_expression(assembler, (Expression*)expr->lhs);
+
+        if(expr->rhs == NULL){
+            int result = 0;
+             switch (expr->atom.type) {
+                case '+':
+                    break;
+                case '-':
+                    result = -lhs;
+                    break;
+                case '~':
+                    result = ~lhs;
+                    break;
+                default: 
+                    parser_fatal_error(assembler, "Invalid Unary Operator: %s\n", token_to_string(expr->atom.type));
+            }   
+            free(expr);
+            return result;
+        }
+
+        int rhs = evaluate_expression(assembler, (Expression*)expr->rhs); 
+        int result = 0;
+        switch (expr->atom.type) {
+            case '+':
+                result = lhs + rhs;
+                break;
+            case '*':
+                result = lhs * rhs;
+                break;
+            case '/':
+                result = lhs / rhs;
+                break;
+            case '-':
+                result = lhs - rhs;
+                break;
+            case '^':
+                result = lhs ^ rhs;
+                break;
+            case '|':
+                result = lhs | rhs;
+                break;
+            case '&':
+                result = lhs & rhs;
+                break; 
+            default: 
+                parser_fatal_error(assembler, "Invalid Operator: %s\n", token_to_string(expr->atom.type));
+        }
+        free(expr);
+        return result;
+    }
+}
+
+
+
+static uint64_t parse_and_eval_instruction(Parser* assembler){
+    if(!is_start_expr(assembler->currentToken.type)){
+        parser_fatal_error(assembler, "Expected start of expression got %s\n", 
+                token_to_string(assembler->currentToken.type));
+    }
+    
+    TokenType next = parser_peek_token(assembler).type;
+    if(is_end_expr(next) && next != TOK_CLOSING_PAREN){
+        return string_to_int(assembler->currentToken.literal);
+    }
+
+    //parse expression will query the first token 
+    assembler->tokenIndex -= 1;
+    Expression* expr = parse_expression(assembler, 0);
+    return evaluate_expression(assembler, expr);
+}
+
+
+void preprocessor_add_symbol(Parser* assembler, ArrayList* symbols){
+    Token name = parser_next_token(assembler); 
+    parser_expect_consume_token(assembler, TOK_IDENTIFIER);
+
+    int starti = assembler->tokenIndex - 1;
+    while(parser_next_token(assembler).type != TOK_NEW_LINE);
+    int endi = assembler->tokenIndex - 1;
+
+    for(int i = 0; i < symbols->size; i++){
+        PreprocesserSymbol* s = &array_list_get((*symbols), PreprocesserSymbol, i);
+        if(strcmp(name.literal,s->name) == 0){
+            s->starti = starti;
+            s->endi = endi;
+            free(name.literal);
+            return;
+        }
+    }
+    PreprocesserSymbol s;
+    s.name = name.literal;
+    s.starti = starti;
+    s.endi = endi;
+    array_list_append((*symbols), PreprocesserSymbol, s);
+}
+
+
+ArrayList preprocess_tokens(ArrayList* tokens){ 
+    ArrayList preprocess_symbols;
+    array_list_create_cap(preprocess_symbols,PreprocesserSymbol, 16);
+
+    ArrayList new_tokens;
+    array_list_create_cap(new_tokens, Token, tokens->size);
+ 
+
+    Parser p = {0};
+    p.tokens = tokens;
+    p.currentToken.type = TOK_MAX;
+    array_list_create_cap(program.symTable.symbols, SymbolTableEntry, 16);
+ 
+    Token t = parser_next_token(&p); 
+    for(int i = 0; i < tokens->size; i++){
+        if(setjmp(p.jmp) == 1) break;
+
+
+        switch (t.type) {
+            case TOK_DEFINE:{
+                preprocessor_add_symbol(&p, &preprocess_symbols);
+                break;
+            }
+            case TOK_IDENTIFIER: {
+                bool found_symbol = false;
+                for(int i = 0; i < preprocess_symbols.size; i++){
+                    PreprocesserSymbol s = array_list_get(preprocess_symbols, PreprocesserSymbol, i);
+                    if(strcmp(t.literal,s.name) == 0){
+                        for(int i = s.starti; i < s.endi; i++){
+                            Token macro_token = array_list_get((*tokens), Token, i);
+                            macro_token.line_number = t.line_number;
+                            array_list_append(new_tokens, Token, macro_token); 
+                        } 
+                        free(t.literal);
+                        found_symbol = true;
+                        break;
+                    }
+                }
+                if(!found_symbol){
+                    array_list_append(new_tokens, Token, t); 
+                } 
+                break;
+            } 
+            case TOK_IF: {
+
+
+
+                break;
+            }
+            default:
+                array_list_append(new_tokens, Token, t);
+        } 
+        t = parser_next_token(&p); 
+    }
+   
+    array_list_delete((*tokens));
+    for(uint64_t i = 0; i < preprocess_symbols.size; i++){
+        PreprocesserSymbol s = array_list_get(preprocess_symbols, PreprocesserSymbol, i);
+        free(s.name); 
+    }
+    array_list_delete(preprocess_symbols);
+    return new_tokens; 
+}
+
 
 
 
@@ -620,29 +933,6 @@ static inline void section_add_data(Section* section, void* data, size_t size){
 
 
 
-
-static uint64_t string_to_int(char* string, TokenType sign){
-    int base = 10;
-
-    //check for hexadecimal
-    int size = strlen(string);
-    if(size > 2){
-        if(string[0] == '0' && string[1] == 'x'){
-            base = 16;
-
-        } 
-        else if (size > 3 && string[0] == '-' && string[1] == '0' && string[2] == 'x') {
-            base = 16; 
-        }
-    }
-
-    if(sign == TOK_INT){
-        return strtoll(string, NULL, base);
-    }     
-    return strtoull(string, NULL, base);
-}
-
-
 //TODO: ALLOW PSUEDOINSTRUCTIONS WITHOUT LABELS 
 static void parse_bss_section(Parser* p){
     while(p->currentToken.type != TOK_SECTION){
@@ -680,9 +970,8 @@ static void parse_bss_section(Parser* p){
             default:
                 parser_fatal_error(p, "Invalid bss section instruction\n");
         }
-        parser_next_token(p); 
-        parser_expect_token(p, TOK_UINT);
-        program.bss.size += num * string_to_int(p->currentToken.literal, TOK_UINT); 
+        parser_next_token(p);
+        program.bss.size += num * parse_and_eval_instruction(p); 
         parser_next_token(p);
         parser_expect_consume_token(p, TOK_NEW_LINE);
 
@@ -710,63 +999,51 @@ static void parse_data_section(Parser* p){
         parser_next_token(p);
 
         do{
-            if(p->currentToken.type == TOK_UINT || p->currentToken.type == TOK_INT){
+            if(p->currentToken.type == TOK_INT){
+                bool is_floating_point = false;
+                if(is_float(p->currentToken.literal)){
+                    if(!(psuedo_instr >= TOK_DD && psuedo_instr <= TOK_DT)){
+                        parser_fatal_error(p, "Invalid floating point psuedoinstruction: %s", token_to_string(psuedo_instr));
+                    }
+                    is_floating_point = true;
+                } 
+                int64_t num = parse_and_eval_instruction(p);
                 switch (psuedo_instr) {
                     case TOK_DB: {
                         uint8_t temp = 0;
-                        if(p->currentToken.type == TOK_UINT){
-                            uint64_t num = string_to_int(p->currentToken.literal, TOK_UINT);
-                            if(num > UINT8_MAX) parser_fatal_error(p, "Invalid Size: %ld\n", num);
-                            temp = num;
-                        } else{
-                            int64_t num = (int64_t)string_to_int(p->currentToken.literal, TOK_INT);
-                            if(!is_int8(num)) parser_fatal_error(p, "Invalid Size: %ld\n", num);
-                            temp = num;
-                        }
+                        if(num > UINT8_MAX && !is_int8(num)) parser_fatal_error(p, "Invalid Size: %ld\n", num);
+                        temp = (uint8_t)num; 
                         section_add_data(&program.data,&temp, 1);
                         break;
                     }
                     case TOK_DW: {
                         uint16_t temp = 0;
-                        if(p->currentToken.type == TOK_UINT){
-                            uint64_t num = string_to_int(p->currentToken.literal, TOK_UINT);
-                            if(num > UINT16_MAX) parser_fatal_error(p, "Invalid Size: %ld\n", num);
-                            temp = num;
-                        } else{
-                            int64_t num = (int64_t)string_to_int(p->currentToken.literal, TOK_INT);
-                            if(!is_int16(num)) parser_fatal_error(p, "Invalid Size: %ld\n", num);
-                            temp = num;
-                        }
+                        if(num > UINT16_MAX && !is_int16(num)) parser_fatal_error(p, "Invalid Size: %ld\n", num);
+                        temp = (uint16_t)num;  
                         section_add_data(&program.data,&temp, 2);
                         break;
                     }
                     case TOK_DD: {
                         uint32_t temp = 0;
-                        if(is_float(p->currentToken.literal)){
+                        if(is_floating_point){
                             float num = strtof(p->currentToken.literal, NULL); 
                             //TODO: CHECK FOR ERRORS
                             section_add_data(&program.data,&num, 4);
                             break;
-                        }
-                        else if(p->currentToken.type == TOK_UINT){
-                            uint64_t num = string_to_int(p->currentToken.literal, TOK_UINT);
-                            if(num > UINT32_MAX) parser_fatal_error(p, "Invalid Size: %ld\n", num);
-                            temp = num;
                         } else{
-                            int64_t num = (int64_t)string_to_int(p->currentToken.literal, TOK_INT);
-                            if(!is_int32(num)) parser_fatal_error(p, "Invalid Size: %ld\n", num);
-                            temp = num;
-                        }
+                            if(num > UINT32_MAX && !is_int32(num)) parser_fatal_error(p, "Invalid Size: %ld\n", num);
+                            temp = (uint32_t)num;
+                        } 
                         section_add_data(&program.data,&temp, 4);
                         break;
                     }
                     case TOK_DQ: {
-                        if(is_float(p->currentToken.literal)){
+                        if(is_floating_point){
                             double num = strtod(p->currentToken.literal, NULL); 
                             //TODO: CHECK FOR ERRORS
                             section_add_data(&program.data,&num, 8);
                         } else{
-                            uint64_t num = string_to_int(p->currentToken.literal, p->currentToken.type);
+                            uint64_t num = string_to_int(p->currentToken.literal);
                             section_add_data(&program.data,&num, 8);
                         }
                         break;
@@ -903,8 +1180,8 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
                     } 
                 }
                 break;
-            case TOK_UINT:{
-                int temp = (int)string_to_int(p->currentToken.literal, TOK_UINT);
+            case TOK_INT:{
+                int temp = (int)string_to_int(p->currentToken.literal);
                 if(check_scale){
                     switch (temp) {
                         case 1:
@@ -937,7 +1214,7 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
         switch (t.type) {
             case TOK_MULTIPLY:{
                 Token next = parser_peek_token(p); 
-                if(next.type != TOK_UINT || check_scale == true){ 
+                if(next.type != TOK_INT || check_scale == true){ 
                     parser_fatal_error(p, "Invalid Address\n");
                 }
                 check_scale = true;
@@ -1015,15 +1292,14 @@ static Operand parse_operand(Parser* p){
             return result;
         }
 
-        case TOK_UINT:
-            result.imm64 = string_to_int(p->currentToken.literal, TOK_UINT);
-            result.type = OPERAND_IMM64;
-            return result;
-
+        case TOK_OPENING_PAREN:
+        case TOK_ADD:
+        case TOK_NEG:
+        case TOK_SUB:
         case TOK_INT:
-            result.imm64 = string_to_int(p->currentToken.literal, TOK_INT);
-            result.type = OPERAND_SIGNED;
-            return result;
+            result.imm64 = parse_and_eval_instruction(p);
+            result.type = (result.imm64 > INT64_MAX) ? OPERAND_SIGNED : OPERAND_IMM64;
+            return result; 
 
         case TOK_IDENTIFIER: 
             result.type = OPERAND_L64;
@@ -1911,6 +2187,8 @@ bool basm_assemble_program(AssemblerFlags* flags){
    
 
      ArrayList tokens = tokenize_file(); 
+     tokens = preprocess_tokens(&tokens);
+    
      parse_tokens(&tokens);
 
      for(int i = 0; i < program.symTable.symbols.size; i++){

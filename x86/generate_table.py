@@ -12,8 +12,16 @@ registers = [
 tokens = """
 typedef enum {
     TOK_NEW_LINE = '\\n',
+    TOK_OPENING_PAREN = '(',
+    TOK_CLOSING_PAREN = ')',
     TOK_MULTIPLY = '*',
+    TOK_DIVIDE = '/',
+    TOK_OR = '|',
+    TOK_XOR = '^',
+    TOK_AND = '&',
+    TOK_NEG = '~',
     TOK_ADD = '+',
+    TOK_SUB = '-', 
     TOK_COMMA = ',',
     TOK_COLON = ':',
     TOK_OPENING_BRACKET = '[',
@@ -54,8 +62,14 @@ typedef enum {
     TOK_DQWORD,
     TOK_YWORD,
     TOK_END_KEYWORDS,
+    TOK_DEFINE,
+    TOK_IF,
+    TOK_IFNDEF,
+    TOK_IFDEF,
+    TOK_ELSE,
+    TOK_ENDIF,
+    TOK_END_PREPROCESSOR,
     TOK_INT,
-    TOK_UINT,
     TOK_IDENTIFIER,
     TOK_STRING,
     TOK_MAX,
@@ -762,6 +776,21 @@ struct Keyword {const char* name; TokenType type; uint16_t value;};
         current_token = current_token.replace(',', '')
         current_token = current_token.replace('\n', '')
 
+    start_value += 1
+    index += 1
+    current_token = tok_enum[index].strip()
+    current_token = current_token.replace(',', '')
+    current_token = current_token.replace('\n', '')
+    while current_token != 'TOK_END_PREPROCESSOR':
+        # for keywords the value is just going to be the same as the type
+        # remove TOK_
+        kw = current_token[4:]
+        gperf_input_file.write(f"{kw}, {current_token}, {current_token}\n")
+        start_value += 1
+        index += 1
+        current_token = tok_enum[index].strip()
+        current_token = current_token.replace(',', '')
+        current_token = current_token.replace('\n', '')
 
 
     for index, instr in enumerate(sorted_instructions):
