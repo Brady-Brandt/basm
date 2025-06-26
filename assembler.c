@@ -528,18 +528,21 @@ void symbol_table_add_instance(char* symbol_name, uint32_t offset, bool is_relat
 }
 
 
-noreturn void parser_fatal_error(Parser* p, const char* fmt, ...){
+noreturn void parser_fatal_error_loc(Parser* p, int line_num, int col, const char* fmt, ...){
     fprintf(stderr,"Error: ");
     va_list list;
     va_start(list, fmt);
     vfprintf(stderr, fmt, list);
     va_end(list);
-    char* line = file_get_line(current_fb, p->currentToken.line_number);
-    fprintf(stderr, "Line %d, Col %d\n", p->currentToken.line_number, p->currentToken.col);
+    char* line = file_get_line(current_fb, line_num);
+    fprintf(stderr, "Line %d, Col %d\n", line_num, col);
     fprintf(stderr, "%s\n", line);
-    fprintf(stderr,"%*s\n", p->currentToken.col, "^");
+    fprintf(stderr,"%*s\n",col, "^");
     exit(EXIT_FAILURE);
 }
+
+
+#define parser_fatal_error(p, fmt, ...) parser_fatal_error_loc(p, (p)->currentToken.line_number, (p)->currentToken.col,fmt,##__VA_ARGS__)
 
 
 static Token parser_next_token(Parser* p){
@@ -836,7 +839,9 @@ void evaluate_preprocessor_statement(Parser* p, ArrayList* new_tokens, ArrayList
                 if(strcmp(t.literal,s.name) == 0){
                     for(int i = s.starti; i < s.endi; i++){
                         Token macro_token = array_list_get((*p->tokens), Token, i);
+                        //TODO: NEED A BETTER WAY TO REPORT ERRORS FOR MACROS
                         macro_token.line_number = t.line_number;
+                        macro_token.col = t.col;
                         array_list_append((*new_tokens), Token, macro_token); 
                     } 
                     free(t.literal);
@@ -850,6 +855,8 @@ void evaluate_preprocessor_statement(Parser* p, ArrayList* new_tokens, ArrayList
             break;
         }
         case TOK_IFDEF: {
+            int l = p->currentToken.line_number;
+            int c = p->currentToken.col;
             parser_next_token(p);
             parser_expect_token(p, TOK_IDENTIFIER);
             char* m_name = p->currentToken.literal;
@@ -880,7 +887,7 @@ void evaluate_preprocessor_statement(Parser* p, ArrayList* new_tokens, ArrayList
             if(is_defined){
                 while(parser_peek_token(p).type != TOK_ENDIF){
                     if(p->tokenIndex == p->tokens->size - 1){
-                        parser_fatal_error(p, "IF statement missing closing #endif\n");
+                        parser_fatal_error_loc(p, l, c, "if statement missing closing #endif\n");
                     }
                     evaluate_preprocessor_statement(p, new_tokens, preprocess_symbols);
                 }
@@ -2124,6 +2131,8 @@ static void parse_text_section(Parser* p){
                 Operand operands[4] = {0};
                 int operand_count = 0;
                 uint64_t instr = p->currentToken.instruction; 
+                int instr_line = p->currentToken.line_number;
+                int instr_col = p->currentToken.col;
                 while(p->currentToken.type != TOK_NEW_LINE){
                     Token op = parser_next_token(p);
                     if(op.type == TOK_NEW_LINE) break;
@@ -2154,7 +2163,7 @@ static void parse_text_section(Parser* p){
                         scratch_buffer_fmt("%s ", operand_to_string(operands[i].type));
                     }
                     char* temp = scratch_buffer_as_str();
-                    parser_fatal_error(p,"Couldn't find instruction for nmemonic: %s %s", KEYWORD_TABLE[instr].name, temp); 
+                    parser_fatal_error_loc(p,instr_line, instr_col, "Couldn't find instruction for nmemonic: %s %s\n", KEYWORD_TABLE[instr].name, temp); 
                 } else{
                     emit_instruction(found_instruction, operands);
                 }
