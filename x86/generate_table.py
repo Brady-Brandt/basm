@@ -68,6 +68,8 @@ typedef enum {
     TOK_IFDEF,
     TOK_ELSE,
     TOK_ENDIF,
+    TOK_MACRO,
+    TOK_ENDMACRO,
     TOK_END_PREPROCESSOR,
     TOK_INT,
     TOK_IDENTIFIER,

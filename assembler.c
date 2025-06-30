@@ -105,7 +105,6 @@ typedef struct {
 } Token;
 
 
-
 static FileBuffer* current_fb = NULL;
 
 static int string_cmp_lower(const void* a, const void* b) {
@@ -611,16 +610,7 @@ bool __match(Parser* p, ...){
 
 #define match(p,...) __match(p, __VA_ARGS__, TOK_MAX)
 
-
-
-
-typedef struct {
-    char* name;
-    //indices into token arraylist
-    int starti; 
-    int endi;
-} PreprocesserSymbol;
-
+#define parser_is_last_token(p) ((p)->tokenIndex == (uint32_t)((p)->tokens->size - 1))
 
 static inline bool is_operator(TokenType type){
     return type == '+' || type == '*' || type =='/' || type == '-' || \
@@ -782,7 +772,7 @@ static int evaluate_expression(Parser* assembler, Expression* expr){
 
 
 
-static uint64_t parse_and_eval_instruction(Parser* assembler){
+static uint64_t parse_and_eval_expression(Parser* assembler){
     if(!is_start_expr(assembler->currentToken.type)){
         parser_fatal_error(assembler, "Expected start of expression got %s\n", 
                 token_to_string(assembler->currentToken.type));
@@ -800,16 +790,103 @@ static uint64_t parse_and_eval_instruction(Parser* assembler){
 }
 
 
-void preprocessor_add_symbol(Parser* assembler, ArrayList* symbols){
-    Token name = parser_next_token(assembler); 
-    parser_expect_consume_token(assembler, TOK_IDENTIFIER);
+typedef struct {
+    char* name;
+    //indices into token arraylist
+    int starti; 
+    int endi;
+} PreprocessorSymbol;
 
-    int starti = assembler->tokenIndex - 1;
-    while(parser_next_token(assembler).type != TOK_NEW_LINE);
-    int endi = assembler->tokenIndex - 1;
 
-    for(int i = 0; i < symbols->size; i++){
-        PreprocesserSymbol* s = &array_list_get((*symbols), PreprocesserSymbol, i);
+
+typedef struct {
+    char* name;
+    ArrayList args;
+    int starti;
+    int endi;
+} PreprocessorMacro;
+
+
+typedef struct{
+    struct PreprocessorCtx* next;
+    int starti;
+    int endi;
+    int index;
+} PreprocessorCtx;
+
+
+typedef struct {
+    Parser* p;
+    ArrayList* macros;
+    ArrayList* symbols;
+    PreprocessorCtx* stack;
+    Token currentToken;
+    int index;;
+} Preprocessor;
+
+
+static void preprocessor_ctx_stack_push(Preprocessor* pre, int starti, int endi){
+    PreprocessorCtx* new_ctx = malloc(sizeof(PreprocessorCtx));
+    if(new_ctx == NULL) program_fatal_error("Out of memory\n");
+
+    new_ctx->starti = starti;
+    new_ctx->endi = endi;
+    new_ctx->index = starti;
+    new_ctx->next = (struct PreprocessorCtx*)pre->stack;
+    pre->stack = new_ctx;
+
+}
+
+static Token preprocessor_next_token(Preprocessor* pre){
+    while(pre->stack != NULL){
+        if(pre->stack->endi == pre->stack->index){
+            PreprocessorCtx* tmp = (PreprocessorCtx*)pre->stack->next;
+            free(pre->stack);
+            pre->stack = tmp;
+            continue;
+        } else{
+            Token res = array_list_get((*pre->p->tokens), Token, pre->stack->index);
+            pre->index = pre->stack->index;
+            pre->stack->index++;
+            pre->currentToken = res;
+            return res; 
+        }
+    }  
+    Token res = parser_next_token(pre->p); 
+    pre->currentToken = res;
+    pre->index = pre->p->tokenIndex;
+    return res;
+}
+
+
+static void preprocessor_expect_token(Preprocessor* pre, TokenType expected){
+    if(pre->currentToken.type != expected){
+        parser_fatal_error(pre->p, "Expected %s found %s in macro\n", token_to_string(expected), token_to_string(pre->currentToken.type));
+    }
+}
+
+
+static void preprocessor_expect_consume_token(Preprocessor* pre, TokenType expected){
+   preprocessor_expect_token(pre, expected); 
+   preprocessor_next_token(pre); 
+}
+
+
+static Token preprocessor_peek_token(Preprocessor* pre){
+    return array_list_get((*pre->p->tokens),Token, pre->index);
+}
+
+
+void preprocessor_add_symbol(Preprocessor* pre){
+    Token name = preprocessor_next_token(pre); 
+    preprocessor_expect_consume_token(pre, TOK_IDENTIFIER);
+
+    int starti = pre->index - 1;
+    while(preprocessor_next_token(pre).type != TOK_NEW_LINE);
+    int endi = pre->index - 1;
+
+    for(int i = 0; i < pre->symbols->size; i++){
+        PreprocessorSymbol* s = &array_list_get((*pre->symbols), PreprocessorSymbol, i);
         if(strcmp(name.literal,s->name) == 0){
             s->starti = starti;
             s->endi = endi;
@@ -817,49 +894,99 @@ void preprocessor_add_symbol(Parser* assembler, ArrayList* symbols){
             return;
         }
     }
-    PreprocesserSymbol s;
+    PreprocessorSymbol s;
     s.name = name.literal;
     s.starti = starti;
     s.endi = endi;
-    array_list_append((*symbols), PreprocesserSymbol, s);
+    array_list_append((*pre->symbols), PreprocessorSymbol, s);
 }
 
 
-void evaluate_preprocessor_statement(Parser* p, ArrayList* new_tokens, ArrayList* preprocess_symbols){
-    Token t = parser_next_token(p);
+void evaluate_preprocessor_statement(Preprocessor* pre, ArrayList* new_tokens){
+    Token t = preprocessor_next_token(pre);
     switch (t.type) {
         case TOK_DEFINE:{
-            preprocessor_add_symbol(p, preprocess_symbols);
+            preprocessor_add_symbol(pre);
+            break;
+        }
+        case TOK_MACRO: {
+            Token id = preprocessor_next_token(pre);
+            preprocessor_expect_consume_token(pre, TOK_IDENTIFIER);
+            preprocessor_expect_token(pre, TOK_OPENING_PAREN);
+            ArrayList params = {0};
+            if(preprocessor_peek_token(pre).type != TOK_CLOSING_PAREN){
+                array_list_create_cap(params, char*, 5);
+                do {
+                    if(params.size >= 16){
+                        parser_fatal_error(pre->p, "Invalid Parameter count: %s. MACROS only support 16 parameters\n");
+                    } 
+
+                    Token arg = preprocessor_next_token(pre);
+                    preprocessor_expect_token(pre, TOK_IDENTIFIER);
+                    array_list_append(params, char*, arg.literal);
+                    if(preprocessor_next_token(pre).type != TOK_COMMA) break;
+                }while (true);
+                preprocessor_expect_consume_token(pre, TOK_CLOSING_PAREN);
+            } else{
+                preprocessor_next_token(pre);
+                preprocessor_expect_consume_token(pre, TOK_CLOSING_PAREN);
+
+            }
+            int starti = pre->index;
+            while(preprocessor_next_token(pre).type != TOK_ENDMACRO){
+               if(parser_is_last_token(pre->p)){
+                    parser_fatal_error_loc(pre->p, id.line_number, id.col, "Missing #endmacro\n");
+               }
+            }
+            int endi = pre->index - 1;
+            preprocessor_expect_consume_token(pre, TOK_ENDMACRO);
+            preprocessor_expect_token(pre, TOK_NEW_LINE);
+
+            PreprocessorMacro m = {0};
+            m.name = id.literal;
+            m.args = params;
+            m.starti = starti;
+            m.endi = endi;
+            array_list_append((*pre->macros), PreprocessorMacro, m);
             break;
         }
         case TOK_IDENTIFIER: {
             bool found_symbol = false;
-            for(int i = 0; i < preprocess_symbols->size; i++){
-                PreprocesserSymbol s = array_list_get((*preprocess_symbols), PreprocesserSymbol, i);
-                if(strcmp(t.literal,s.name) == 0){
-                    for(int i = s.starti; i < s.endi; i++){
-                        Token macro_token = array_list_get((*p->tokens), Token, i);
-                        //TODO: NEED A BETTER WAY TO REPORT ERRORS FOR MACROS
-                        macro_token.line_number = t.line_number;
-                        macro_token.col = t.col;
-                        array_list_append((*new_tokens), Token, macro_token); 
-                    } 
-                    free(t.literal);
-                    found_symbol = true;
-                    break;
+            if(preprocessor_peek_token(pre).type == TOK_OPENING_PAREN){
+                preprocessor_next_token(pre);
+                for(int i = 0; i < pre->macros->size; i++){
+                    PreprocessorMacro mac = array_list_get((*pre->macros), PreprocessorMacro, i);
+                    if(strcmp(t.literal,mac.name) == 0){ 
+                        preprocessor_next_token(pre);
+                        preprocessor_expect_consume_token(pre, TOK_CLOSING_PAREN);
+                        preprocessor_ctx_stack_push(pre, mac.starti, mac.endi);
+                        found_symbol = true;
+                        break;
+                    }
+                }
+            } else{
+                for(int i = 0; i < pre->symbols->size; i++){
+                    PreprocessorSymbol s = array_list_get((*pre->symbols), PreprocessorSymbol, i);
+                    if(strcmp(t.literal,s.name) == 0){
+                        preprocessor_ctx_stack_push(pre, s.starti, s.endi);
+                        found_symbol = true;
+                        break;
+                    }
                 }
             }
+
+            
             if(!found_symbol){
                 array_list_append((*new_tokens), Token, t); 
             } 
             break;
         }
         case TOK_IFDEF: {
-            int l = p->currentToken.line_number;
-            int c = p->currentToken.col;
-            parser_next_token(p);
-            parser_expect_token(p, TOK_IDENTIFIER);
-            char* m_name = p->currentToken.literal;
+            int l = pre->currentToken.line_number;
+            int c = pre->currentToken.col;
+            preprocessor_next_token(pre);
+            preprocessor_expect_token(pre, TOK_IDENTIFIER);
+            char* m_name = pre->currentToken.literal;
             bool is_defined = false;
             if(strncmp("__", m_name, 2) == 0){
                 #if defined(__linux__)
@@ -874,37 +1001,45 @@ void evaluate_preprocessor_statement(Parser* p, ArrayList* new_tokens, ArrayList
                     }
                 #endif
             } 
-            for(int i = 0; i < preprocess_symbols->size; i++){
-                PreprocesserSymbol s = array_list_get((*preprocess_symbols), PreprocesserSymbol, i);
+            for(int i = 0; i < pre->symbols->size; i++){
+                PreprocessorSymbol s = array_list_get((*pre->symbols), PreprocessorSymbol, i);
                 if(strcmp(m_name,s.name) == 0){ 
                     is_defined = true;
                     break;
                 }
             }
         add_body:
-            parser_next_token(p);
-            parser_expect_token(p, TOK_NEW_LINE);
+            preprocessor_next_token(pre);
+            preprocessor_expect_token(pre, TOK_NEW_LINE);
             if(is_defined){
-                while(parser_peek_token(p).type != TOK_ENDIF){
-                    if(p->tokenIndex == p->tokens->size - 1){
-                        parser_fatal_error_loc(p, l, c, "if statement missing closing #endif\n");
+                while(preprocessor_peek_token(pre).type != TOK_ENDIF){
+                    if(parser_is_last_token(pre->p)){
+                        parser_fatal_error_loc(pre->p, l, c, "if statement missing closing #endif\n");
                     }
-                    evaluate_preprocessor_statement(p, new_tokens, preprocess_symbols);
+                    evaluate_preprocessor_statement(pre, new_tokens);
                 }
             } else{
                 //if macro is not defined skip over all these tokens
-                while(parser_peek_token(p).type != TOK_ENDIF){
-                    parser_next_token(p);
+                int if_count = 0;
+                int endif_count = 0;
+                while(true){
+                    if(preprocessor_peek_token(pre).type == TOK_ENDIF && if_count == endif_count) break;
+                    if(parser_is_last_token(pre->p)){
+                        parser_fatal_error_loc(pre->p, l, c, "if statement missing closing #endif\n");
+                    }
+                    Token tmp = preprocessor_next_token(pre);
+                    if(tmp.type == TOK_IFDEF) if_count++; 
+                    else if (tmp.type == TOK_ENDIF) endif_count++;
                 }
             }
             
-            parser_next_token(p);
-            parser_expect_consume_token(p, TOK_ENDIF);
-            parser_expect_token(p, TOK_NEW_LINE);
+            preprocessor_next_token(pre);
+            preprocessor_expect_consume_token(pre, TOK_ENDIF);
+            preprocessor_expect_token(pre, TOK_NEW_LINE);
             break;
         }
         case TOK_ENDIF: {
-            parser_fatal_error(p, "Missing if statement\n");
+            parser_fatal_error(pre->p, "Missing if statement\n");
             return;
         } 
         default:
@@ -914,28 +1049,59 @@ void evaluate_preprocessor_statement(Parser* p, ArrayList* new_tokens, ArrayList
 
 ArrayList preprocess_tokens(ArrayList* tokens){ 
     ArrayList preprocess_symbols;
-    array_list_create_cap(preprocess_symbols,PreprocesserSymbol, 16);
+    array_list_create_cap(preprocess_symbols,PreprocessorSymbol, 16);
 
-    ArrayList new_tokens;
+    ArrayList macros = {0};
+    array_list_create_cap(macros,PreprocessorMacro, 8);
+
+    ArrayList new_tokens = {0};
     array_list_create_cap(new_tokens, Token, tokens->size);
- 
 
     Parser p = {0};
     p.tokens = tokens;
     p.currentToken.type = TOK_MAX;
-    array_list_create_cap(program.symTable.symbols, SymbolTableEntry, 16);
+
+    Preprocessor pre = {0};
+    pre.symbols = &preprocess_symbols;
+    pre.macros = &macros;
+    pre.p = &p;
+    pre.stack = NULL;
+    pre.currentToken.type = TOK_MAX;
+
+
 
     while(1){
         if(setjmp(p.jmp) == 1) break;
-        evaluate_preprocessor_statement(&p, &new_tokens, &preprocess_symbols); 
+        evaluate_preprocessor_statement(&pre, &new_tokens); 
     }
    
     array_list_delete((*tokens));
-    for(uint64_t i = 0; i < preprocess_symbols.size; i++){
-        PreprocesserSymbol s = array_list_get(preprocess_symbols, PreprocesserSymbol, i);
+
+    for(int i = 0; i < preprocess_symbols.size; i++){
+        PreprocessorSymbol s = array_list_get(preprocess_symbols, PreprocessorSymbol, i);
         free(s.name); 
     }
+
+    for(int i = 0; i < macros.size; i++){
+        PreprocessorMacro s = array_list_get(macros,PreprocessorMacro, i);
+        for(int j = 0; j < s.args.size; j++){
+            char* arg_name = array_list_get(s.args, char*, j);
+            free(arg_name);
+        }
+        array_list_delete(s.args);
+        free(s.name); 
+    }
+
+
+
     array_list_delete(preprocess_symbols);
+
+    /*
+    for(int i = 0; i < new_tokens.size; i++){
+        Token t = array_list_get(new_tokens, Token, i);
+        printf("%s, %s\n", token_to_string(t.type),(t.type == TOK_IDENTIFIER)? t.literal: NULL);
+    }
+    */
     return new_tokens; 
 }
 
@@ -1024,7 +1190,7 @@ static void parse_bss_section(Parser* p){
                 parser_fatal_error(p, "Invalid bss section instruction\n");
         }
         parser_next_token(p);
-        program.bss.size += num * parse_and_eval_instruction(p); 
+        program.bss.size += num * parse_and_eval_expression(p); 
         parser_next_token(p);
         parser_expect_consume_token(p, TOK_NEW_LINE);
 
@@ -1060,7 +1226,7 @@ static void parse_data_section(Parser* p){
                     }
                     is_floating_point = true;
                 } 
-                int64_t num = parse_and_eval_instruction(p);
+                int64_t num = parse_and_eval_expression(p);
                 switch (psuedo_instr) {
                     case TOK_DB: {
                         uint8_t temp = 0;
@@ -1350,7 +1516,7 @@ static Operand parse_operand(Parser* p){
         case TOK_NEG:
         case TOK_SUB:
         case TOK_INT:
-            result.imm64 = parse_and_eval_instruction(p);
+            result.imm64 = parse_and_eval_expression(p);
             result.type = (result.imm64 > INT64_MAX) ? OPERAND_SIGNED : OPERAND_IMM64;
             return result; 
 
@@ -2092,17 +2258,6 @@ static void match_operand_triples(Operand* op1, Operand *op2, Operand* op3){
         op3->reg.registerIndex -= 8;
     }
 }
-
-
-
-
-//temp function
-static void print_text_section(){
-    for(int i = 0; i < program.text.size; i++){
-        printf("%02x ", program.text.data[i]);
-    }
-}
-
 
 
 
