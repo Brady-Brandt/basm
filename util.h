@@ -40,7 +40,7 @@ do { \
 
 #define array_list_delete(list) \
     do { \
-        if(list != NULL) {  \
+        if(list.data != NULL) {  \
             if(list.capacity != 0) free(list.data); \
         } \
     } while(0)

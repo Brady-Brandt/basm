@@ -105,8 +105,8 @@ typedef struct {
 } Token;
 
 
-
 static FileBuffer* current_fb = NULL;
+static AssemblerFlags asm_flags = {};
 
 static int string_cmp_lower(const void* a, const void* b) {
     const char* s1 = (const char*)a;
@@ -134,7 +134,7 @@ static inline void get_literal(int* col){
         if(!isalnum(next) && next != '_' && next != '.'){
             break;
         }
-        char c =file_buffer_get_char(current_fb);
+        char c = file_buffer_get_char(current_fb);
         scratch_buffer_append_char(c); 
         (*col)++;
     }
@@ -145,6 +145,12 @@ static inline void get_literal(int* col){
  * Determine if the String is a keyword or identifier 
  */
 static Token id_or_kw(int* col){
+    char* temp = scratch_buffer_get_data(0);
+    bool preprocess = false;
+    if(*temp == '#'){
+        scratch_buffer_clear();
+        preprocess = true;
+    } 
     get_literal(col);
     char* str = scratch_buffer_as_str();
     uint32_t str_size = scratch_buffer_offset();
@@ -161,6 +167,13 @@ static Token id_or_kw(int* col){
             uint64_t index = ((uint8_t*)kw - (uint8_t*)KEYWORD_TABLE) / sizeof(struct Keyword); 
             return (Token){TOK_INSTRUCTION, .instruction = index, 0, 0};    
         } else{
+            if(kw->type > TOK_END_KEYWORDS && kw->type < TOK_END_PREPROCESSOR){
+                if(preprocess){
+                    return (Token){kw->type, 0, 0, 0};
+                } else{
+                    return (Token){TOK_IDENTIFIER, 0,0, 0};
+                }
+            }
             // plain keyword
             return (Token){kw->type, 0, 0, 0};
         }
@@ -277,7 +290,7 @@ static ArrayList tokenize_file(){
                 get_string(line_number, col);
                 token.type = TOK_STRING;
                 col++;
-                break;
+                break; 
             case '[':
                 col++;
                 token.type = TOK_OPENING_BRACKET;
@@ -286,9 +299,41 @@ static ArrayList tokenize_file(){
                 col++;
                 token.type = TOK_CLOSING_BRACKET;
                 break;
+            case '(':
+                token.type = TOK_OPENING_PAREN;
+                col++;
+                break;
+            case ')':
+                token.type = TOK_CLOSING_PAREN;
+                col++;
+                break;
             case '+':
                 col++;
                 token.type = TOK_ADD;
+                break;
+            case '-':
+                col++;
+                token.type = TOK_SUB;
+                break;
+            case '~':
+                col++;
+                token.type = TOK_NEG;
+                break;
+            case '/':
+                col++;
+                token.type = TOK_DIVIDE;
+                break;
+            case '^':
+                col++;
+                token.type = TOK_XOR;
+                break;
+            case '|':
+                col++;
+                token.type = TOK_OR;
+                break;
+            case '&':
+                col++;
+                token.type = TOK_AND;
                 break;
             case '*':
                 col++;
@@ -315,7 +360,7 @@ static ArrayList tokenize_file(){
                 } 
                 break;
             default: {
-                if (isalpha(c) || c == '_' || c == '.'){
+                if (isalpha(c) || c == '_' || c == '.' || c == '#'){
                     int temp = col;
                     col++;
                     scratch_buffer_append_char(c);
@@ -325,17 +370,11 @@ static ArrayList tokenize_file(){
                     if(token.type != TOK_IDENTIFIER) scratch_buffer_clear();
 
                 }else if(isdigit(c)){
-                    token.type = TOK_UINT;
+                    token.type = TOK_INT;
                     col++;
                     scratch_buffer_append_char(c);
                     get_literal(&col); 
-                }else if(c == '-'){
-                    col++;
-                    scratch_buffer_append_char(c);
-                    token.type = TOK_INT;
-                    get_literal( &col); 
-                }
-                else{
+                }else{
                     //unkown token
                     col++;
                     printf("%c\n", c);
@@ -388,13 +427,9 @@ static ArrayList tokenize_file(){
             printf("%s, %ld, %d\n", token_to_string(t.type), t.instruction, t.line_number);
         }
 
-    }
-    
+    }    
     */
-        
-       
- 
-   
+     
     scratch_buffer_clear();
     return tokens;
 }
@@ -493,18 +528,21 @@ void symbol_table_add_instance(char* symbol_name, uint32_t offset, bool is_relat
 }
 
 
-noreturn void parser_fatal_error(Parser *p, const char* fmt, ...){
+noreturn void parser_fatal_error_loc(Parser* p, int line_num, int col, const char* fmt, ...){
     fprintf(stderr,"Error: ");
     va_list list;
     va_start(list, fmt);
     vfprintf(stderr, fmt, list);
     va_end(list);
-    char* line = file_get_line(current_fb, p->currentToken.line_number);
-    fprintf(stderr, "Line %d, Col %d\n", p->currentToken.line_number, p->currentToken.col);
+    char* line = file_get_line(current_fb, line_num);
+    fprintf(stderr, "Line %d, Col %d\n", line_num, col);
     fprintf(stderr, "%s\n", line);
-    fprintf(stderr,"%*s\n", p->currentToken.col, "^");
+    fprintf(stderr,"%*s\n",col, "^");
     exit(EXIT_FAILURE);
 }
+
+
+#define parser_fatal_error(p, fmt, ...) parser_fatal_error_loc(p, (p)->currentToken.line_number, (p)->currentToken.col,fmt,##__VA_ARGS__)
 
 
 static Token parser_next_token(Parser* p){
@@ -520,7 +558,7 @@ static Token parser_next_token(Parser* p){
 
 
 
-static Token parser_peek_token(Parser *p){
+static Token parser_peek_token(Parser* p){
     if(p->tokenIndex < p->tokens->size){
         return array_list_get((*p->tokens), Token, p->tokenIndex);
     }
@@ -528,7 +566,7 @@ static Token parser_peek_token(Parser *p){
 }
 
 
-static void parser_expect_token(Parser *p, TokenType expected){
+static void parser_expect_token(Parser* p, TokenType expected){
     if(p->currentToken.type != expected){
         parser_fatal_error(p, "Expected %s found %s\n", token_to_string(expected), token_to_string(p->currentToken.type));
     }
@@ -536,7 +574,7 @@ static void parser_expect_token(Parser *p, TokenType expected){
 
 
 
-static inline void parser_expect_consume_token(Parser *p, TokenType expected){
+static inline void parser_expect_consume_token(Parser* p, TokenType expected){
     parser_expect_token(p, expected);
     parser_next_token(p);
 
@@ -553,8 +591,7 @@ static bool parser_match_consume_token(Parser* p, TokenType m){
 }
 
 
-
-bool __match(Parser *p, ...){
+bool __match(Parser* p, ...){
     va_list list;
     va_start(list, p);
 
@@ -573,6 +610,553 @@ bool __match(Parser *p, ...){
 
 
 #define match(p,...) __match(p, __VA_ARGS__, TOK_MAX)
+
+#define parser_is_last_token(p) ((p)->tokenIndex == (uint32_t)((p)->tokens->size - 1))
+
+static inline bool is_operator(TokenType type){
+    return type == '+' || type == '*' || type =='/' || type == '-' || \
+                 type == '~' || type == '^' || type == '&' || type == '|';
+}
+
+static inline bool is_start_expr(TokenType type){
+    return type == '(' || type == TOK_INT || type == '-' || type == '+' || type == '~';
+}
+
+static inline bool is_end_expr(TokenType type){
+    return type == TOK_NEW_LINE || type == TOK_COMMA || type == ')';
+}
+
+static inline int get_precendence(TokenType type){
+    switch (type) {
+        case TOK_OR:
+            return 1;
+        case TOK_XOR:
+            return 2;
+        case TOK_AND:
+            return 3;
+        case TOK_ADD:
+        case TOK_SUB:
+            return 4;
+        case TOK_MULTIPLY:
+        case '/':
+            return 5;
+        default:
+            return 0; 
+    }
+}
+
+
+typedef struct{
+    Token atom;
+    struct Expression* lhs;
+    struct Expression* rhs;
+} Expression;
+
+
+static Expression* parse_expression(Parser* assembler, int min_precendence){
+    Token t = parser_next_token(assembler);
+    Expression* lhs = NULL;
+    if(t.type == TOK_INT){
+        lhs = malloc(sizeof(Expression));
+        memset(lhs, 0, sizeof(Expression));
+        lhs->atom = t;
+    } else if (t.type == '(') {
+        lhs = parse_expression(assembler, 0);
+        parser_next_token(assembler);
+        parser_expect_token(assembler, ')');
+    } else if(t.type == '-' || t.type == '+' || t.type == '~'){
+        lhs = malloc(sizeof(Expression));
+        memset(lhs, 0, sizeof(Expression));
+        lhs->lhs = (struct Expression*)parse_expression(assembler, 254);
+        lhs->atom = t;
+    }
+    else{ 
+        parser_fatal_error(assembler, "Invalid Token: %s\n", token_to_string(t.type));
+    }
+     
+    while(true){
+        Token op = parser_peek_token(assembler);
+        if(is_end_expr(op.type)){
+            break;
+        }
+
+        int left_precendence = get_precendence(op.type);
+
+        if(left_precendence < min_precendence) break;
+    
+        parser_next_token(assembler);
+        Expression* rhs = parse_expression(assembler, left_precendence);
+
+        Expression* tmp = malloc(sizeof(Expression));
+        memset(tmp, 0, sizeof(Expression)); 
+        tmp->lhs = (struct Expression*)lhs;
+        lhs = tmp;
+
+        lhs->atom = op;
+        lhs->rhs = (struct Expression*)rhs; 
+    }
+    return lhs;
+}
+
+
+static uint64_t string_to_int(char* string){
+    int base = 10;
+
+    //check for hexadecimal
+    int size = strlen(string);
+    if(size > 2){
+        if(string[0] == '0' && string[1] == 'x'){
+            base = 16;
+
+        }  
+    }
+    return strtoull(string, NULL, base);
+}
+
+static int evaluate_expression(Parser* assembler, Expression* expr){
+    if(expr->atom.type == TOK_INT){
+        int result = string_to_int(expr->atom.literal);     
+        free(expr);
+        return result;
+    }else {
+        int lhs = evaluate_expression(assembler, (Expression*)expr->lhs);
+
+        if(expr->rhs == NULL){
+            int result = 0;
+             switch (expr->atom.type) {
+                case '+':
+                    break;
+                case '-':
+                    result = -lhs;
+                    break;
+                case '~':
+                    result = ~lhs;
+                    break;
+                default: 
+                    parser_fatal_error(assembler, "Invalid Unary Operator: %s\n", token_to_string(expr->atom.type));
+            }   
+            free(expr);
+            return result;
+        }
+
+        int rhs = evaluate_expression(assembler, (Expression*)expr->rhs); 
+        int result = 0;
+        switch (expr->atom.type) {
+            case '+':
+                result = lhs + rhs;
+                break;
+            case '*':
+                result = lhs * rhs;
+                break;
+            case '/':
+                result = lhs / rhs;
+                break;
+            case '-':
+                result = lhs - rhs;
+                break;
+            case '^':
+                result = lhs ^ rhs;
+                break;
+            case '|':
+                result = lhs | rhs;
+                break;
+            case '&':
+                result = lhs & rhs;
+                break; 
+            default: 
+                parser_fatal_error(assembler, "Invalid Operator: %s\n", token_to_string(expr->atom.type));
+        }
+        free(expr);
+        return result;
+    }
+}
+
+
+
+static uint64_t parse_and_eval_expression(Parser* assembler){
+    if(!is_start_expr(assembler->currentToken.type)){
+        parser_fatal_error(assembler, "Expected start of expression got %s\n", 
+                token_to_string(assembler->currentToken.type));
+    }
+    
+    TokenType next = parser_peek_token(assembler).type;
+    if(is_end_expr(next) && next != TOK_CLOSING_PAREN){
+        return string_to_int(assembler->currentToken.literal);
+    }
+
+    //parse expression will query the first token 
+    assembler->tokenIndex -= 1;
+    Expression* expr = parse_expression(assembler, 0);
+    return evaluate_expression(assembler, expr);
+}
+
+
+typedef struct {
+    char* name;
+    //indices into token arraylist
+    int starti; 
+    int endi;
+} PreprocessorSymbol;
+
+
+
+typedef struct {
+    char* name; 
+    ArrayList args;
+    int starti;
+    int endi;
+} PreprocessorMacro;
+
+
+
+#define NO_MACRO_PARAMS -1
+
+typedef struct{
+    struct PreprocessorCtx* next;
+    int macro_index;
+    ArrayList arg_values;
+    int starti;
+    int endi;
+    int index;
+} PreprocessorCtx;
+
+
+typedef struct {
+    Parser* p;
+    ArrayList* macros;
+    ArrayList* symbols;
+    PreprocessorCtx* stack;
+    Token currentToken;
+    int index;;
+} Preprocessor;
+
+
+static void preprocessor_ctx_stack_push(Preprocessor* pre, int starti, int endi){
+    PreprocessorCtx* new_ctx = malloc(sizeof(PreprocessorCtx));
+    if(new_ctx == NULL) program_fatal_error("Out of memory\n");
+    memset(new_ctx, 0, sizeof(PreprocessorCtx));
+
+    new_ctx->starti = starti;
+    new_ctx->endi = endi;
+    new_ctx->macro_index = NO_MACRO_PARAMS; //only care about this value if the macro has params
+    new_ctx->index = starti;
+    new_ctx->next = (struct PreprocessorCtx*)pre->stack;
+    pre->stack = new_ctx;
+
+}
+
+
+static void preprocessor_ctx_stack_pop(Preprocessor* pre){
+    PreprocessorCtx* tmp = (PreprocessorCtx*)pre->stack->next;
+
+    if(pre->stack->macro_index != NO_MACRO_PARAMS){
+        array_list_delete(pre->stack->arg_values);
+    }
+    free(pre->stack);
+    pre->stack = tmp;
+}
+
+static Token preprocessor_next_token(Preprocessor* pre){
+    while(pre->stack != NULL){
+        if(pre->stack->endi == pre->stack->index){
+            preprocessor_ctx_stack_pop(pre);
+        } else{
+            Token res = array_list_get((*pre->p->tokens), Token, pre->stack->index); 
+            //if we have a function like macro and identifier 
+            // check if the the current token is a Parameter name and return its value 
+            if(res.type == TOK_IDENTIFIER && pre->stack->macro_index != NO_MACRO_PARAMS){
+                PreprocessorMacro macro = array_list_get((*pre->macros), PreprocessorMacro, pre->stack->macro_index);
+                for(int i = 0; i < macro.args.size; i++){
+                    char* arg = array_list_get(macro.args, char*, i);
+                    if(strcmp(arg, res.literal) == 0){
+                        res = array_list_get(pre->stack->arg_values, Token, i);
+                        break;
+                    }
+                }
+            }
+            pre->stack->index++;
+            pre->index = pre->stack->index;
+            pre->currentToken = res;
+            return res; 
+        }
+    }  
+    Token res = parser_next_token(pre->p); 
+    pre->currentToken = res;
+    pre->index = pre->p->tokenIndex;
+    return res;
+}
+
+
+static void preprocessor_expect_token(Preprocessor* pre, TokenType expected){
+    if(pre->currentToken.type != expected){
+        parser_fatal_error(pre->p, "Expected %s found %s in macro\n", token_to_string(expected), token_to_string(pre->currentToken.type));
+    }
+}
+
+
+static void preprocessor_expect_consume_token(Preprocessor* pre, TokenType expected){
+   preprocessor_expect_token(pre, expected); 
+   preprocessor_next_token(pre); 
+}
+
+
+static Token preprocessor_peek_token(Preprocessor* pre){
+    return array_list_get((*pre->p->tokens),Token, pre->index);
+}
+
+
+void preprocessor_add_symbol(Preprocessor* pre){
+    Token name = preprocessor_next_token(pre); 
+    preprocessor_expect_consume_token(pre, TOK_IDENTIFIER);
+
+    int starti = pre->index - 1;
+    while(preprocessor_next_token(pre).type != TOK_NEW_LINE);
+    int endi = pre->index - 1;
+
+    for(int i = 0; i < pre->symbols->size; i++){
+        PreprocessorSymbol* s = &array_list_get((*pre->symbols), PreprocessorSymbol, i);
+        if(strcmp(name.literal,s->name) == 0){
+            s->starti = starti;
+            s->endi = endi;
+            return;
+        }
+    }
+    PreprocessorSymbol s;
+    s.name = name.literal;
+    s.starti = starti;
+    s.endi = endi;
+    array_list_append((*pre->symbols), PreprocessorSymbol, s);
+}
+
+
+void evaluate_preprocessor_statement(Preprocessor* pre, ArrayList* new_tokens){
+    Token t = preprocessor_next_token(pre);
+    switch (t.type) {
+        case TOK_DEFINE:{
+            preprocessor_add_symbol(pre);
+            break;
+        } 
+        case TOK_MACRO: {
+            Token id = preprocessor_next_token(pre);
+            preprocessor_expect_consume_token(pre, TOK_IDENTIFIER);
+            preprocessor_expect_token(pre, TOK_OPENING_PAREN);
+            ArrayList params = {0};
+            if(preprocessor_peek_token(pre).type != TOK_CLOSING_PAREN){
+                array_list_create_cap(params, char*, 5);
+                do {
+                    if(params.size >= 16){
+                        parser_fatal_error(pre->p, "Invalid Parameter count: %s. MACROS only support 16 parameters\n");
+                    } 
+
+                    Token arg = preprocessor_next_token(pre);
+                    preprocessor_expect_token(pre, TOK_IDENTIFIER);
+                    array_list_append(params, char*, arg.literal);
+                    if(preprocessor_next_token(pre).type != TOK_COMMA) break;
+                }while (true);
+            } else{
+                preprocessor_next_token(pre);
+            }
+
+            preprocessor_expect_consume_token(pre, TOK_CLOSING_PAREN);
+            int starti = pre->index;
+            while(preprocessor_next_token(pre).type != TOK_ENDMACRO){
+               if(parser_is_last_token(pre->p)){
+                    parser_fatal_error_loc(pre->p, id.line_number, id.col, "Missing #endmacro\n");
+               }
+            }
+            int endi = pre->index - 1;
+            preprocessor_expect_consume_token(pre, TOK_ENDMACRO);
+            preprocessor_expect_token(pre, TOK_NEW_LINE);
+
+            PreprocessorMacro m = {0};
+            m.name = id.literal;
+            m.args = params;
+            m.starti = starti;
+            m.endi = endi;
+            array_list_append((*pre->macros), PreprocessorMacro, m);
+            break;
+        }
+        case TOK_IDENTIFIER: {
+            int l = pre->currentToken.line_number;
+            int c = pre->currentToken.col;
+            bool found_symbol = false;
+            if(preprocessor_peek_token(pre).type == TOK_OPENING_PAREN){
+                preprocessor_next_token(pre);
+                for(int i = 0; i < pre->macros->size; i++){
+                    PreprocessorMacro mac = array_list_get((*pre->macros), PreprocessorMacro, i);
+                    if(strcmp(t.literal,mac.name) == 0){ 
+                        ArrayList params = {0};
+                        if(preprocessor_peek_token(pre).type != TOK_CLOSING_PAREN){
+                            array_list_create_cap(params, Token, 5);
+                            do {
+                                if(params.size >= 16){
+                                    parser_fatal_error(pre->p, "Invalid Parameter count: %s. MACROS only support 16 parameters\n");
+                                } 
+
+                                Token arg = preprocessor_next_token(pre);
+                                array_list_append(params, Token, arg);
+                                if(preprocessor_next_token(pre).type != TOK_COMMA) break;
+                            }while (true);
+                            preprocessor_expect_consume_token(pre, TOK_CLOSING_PAREN);
+                        } else{
+                            preprocessor_next_token(pre);
+                            preprocessor_expect_consume_token(pre, TOK_CLOSING_PAREN);
+                        }
+                        if(params.size != mac.args.size){
+                            parser_fatal_error_loc(pre->p,l,c, "Expected %d got %d args\n",
+                                    mac.args.size, params.size, mac.name);
+                        }
+                        preprocessor_ctx_stack_push(pre, mac.starti, mac.endi);
+                        pre->stack->macro_index = (params.size == 0) ? NO_MACRO_PARAMS : i;
+                        pre->stack->arg_values = params;
+                        found_symbol = true;
+                        break;
+                    }
+                }
+            } else{
+                for(int i = 0; i < pre->symbols->size; i++){
+                    PreprocessorSymbol s = array_list_get((*pre->symbols), PreprocessorSymbol, i);
+                    if(strcmp(t.literal,s.name) == 0){
+                        preprocessor_ctx_stack_push(pre, s.starti, s.endi);
+                        found_symbol = true;
+                        break;
+                    }
+                }
+            }
+
+            
+            if(!found_symbol){
+                array_list_append((*new_tokens), Token, t); 
+            } 
+            break;
+        }
+        case TOK_IFDEF: 
+        case TOK_IFNDEF: {
+            bool ifndef = pre->currentToken.type == TOK_IFNDEF;
+            int l = pre->currentToken.line_number;
+            int c = pre->currentToken.col;
+            preprocessor_next_token(pre);
+            preprocessor_expect_token(pre, TOK_IDENTIFIER);
+            char* m_name = pre->currentToken.literal;
+            bool is_defined = false;
+            if(strncmp("__", m_name, 2) == 0){
+                    if(asm_flags.ftype == BASM_FILE_ELF && strcmp(m_name, "__LINUX__") == 0){
+                        is_defined = true;
+                        goto add_body;
+                    } else if(asm_flags.ftype == BASM_FILE_PE && strcmp(m_name, "__WINDOWS__") == 0){ 
+                        is_defined = true;
+                        goto add_body;
+                    }
+            } 
+            for(int i = 0; i < pre->symbols->size; i++){
+                PreprocessorSymbol s = array_list_get((*pre->symbols), PreprocessorSymbol, i);
+                if(strcmp(m_name,s.name) == 0){ 
+                    is_defined = true;
+                    break;
+                }
+            }
+        add_body:
+            preprocessor_next_token(pre);
+            preprocessor_expect_token(pre, TOK_NEW_LINE);
+            if((is_defined && !ifndef) || (!is_defined && ifndef)){
+                while(preprocessor_peek_token(pre).type != TOK_ENDIF){
+                    if(parser_is_last_token(pre->p)){
+                        parser_fatal_error_loc(pre->p, l, c, "if statement missing closing #endif\n");
+                    }
+                    evaluate_preprocessor_statement(pre, new_tokens);
+                }
+            } else{
+                //if macro is not defined skip over all these tokens
+                int if_count = 0;
+                int endif_count = 0;
+                while(true){
+                    if(preprocessor_peek_token(pre).type == TOK_ENDIF && if_count == endif_count) break;
+                    if(parser_is_last_token(pre->p)){
+                        parser_fatal_error_loc(pre->p, l, c, "if statement missing closing #endif\n");
+                    }
+                    Token tmp = preprocessor_next_token(pre);
+                    if(tmp.type == TOK_IFDEF) if_count++; 
+                    else if (tmp.type == TOK_ENDIF) endif_count++;
+                }
+            }
+            
+            preprocessor_next_token(pre);
+            preprocessor_expect_consume_token(pre, TOK_ENDIF);
+            preprocessor_expect_token(pre, TOK_NEW_LINE);
+            break;
+        }
+        case TOK_ENDIF: {
+            parser_fatal_error(pre->p, "Missing if statement\n");
+            return;
+        }
+        case TOK_ENDMACRO: {
+            parser_fatal_error(pre->p, "Missing macro statement\n");
+            return;
+        } 
+        default:
+            array_list_append((*new_tokens), Token, t);
+    } 
+}
+
+/*
+ * TODO: THIS LEAKS A LITTLE BIT OF MEMORY
+ * When replacing a macro with its definition
+ * the instance of the macro name will get leaked
+ * #define x 5 
+ *  x -> when x gets replaced with 5 here the pointer to x will get leaked
+ */
+
+ArrayList preprocess_tokens(ArrayList* tokens){ 
+    ArrayList preprocess_symbols;
+    array_list_create_cap(preprocess_symbols,PreprocessorSymbol, 16);
+
+    ArrayList macros = {0};
+    array_list_create_cap(macros,PreprocessorMacro, 8);
+
+    ArrayList new_tokens = {0};
+    array_list_create_cap(new_tokens, Token, tokens->size);
+
+    Parser p = {0};
+    p.tokens = tokens;
+    p.currentToken.type = TOK_MAX;
+
+    Preprocessor pre = {0};
+    pre.symbols = &preprocess_symbols;
+    pre.macros = &macros;
+    pre.p = &p;
+    pre.stack = NULL;
+    pre.currentToken.type = TOK_MAX;
+
+
+
+    while(1){
+        if(setjmp(p.jmp) == 1) break;
+        evaluate_preprocessor_statement(&pre, &new_tokens); 
+    }
+   
+    array_list_delete((*tokens));
+
+    for(int i = 0; i < preprocess_symbols.size; i++){
+        PreprocessorSymbol s = array_list_get(preprocess_symbols, PreprocessorSymbol, i);
+        free(s.name); 
+    }
+
+    for(int i = 0; i < macros.size; i++){
+        PreprocessorMacro s = array_list_get(macros,PreprocessorMacro, i);
+        for(int j = 0; j < s.args.size; j++){
+            char* arg_name = array_list_get(s.args, char*, j);
+            free(arg_name);
+        }
+        array_list_delete(s.args);
+        free(s.name); 
+    }
+
+    array_list_delete(macros);
+    array_list_delete(preprocess_symbols);
+ 
+    return new_tokens; 
+}
+
 
 
 
@@ -620,29 +1204,6 @@ static inline void section_add_data(Section* section, void* data, size_t size){
 
 
 
-
-static uint64_t string_to_int(char* string, TokenType sign){
-    int base = 10;
-
-    //check for hexadecimal
-    int size = strlen(string);
-    if(size > 2){
-        if(string[0] == '0' && string[1] == 'x'){
-            base = 16;
-
-        } 
-        else if (size > 3 && string[0] == '-' && string[1] == '0' && string[2] == 'x') {
-            base = 16; 
-        }
-    }
-
-    if(sign == TOK_INT){
-        return strtoll(string, NULL, base);
-    }     
-    return strtoull(string, NULL, base);
-}
-
-
 //TODO: ALLOW PSUEDOINSTRUCTIONS WITHOUT LABELS 
 static void parse_bss_section(Parser* p){
     while(p->currentToken.type != TOK_SECTION){
@@ -680,9 +1241,8 @@ static void parse_bss_section(Parser* p){
             default:
                 parser_fatal_error(p, "Invalid bss section instruction\n");
         }
-        parser_next_token(p); 
-        parser_expect_token(p, TOK_UINT);
-        program.bss.size += num * string_to_int(p->currentToken.literal, TOK_UINT); 
+        parser_next_token(p);
+        program.bss.size += num * parse_and_eval_expression(p); 
         parser_next_token(p);
         parser_expect_consume_token(p, TOK_NEW_LINE);
 
@@ -710,63 +1270,51 @@ static void parse_data_section(Parser* p){
         parser_next_token(p);
 
         do{
-            if(p->currentToken.type == TOK_UINT || p->currentToken.type == TOK_INT){
+            if(p->currentToken.type == TOK_INT){
+                bool is_floating_point = false;
+                if(is_float(p->currentToken.literal)){
+                    if(!(psuedo_instr >= TOK_DD && psuedo_instr <= TOK_DT)){
+                        parser_fatal_error(p, "Invalid floating point psuedoinstruction: %s", token_to_string(psuedo_instr));
+                    }
+                    is_floating_point = true;
+                } 
+                int64_t num = parse_and_eval_expression(p);
                 switch (psuedo_instr) {
                     case TOK_DB: {
                         uint8_t temp = 0;
-                        if(p->currentToken.type == TOK_UINT){
-                            uint64_t num = string_to_int(p->currentToken.literal, TOK_UINT);
-                            if(num > UINT8_MAX) parser_fatal_error(p, "Invalid Size: %ld\n", num);
-                            temp = num;
-                        } else{
-                            int64_t num = (int64_t)string_to_int(p->currentToken.literal, TOK_INT);
-                            if(!is_int8(num)) parser_fatal_error(p, "Invalid Size: %ld\n", num);
-                            temp = num;
-                        }
+                        if(num > UINT8_MAX && !is_int8(num)) parser_fatal_error(p, "Invalid Size: %ld\n", num);
+                        temp = (uint8_t)num; 
                         section_add_data(&program.data,&temp, 1);
                         break;
                     }
                     case TOK_DW: {
                         uint16_t temp = 0;
-                        if(p->currentToken.type == TOK_UINT){
-                            uint64_t num = string_to_int(p->currentToken.literal, TOK_UINT);
-                            if(num > UINT16_MAX) parser_fatal_error(p, "Invalid Size: %ld\n", num);
-                            temp = num;
-                        } else{
-                            int64_t num = (int64_t)string_to_int(p->currentToken.literal, TOK_INT);
-                            if(!is_int16(num)) parser_fatal_error(p, "Invalid Size: %ld\n", num);
-                            temp = num;
-                        }
+                        if(num > UINT16_MAX && !is_int16(num)) parser_fatal_error(p, "Invalid Size: %ld\n", num);
+                        temp = (uint16_t)num;  
                         section_add_data(&program.data,&temp, 2);
                         break;
                     }
                     case TOK_DD: {
                         uint32_t temp = 0;
-                        if(is_float(p->currentToken.literal)){
+                        if(is_floating_point){
                             float num = strtof(p->currentToken.literal, NULL); 
                             //TODO: CHECK FOR ERRORS
                             section_add_data(&program.data,&num, 4);
                             break;
-                        }
-                        else if(p->currentToken.type == TOK_UINT){
-                            uint64_t num = string_to_int(p->currentToken.literal, TOK_UINT);
-                            if(num > UINT32_MAX) parser_fatal_error(p, "Invalid Size: %ld\n", num);
-                            temp = num;
                         } else{
-                            int64_t num = (int64_t)string_to_int(p->currentToken.literal, TOK_INT);
-                            if(!is_int32(num)) parser_fatal_error(p, "Invalid Size: %ld\n", num);
-                            temp = num;
-                        }
+                            if(num > UINT32_MAX && !is_int32(num)) parser_fatal_error(p, "Invalid Size: %ld\n", num);
+                            temp = (uint32_t)num;
+                        } 
                         section_add_data(&program.data,&temp, 4);
                         break;
                     }
                     case TOK_DQ: {
-                        if(is_float(p->currentToken.literal)){
+                        if(is_floating_point){
                             double num = strtod(p->currentToken.literal, NULL); 
                             //TODO: CHECK FOR ERRORS
                             section_add_data(&program.data,&num, 8);
                         } else{
-                            uint64_t num = string_to_int(p->currentToken.literal, p->currentToken.type);
+                            uint64_t num = string_to_int(p->currentToken.literal);
                             section_add_data(&program.data,&num, 8);
                         }
                         break;
@@ -903,8 +1451,8 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
                     } 
                 }
                 break;
-            case TOK_UINT:{
-                int temp = (int)string_to_int(p->currentToken.literal, TOK_UINT);
+            case TOK_INT:{
+                int temp = (int)string_to_int(p->currentToken.literal);
                 if(check_scale){
                     switch (temp) {
                         case 1:
@@ -937,7 +1485,7 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
         switch (t.type) {
             case TOK_MULTIPLY:{
                 Token next = parser_peek_token(p); 
-                if(next.type != TOK_UINT || check_scale == true){ 
+                if(next.type != TOK_INT || check_scale == true){ 
                     parser_fatal_error(p, "Invalid Address\n");
                 }
                 check_scale = true;
@@ -1015,15 +1563,14 @@ static Operand parse_operand(Parser* p){
             return result;
         }
 
-        case TOK_UINT:
-            result.imm64 = string_to_int(p->currentToken.literal, TOK_UINT);
-            result.type = OPERAND_IMM64;
-            return result;
-
+        case TOK_OPENING_PAREN:
+        case TOK_ADD:
+        case TOK_NEG:
+        case TOK_SUB:
         case TOK_INT:
-            result.imm64 = string_to_int(p->currentToken.literal, TOK_INT);
-            result.type = OPERAND_SIGNED;
-            return result;
+            result.imm64 = parse_and_eval_expression(p);
+            result.type = (result.imm64 > INT64_MAX) ? OPERAND_SIGNED : OPERAND_IMM64;
+            return result; 
 
         case TOK_IDENTIFIER: 
             result.type = OPERAND_L64;
@@ -1766,17 +2313,6 @@ static void match_operand_triples(Operand* op1, Operand *op2, Operand* op3){
 
 
 
-
-//temp function
-static void print_text_section(){
-    for(int i = 0; i < program.text.size; i++){
-        printf("%02x ", program.text.data[i]);
-    }
-}
-
-
-
-
 static void parse_text_section(Parser* p){
     while(p->currentToken.type != TOK_SECTION){
         if(p->currentToken.type == TOK_SECTION) break;
@@ -1802,6 +2338,8 @@ static void parse_text_section(Parser* p){
                 Operand operands[4] = {0};
                 int operand_count = 0;
                 uint64_t instr = p->currentToken.instruction; 
+                int instr_line = p->currentToken.line_number;
+                int instr_col = p->currentToken.col;
                 while(p->currentToken.type != TOK_NEW_LINE){
                     Token op = parser_next_token(p);
                     if(op.type == TOK_NEW_LINE) break;
@@ -1832,7 +2370,7 @@ static void parse_text_section(Parser* p){
                         scratch_buffer_fmt("%s ", operand_to_string(operands[i].type));
                     }
                     char* temp = scratch_buffer_as_str();
-                    parser_fatal_error(p,"Couldn't find instruction for nmemonic: %s %s", KEYWORD_TABLE[instr].name, temp); 
+                    parser_fatal_error_loc(p,instr_line, instr_col, "Couldn't find instruction for nmemonic: %s %s\n", KEYWORD_TABLE[instr].name, temp); 
                 } else{
                     emit_instruction(found_instruction, operands);
                 }
@@ -1904,13 +2442,15 @@ static void parse_tokens(ArrayList* tokens){
 
 
 
-bool basm_assemble_program(AssemblerFlags* flags){
-     current_fb = file_buffer_create(flags->input_file);
+bool basm_assemble_program(){
+     current_fb = file_buffer_create(asm_flags.input_file);
 
      if(current_fb == NULL) return false;
    
 
      ArrayList tokens = tokenize_file(); 
+     tokens = preprocess_tokens(&tokens);
+    
      parse_tokens(&tokens);
 
      for(int i = 0; i < program.symTable.symbols.size; i++){
@@ -1943,10 +2483,10 @@ bool basm_assemble_program(AssemblerFlags* flags){
 
      file_buffer_delete(current_fb);
 
-     if(flags->ftype == BASM_FILE_ELF){
-        return write_elf(flags->input_file, flags->output_file, &program);
-     } else if(flags->ftype == BASM_FILE_PE){
-        return write_pe(flags->input_file, flags->output_file, &program);
+     if(asm_flags.ftype == BASM_FILE_ELF){
+        return write_elf(asm_flags.input_file, asm_flags.output_file, &program);
+     } else if(asm_flags.ftype == BASM_FILE_PE){
+        return write_pe(asm_flags.input_file, asm_flags.output_file, &program);
      } else{
         fprintf(stderr, "Unknown output file type\n");
         return false;
@@ -1956,12 +2496,12 @@ bool basm_assemble_program(AssemblerFlags* flags){
 
 
 
-bool basm_parse_flags(AssemblerFlags* flags, int argc, char** argv){
+bool basm_parse_flags(int argc, char** argv){
     if(argc < 2){
         fprintf(stderr, "./basm input_file\n");
         return false;
     }
-    flags->output_file = "a.out";
+    asm_flags.output_file = "a.out";
 
     for(int i = 1; i < argc; i++){
         if(strcmp("-f", argv[i]) == 0){
@@ -1971,9 +2511,9 @@ bool basm_parse_flags(AssemblerFlags* flags, int argc, char** argv){
                 return false;
             }
             if(strcmp("win", argv[i]) == 0){
-                flags->ftype = BASM_FILE_PE;
+                asm_flags.ftype = BASM_FILE_PE;
             } else if (strcmp("elf", argv[i]) == 0) { 
-                flags->ftype = BASM_FILE_ELF;
+                asm_flags.ftype = BASM_FILE_ELF;
             } else{
                 fprintf(stderr, "Invalid File Type: %s\n", argv[i]);
                 return false;
@@ -1984,13 +2524,13 @@ bool basm_parse_flags(AssemblerFlags* flags, int argc, char** argv){
                 fprintf(stderr, "Output file not specified\n");
                 return false;
             }
-            flags->output_file = argv[i];
+            asm_flags.output_file = argv[i];
              
         } else if(string_cmp_lower("--help", argv[i]) == 0){
             basm_help();
             return false;
         }else{
-            flags->input_file = argv[i];
+            asm_flags.input_file = argv[i];
         }
     }
     return true;

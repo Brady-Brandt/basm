@@ -16,8 +16,8 @@ typedef struct {
 
 
 
-bool basm_assemble_program(AssemblerFlags* flags);
+bool basm_assemble_program();
 
-bool basm_parse_flags(AssemblerFlags* flags, int argc, char** argv);
+bool basm_parse_flags(int argc, char** argv);
 
 void basm_help();
