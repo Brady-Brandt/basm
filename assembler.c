@@ -106,7 +106,7 @@ typedef struct {
 
 
 static FileBuffer* current_fb = NULL;
-static AssemblerFlags asm_flags ={};
+static AssemblerFlags asm_flags = {};
 
 static int string_cmp_lower(const void* a, const void* b) {
     const char* s1 = (const char*)a;
@@ -935,7 +935,7 @@ void evaluate_preprocessor_statement(Preprocessor* pre, ArrayList* new_tokens){
         case TOK_DEFINE:{
             preprocessor_add_symbol(pre);
             break;
-        }
+        } 
         case TOK_MACRO: {
             Token id = preprocessor_next_token(pre);
             preprocessor_expect_consume_token(pre, TOK_IDENTIFIER);
@@ -1030,7 +1030,9 @@ void evaluate_preprocessor_statement(Preprocessor* pre, ArrayList* new_tokens){
             } 
             break;
         }
-        case TOK_IFDEF: {
+        case TOK_IFDEF: 
+        case TOK_IFNDEF: {
+            bool ifndef = pre->currentToken.type == TOK_IFNDEF;
             int l = pre->currentToken.line_number;
             int c = pre->currentToken.col;
             preprocessor_next_token(pre);
@@ -1056,7 +1058,7 @@ void evaluate_preprocessor_statement(Preprocessor* pre, ArrayList* new_tokens){
         add_body:
             preprocessor_next_token(pre);
             preprocessor_expect_token(pre, TOK_NEW_LINE);
-            if(is_defined){
+            if((is_defined && !ifndef) || (!is_defined && ifndef)){
                 while(preprocessor_peek_token(pre).type != TOK_ENDIF){
                     if(parser_is_last_token(pre->p)){
                         parser_fatal_error_loc(pre->p, l, c, "if statement missing closing #endif\n");
