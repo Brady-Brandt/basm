@@ -800,15 +800,20 @@ typedef struct {
 
 
 typedef struct {
-    char* name;
+    char* name; 
     ArrayList args;
     int starti;
     int endi;
 } PreprocessorMacro;
 
 
+
+#define NO_MACRO_PARAMS -1
+
 typedef struct{
     struct PreprocessorCtx* next;
+    int macro_index;
+    ArrayList arg_values;
     int starti;
     int endi;
     int index;
@@ -828,24 +833,46 @@ typedef struct {
 static void preprocessor_ctx_stack_push(Preprocessor* pre, int starti, int endi){
     PreprocessorCtx* new_ctx = malloc(sizeof(PreprocessorCtx));
     if(new_ctx == NULL) program_fatal_error("Out of memory\n");
+    memset(new_ctx, 0, sizeof(PreprocessorCtx));
 
     new_ctx->starti = starti;
     new_ctx->endi = endi;
+    new_ctx->macro_index = NO_MACRO_PARAMS; //only care about this value if the macro has params
     new_ctx->index = starti;
     new_ctx->next = (struct PreprocessorCtx*)pre->stack;
     pre->stack = new_ctx;
 
 }
 
+
+static void preprocessor_ctx_stack_pop(Preprocessor* pre){
+    PreprocessorCtx* tmp = (PreprocessorCtx*)pre->stack->next;
+
+    if(pre->stack->macro_index != NO_MACRO_PARAMS){
+        array_list_delete(pre->stack->arg_values);
+    }
+    free(pre->stack);
+    pre->stack = tmp;
+}
+
 static Token preprocessor_next_token(Preprocessor* pre){
     while(pre->stack != NULL){
         if(pre->stack->endi == pre->stack->index){
-            PreprocessorCtx* tmp = (PreprocessorCtx*)pre->stack->next;
-            free(pre->stack);
-            pre->stack = tmp;
-            continue;
+            preprocessor_ctx_stack_pop(pre);
         } else{
-            Token res = array_list_get((*pre->p->tokens), Token, pre->stack->index);
+            Token res = array_list_get((*pre->p->tokens), Token, pre->stack->index); 
+            //if we have a function like macro and identifier 
+            // check if the the current token is a Parameter name and return its value 
+            if(res.type == TOK_IDENTIFIER && pre->stack->macro_index != NO_MACRO_PARAMS){
+                PreprocessorMacro macro = array_list_get((*pre->macros), PreprocessorMacro, pre->stack->macro_index);
+                for(int i = 0; i < macro.args.size; i++){
+                    char* arg = array_list_get(macro.args, char*, i);
+                    if(strcmp(arg, res.literal) == 0){
+                        res = array_list_get(pre->stack->arg_values, Token, i);
+                        break;
+                    }
+                }
+            }
             pre->index = pre->stack->index;
             pre->stack->index++;
             pre->currentToken = res;
@@ -890,7 +917,6 @@ void preprocessor_add_symbol(Preprocessor* pre){
         if(strcmp(name.literal,s->name) == 0){
             s->starti = starti;
             s->endi = endi;
-            free(name.literal);
             return;
         }
     }
@@ -926,12 +952,11 @@ void evaluate_preprocessor_statement(Preprocessor* pre, ArrayList* new_tokens){
                     array_list_append(params, char*, arg.literal);
                     if(preprocessor_next_token(pre).type != TOK_COMMA) break;
                 }while (true);
-                preprocessor_expect_consume_token(pre, TOK_CLOSING_PAREN);
             } else{
                 preprocessor_next_token(pre);
-                preprocessor_expect_consume_token(pre, TOK_CLOSING_PAREN);
-
             }
+
+            preprocessor_expect_consume_token(pre, TOK_CLOSING_PAREN);
             int starti = pre->index;
             while(preprocessor_next_token(pre).type != TOK_ENDMACRO){
                if(parser_is_last_token(pre->p)){
@@ -951,15 +976,38 @@ void evaluate_preprocessor_statement(Preprocessor* pre, ArrayList* new_tokens){
             break;
         }
         case TOK_IDENTIFIER: {
+            int l = pre->currentToken.line_number;
+            int c = pre->currentToken.col;
             bool found_symbol = false;
             if(preprocessor_peek_token(pre).type == TOK_OPENING_PAREN){
                 preprocessor_next_token(pre);
                 for(int i = 0; i < pre->macros->size; i++){
                     PreprocessorMacro mac = array_list_get((*pre->macros), PreprocessorMacro, i);
                     if(strcmp(t.literal,mac.name) == 0){ 
-                        preprocessor_next_token(pre);
-                        preprocessor_expect_consume_token(pre, TOK_CLOSING_PAREN);
+                        ArrayList params = {0};
+                        if(preprocessor_peek_token(pre).type != TOK_CLOSING_PAREN){
+                            array_list_create_cap(params, Token, 5);
+                            do {
+                                if(params.size >= 16){
+                                    parser_fatal_error(pre->p, "Invalid Parameter count: %s. MACROS only support 16 parameters\n");
+                                } 
+
+                                Token arg = preprocessor_next_token(pre);
+                                array_list_append(params, Token, arg);
+                                if(preprocessor_next_token(pre).type != TOK_COMMA) break;
+                            }while (true);
+                            preprocessor_expect_consume_token(pre, TOK_CLOSING_PAREN);
+                        } else{
+                            preprocessor_next_token(pre);
+                            preprocessor_expect_consume_token(pre, TOK_CLOSING_PAREN);
+                        }
+                        if(params.size != mac.args.size){
+                            parser_fatal_error_loc(pre->p,l,c, "Expected %d got %d args\n",
+                                    mac.args.size, params.size, mac.name);
+                        }
                         preprocessor_ctx_stack_push(pre, mac.starti, mac.endi);
+                        pre->stack->macro_index = (params.size == 0) ? NO_MACRO_PARAMS : i;
+                        pre->stack->arg_values = params;
                         found_symbol = true;
                         break;
                     }
@@ -1041,11 +1089,23 @@ void evaluate_preprocessor_statement(Preprocessor* pre, ArrayList* new_tokens){
         case TOK_ENDIF: {
             parser_fatal_error(pre->p, "Missing if statement\n");
             return;
+        }
+        case TOK_ENDMACRO: {
+            parser_fatal_error(pre->p, "Missing macro statement\n");
+            return;
         } 
         default:
             array_list_append((*new_tokens), Token, t);
     } 
 }
+
+/*
+ * TODO: THIS LEAKS A LITTLE BIT OF MEMORY
+ * When replacing a macro with its definition
+ * the instance of the macro name will get leaked
+ * #define x 5 
+ *  x -> when x gets replaced with 5 here the pointer to x will get leaked
+ */
 
 ArrayList preprocess_tokens(ArrayList* tokens){ 
     ArrayList preprocess_symbols;
@@ -1092,16 +1152,9 @@ ArrayList preprocess_tokens(ArrayList* tokens){
         free(s.name); 
     }
 
-
-
+    array_list_delete(macros);
     array_list_delete(preprocess_symbols);
-
-    /*
-    for(int i = 0; i < new_tokens.size; i++){
-        Token t = array_list_get(new_tokens, Token, i);
-        printf("%s, %s\n", token_to_string(t.type),(t.type == TOK_IDENTIFIER)? t.literal: NULL);
-    }
-    */
+ 
     return new_tokens; 
 }
 
