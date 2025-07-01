@@ -106,6 +106,7 @@ typedef struct {
 
 
 static FileBuffer* current_fb = NULL;
+static AssemblerFlags asm_flags ={};
 
 static int string_cmp_lower(const void* a, const void* b) {
     const char* s1 = (const char*)a;
@@ -873,8 +874,8 @@ static Token preprocessor_next_token(Preprocessor* pre){
                     }
                 }
             }
-            pre->index = pre->stack->index;
             pre->stack->index++;
+            pre->index = pre->stack->index;
             pre->currentToken = res;
             return res; 
         }
@@ -1037,17 +1038,13 @@ void evaluate_preprocessor_statement(Preprocessor* pre, ArrayList* new_tokens){
             char* m_name = pre->currentToken.literal;
             bool is_defined = false;
             if(strncmp("__", m_name, 2) == 0){
-                #if defined(__linux__)
-                    if(strcmp(m_name, "__LINUX__") == 0){
+                    if(asm_flags.ftype == BASM_FILE_ELF && strcmp(m_name, "__LINUX__") == 0){
                         is_defined = true;
                         goto add_body;
-                    }  
-                #elif defined (_WIN64)
-                    if(strcmp(m_name, "__WINDOWS__") == 0){ 
+                    } else if(asm_flags.ftype == BASM_FILE_PE && strcmp(m_name, "__WINDOWS__") == 0){ 
                         is_defined = true;
                         goto add_body;
                     }
-                #endif
             } 
             for(int i = 0; i < pre->symbols->size; i++){
                 PreprocessorSymbol s = array_list_get((*pre->symbols), PreprocessorSymbol, i);
@@ -2443,8 +2440,8 @@ static void parse_tokens(ArrayList* tokens){
 
 
 
-bool basm_assemble_program(AssemblerFlags* flags){
-     current_fb = file_buffer_create(flags->input_file);
+bool basm_assemble_program(){
+     current_fb = file_buffer_create(asm_flags.input_file);
 
      if(current_fb == NULL) return false;
    
@@ -2484,10 +2481,10 @@ bool basm_assemble_program(AssemblerFlags* flags){
 
      file_buffer_delete(current_fb);
 
-     if(flags->ftype == BASM_FILE_ELF){
-        return write_elf(flags->input_file, flags->output_file, &program);
-     } else if(flags->ftype == BASM_FILE_PE){
-        return write_pe(flags->input_file, flags->output_file, &program);
+     if(asm_flags.ftype == BASM_FILE_ELF){
+        return write_elf(asm_flags.input_file, asm_flags.output_file, &program);
+     } else if(asm_flags.ftype == BASM_FILE_PE){
+        return write_pe(asm_flags.input_file, asm_flags.output_file, &program);
      } else{
         fprintf(stderr, "Unknown output file type\n");
         return false;
@@ -2497,12 +2494,12 @@ bool basm_assemble_program(AssemblerFlags* flags){
 
 
 
-bool basm_parse_flags(AssemblerFlags* flags, int argc, char** argv){
+bool basm_parse_flags(int argc, char** argv){
     if(argc < 2){
         fprintf(stderr, "./basm input_file\n");
         return false;
     }
-    flags->output_file = "a.out";
+    asm_flags.output_file = "a.out";
 
     for(int i = 1; i < argc; i++){
         if(strcmp("-f", argv[i]) == 0){
@@ -2512,9 +2509,9 @@ bool basm_parse_flags(AssemblerFlags* flags, int argc, char** argv){
                 return false;
             }
             if(strcmp("win", argv[i]) == 0){
-                flags->ftype = BASM_FILE_PE;
+                asm_flags.ftype = BASM_FILE_PE;
             } else if (strcmp("elf", argv[i]) == 0) { 
-                flags->ftype = BASM_FILE_ELF;
+                asm_flags.ftype = BASM_FILE_ELF;
             } else{
                 fprintf(stderr, "Invalid File Type: %s\n", argv[i]);
                 return false;
@@ -2525,13 +2522,13 @@ bool basm_parse_flags(AssemblerFlags* flags, int argc, char** argv){
                 fprintf(stderr, "Output file not specified\n");
                 return false;
             }
-            flags->output_file = argv[i];
+            asm_flags.output_file = argv[i];
              
         } else if(string_cmp_lower("--help", argv[i]) == 0){
             basm_help();
             return false;
         }else{
-            flags->input_file = argv[i];
+            asm_flags.input_file = argv[i];
         }
     }
     return true;
