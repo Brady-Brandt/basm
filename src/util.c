@@ -213,4 +213,12 @@ int string_cmp_lower(const void* a, const void* b) {
     return tolower((unsigned char)*s1) - tolower((unsigned char)*s2);
 }
 
-
+noreturn void fatal_error(const char* fmt, ...){
+    //TODO: MAYBE DO SOME CLEANUP
+    fprintf(stderr, COLORED_ERROR);
+    va_list list;
+    va_start(list, fmt);
+    vfprintf(stderr, fmt, list);
+    va_end(list);
+    exit(EXIT_FAILURE);
+}
