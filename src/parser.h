@@ -1,6 +1,6 @@
 #pragma once
 #include <setjmp.h>
-#include <stdnoreturn.h>
+#include <stdbool.h>
 #include "util.h"
 #include "x86/types.h"
 
@@ -29,23 +29,24 @@ typedef struct {
 
 ArrayList tokenize_file();
 
-noreturn void parser_fatal_error_loc(Parser* p, int line_num, int col, const char* fmt, ...);
+void parser_error_loc(Parser* p, int line_num, int col, const char* fmt, ...);
 
 
 
-#define parser_fatal_error(p, fmt, ...) parser_fatal_error_loc(p, (p)->currentToken.line_number, (p)->currentToken.col,fmt,##__VA_ARGS__)
+#define parser_error(p, fmt, ...) parser_error_loc(p, (p)->currentToken.line_number, (p)->currentToken.col,fmt,##__VA_ARGS__)
 
 
 Token parser_next_token(Parser* p);
 
 Token parser_peek_token(Parser* p);
 
-void parser_expect_token(Parser* p, TokenType expected);
+bool parser_expect_token(Parser* p, TokenType expected);
 
 
-static inline void parser_expect_consume_token(Parser* p, TokenType expected){
-    parser_expect_token(p, expected);
+static inline bool parser_expect_consume_token(Parser* p, TokenType expected){
+    if(!parser_expect_token(p, expected)) return false;
     parser_next_token(p);
+    return true;
 }
 
 

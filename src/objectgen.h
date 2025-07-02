@@ -1,5 +1,6 @@
 #pragma once
 #include "util.h"
+#include "entry.h"
 
 #define SECTION_EXTERN 0
 #define SECTION_TEXT 1 
@@ -51,11 +52,12 @@ typedef struct {
     Section data;
     Section text;
     Section bss;
+    AssemblerFlags flags;
+    int ret_code;
 } Program;
 
 
-
-
+extern Program program;
 
 bool write_elf(const char* input_file, const char* output_file, Program *p);
 

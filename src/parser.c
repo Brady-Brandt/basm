@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "objectgen.h"
 #include "util.h"
 #include "x86/types.h"
 #include <stddef.h>
@@ -278,10 +279,7 @@ ArrayList tokenize_file(){
         //add the identifier to the token 
         if(id != NULL){
             char* dyn_id = strdup(id);
-            if(dyn_id == NULL){
-                fprintf(stderr, "Failed to alloc memory\n");
-                exit(EXIT_FAILURE);
-            }
+            if(dyn_id == NULL) fatal_error("Failed to alloc memory\n"); 
             token.literal = dyn_id; 
         }
 
@@ -309,17 +307,19 @@ ArrayList tokenize_file(){
 
 
 
-noreturn void parser_fatal_error_loc(Parser* p, int line_num, int col, const char* fmt, ...){
-    fprintf(stderr,"Error: ");
+void parser_error_loc(Parser* p, int line_num, int col, const char* fmt, ...){
+    fprintf(stderr,COLORED_ERROR);
     va_list list;
     va_start(list, fmt);
     vfprintf(stderr, fmt, list);
     va_end(list);
     char* line = file_get_line(current_fb, line_num);
-    fprintf(stderr, "Line %d, Col %d\n", line_num, col);
+    fprintf(stderr, "%s: Line %d, Col %d\n", current_fb->name, line_num, col);
     fprintf(stderr, "%s\n", line);
     fprintf(stderr,"%*s\n",col, "^");
-    exit(EXIT_FAILURE);
+    scratch_buffer_clear();
+    while(p->currentToken.type != TOK_NEW_LINE) parser_next_token(p);
+    program.ret_code = 1;
 }
 
 
@@ -346,10 +346,12 @@ Token parser_peek_token(Parser* p){
 }
 
 
-void parser_expect_token(Parser* p, TokenType expected){
+bool parser_expect_token(Parser* p, TokenType expected){
     if(p->currentToken.type != expected){
-        parser_fatal_error(p, "Expected %s found %s\n", token_to_string(expected), token_to_string(p->currentToken.type));
+        parser_error(p, "Expected %s found %s\n", token_to_string(expected), token_to_string(p->currentToken.type));
+        return false;
     }
+    return true;
 }
 
 bool parser_match_consume_token(Parser* p, TokenType m){

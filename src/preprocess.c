@@ -1,6 +1,7 @@
 #include "preprocess.h"
 #include "entry.h"
 #include "parser.h"
+#include "util.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -9,7 +10,7 @@ extern AssemblerFlags asm_flags;
 static void preprocessor_ctx_stack_push(Preprocessor* pre, int starti, int endi){
     PreprocessorCtx* new_ctx = malloc(sizeof(PreprocessorCtx));
     //TODO SWITCH BACK TO PROGRAM_FATAL_ERROR
-    if(new_ctx == NULL) parser_fatal_error(pre->p, "OUT OF MEMORY\n");
+    if(new_ctx == NULL) fatal_error("Out of memory\n");
     memset(new_ctx, 0, sizeof(PreprocessorCtx));
 
     new_ctx->starti = starti;
@@ -63,9 +64,11 @@ static Token preprocessor_next_token(Preprocessor* pre){
 }
 
 
+
+
 static void preprocessor_expect_token(Preprocessor* pre, TokenType expected){
     if(pre->currentToken.type != expected){
-        parser_fatal_error(pre->p, "Expected %s found %s in macro\n", token_to_string(expected), token_to_string(pre->currentToken.type));
+        parser_error(pre->p, "Expected %s found %s in macro\n", token_to_string(expected), token_to_string(pre->currentToken.type));
     }
 }
 
@@ -121,7 +124,7 @@ static void evaluate_preprocessor_statement(Preprocessor* pre, ArrayList* new_to
                 array_list_create_cap(params, char*, 5);
                 do {
                     if(params.size >= 16){
-                        parser_fatal_error(pre->p, "Invalid Parameter count: %s. MACROS only support 16 parameters\n");
+                        parser_error(pre->p, "Invalid Parameter count: %s. MACROS only support 16 parameters\n");
                     } 
 
                     Token arg = preprocessor_next_token(pre);
@@ -137,7 +140,7 @@ static void evaluate_preprocessor_statement(Preprocessor* pre, ArrayList* new_to
             int starti = pre->index;
             while(preprocessor_next_token(pre).type != TOK_ENDMACRO){
                if(parser_is_last_token(pre->p)){
-                    parser_fatal_error_loc(pre->p, id.line_number, id.col, "Missing #endmacro\n");
+                    parser_error_loc(pre->p, id.line_number, id.col, "Missing #endmacro\n");
                }
             }
             int endi = pre->index - 1;
@@ -166,7 +169,7 @@ static void evaluate_preprocessor_statement(Preprocessor* pre, ArrayList* new_to
                             array_list_create_cap(params, Token, 5);
                             do {
                                 if(params.size >= 16){
-                                    parser_fatal_error(pre->p, "Invalid Parameter count: %s. MACROS only support 16 parameters\n");
+                                    parser_error(pre->p, "Invalid Parameter count: %s. MACROS only support 16 parameters\n");
                                 } 
 
                                 Token arg = preprocessor_next_token(pre);
@@ -179,7 +182,7 @@ static void evaluate_preprocessor_statement(Preprocessor* pre, ArrayList* new_to
                             preprocessor_expect_consume_token(pre, TOK_CLOSING_PAREN);
                         }
                         if(params.size != mac.args.size){
-                            parser_fatal_error_loc(pre->p,l,c, "Expected %d got %d args\n",
+                            parser_error_loc(pre->p,l,c, "Expected %d got %d args\n",
                                     mac.args.size, params.size, mac.name);
                         }
                         preprocessor_ctx_stack_push(pre, mac.starti, mac.endi);
@@ -237,7 +240,7 @@ static void evaluate_preprocessor_statement(Preprocessor* pre, ArrayList* new_to
             if((is_defined && !ifndef) || (!is_defined && ifndef)){
                 while(preprocessor_peek_token(pre).type != TOK_ENDIF){
                     if(parser_is_last_token(pre->p)){
-                        parser_fatal_error_loc(pre->p, l, c, "if statement missing closing #endif\n");
+                        parser_error_loc(pre->p, l, c, "if statement missing closing #endif\n");
                     }
                     evaluate_preprocessor_statement(pre, new_tokens);
                 }
@@ -248,7 +251,7 @@ static void evaluate_preprocessor_statement(Preprocessor* pre, ArrayList* new_to
                 while(true){
                     if(preprocessor_peek_token(pre).type == TOK_ENDIF && if_count == endif_count) break;
                     if(parser_is_last_token(pre->p)){
-                        parser_fatal_error_loc(pre->p, l, c, "if statement missing closing #endif\n");
+                        parser_error_loc(pre->p, l, c, "if statement missing closing #endif\n");
                     }
                     Token tmp = preprocessor_next_token(pre);
                     if(tmp.type == TOK_IFDEF) if_count++; 
@@ -262,11 +265,11 @@ static void evaluate_preprocessor_statement(Preprocessor* pre, ArrayList* new_to
             break;
         }
         case TOK_ENDIF: {
-            parser_fatal_error(pre->p, "Missing if statement\n");
+            parser_error(pre->p, "Missing if statement\n");
             return;
         }
         case TOK_ENDMACRO: {
-            parser_fatal_error(pre->p, "Missing macro statement\n");
+            parser_error(pre->p, "Missing macro statement\n");
             return;
         } 
         default:

@@ -100,19 +100,10 @@ FileBuffer* current_fb = NULL;
 AssemblerFlags asm_flags = {};
 
 
-static Program program = {0};
+Program program = {0};
 
 
-noreturn void program_fatal_error(const char* fmt, ...){
-    fprintf(stderr,"Error: ");
-    va_list list;
-    va_start(list, fmt);
-    vfprintf(stderr, fmt, list);
-    va_end(list);
-    exit(EXIT_FAILURE);
-}
-
-void symbol_table_add(char* name, uint64_t offset, uint8_t section, uint8_t visibility){
+void symbol_table_add(Parser* p, char* name, uint64_t offset, uint8_t section, uint8_t visibility){
     for(int i = 0; i < program.symTable.symbols.size; i++){
         SymbolTableEntry* e = &array_list_get(program.symTable.symbols, SymbolTableEntry, i);
         if(strcmp(e->name, name) == 0 && section != SECTION_UNDEFINED && visibility != VISIBILITY_UNDEFINED){
@@ -129,7 +120,7 @@ void symbol_table_add(char* name, uint64_t offset, uint8_t section, uint8_t visi
                 e->section = section;
                 return;
             } 
-           program_fatal_error("Many definitions of symbol: %s\n", name); 
+           parser_error(p, "Many definitions of symbol: %s\n", name); 
         }
     }
     SymbolTableEntry e = {0};
@@ -194,7 +185,7 @@ static inline void init_section(Section* section, uint64_t start_size){
     if(section->data == NULL){
         section->capacity = start_size;
         section->data= malloc(section->capacity);
-        if(section->data == NULL) program_fatal_error("Out of memory\n");
+        if(section->data == NULL) fatal_error("Out of memory\n");
     }
 }
 
@@ -203,9 +194,8 @@ static void section_realloc(Section* section){
    //TODO: CHECK FOR OVERFLOW
    uint64_t new_capacity = section->capacity * 2;
    section->data = realloc(section->data, new_capacity);
-   if(section->data == NULL){
-        program_fatal_error("Out of memory\n");
-   }
+   if(section->data == NULL) fatal_error("Out of memory\n");
+   
    section->capacity = new_capacity;
 }
 
@@ -228,13 +218,22 @@ static inline void section_add_data(Section* section, void* data, size_t size){
 //TODO: ALLOW PSUEDOINSTRUCTIONS WITHOUT LABELS 
 static void parse_bss_section(Parser* p){
     while(p->currentToken.type != TOK_SECTION){
-        parser_expect_token(p, TOK_IDENTIFIER); 
+
+        if(!parser_expect_token(p, TOK_IDENTIFIER)){
+            parser_next_token(p);
+            continue;
+        }  
+
         Token id = p->currentToken;
         parser_next_token(p);
-        parser_expect_consume_token(p, TOK_COLON); 
+
+        if(!parser_expect_consume_token(p, TOK_COLON)){
+            parser_next_token(p);
+            continue;
+        }  
 
 
-        symbol_table_add(id.literal, program.bss.size, SECTION_BSS, VISIBILITY_LOCAL);
+        symbol_table_add(p, id.literal, program.bss.size, SECTION_BSS, VISIBILITY_LOCAL);
 
         int num = 1;
         switch (p->currentToken.type) {
@@ -260,13 +259,14 @@ static void parse_bss_section(Parser* p){
                 num = 32;
                 break;
             default:
-                parser_fatal_error(p, "Invalid bss section instruction\n");
+                parser_error(p, "Invalid bss section instruction\n");
+                parser_next_token(p);
+                continue;
         }
         parser_next_token(p);
         program.bss.size += num * parse_and_eval_expression(p); 
         parser_next_token(p);
         parser_expect_consume_token(p, TOK_NEW_LINE);
-
     } 
 }
 
@@ -274,20 +274,18 @@ static void parse_bss_section(Parser* p){
 
 static void parse_data_section(Parser* p){ 
     while(p->currentToken.type != TOK_SECTION){
-        parser_expect_token(p, TOK_IDENTIFIER); 
+ 
+        if(!parser_expect_token(p, TOK_IDENTIFIER)) goto next_iteration;
         Token id = p->currentToken;
         parser_next_token(p);
-        parser_expect_consume_token(p, TOK_COLON); 
+
+        if(!parser_expect_consume_token(p, TOK_COLON)) goto next_iteration;
+
+        symbol_table_add(p, id.literal, program.data.size, SECTION_DATA, VISIBILITY_LOCAL);
 
 
-        symbol_table_add(id.literal, program.data.size, SECTION_DATA, VISIBILITY_LOCAL);
-
-
-        if(!match(p, TOK_DB, TOK_DW, TOK_DD, TOK_DQ,TOK_DT)){
-            parser_fatal_error(p, "Invalid Data Section Instruction\n");
-        }
-
-        TokenType psuedo_instr = p->currentToken.type;
+        Token psuedo_instr_token = p->currentToken;
+        TokenType psuedo_instr = psuedo_instr_token.type;
         parser_next_token(p);
 
         do{
@@ -295,7 +293,8 @@ static void parse_data_section(Parser* p){
                 bool is_floating_point = false;
                 if(is_float(p->currentToken.literal)){
                     if(!(psuedo_instr >= TOK_DD && psuedo_instr <= TOK_DT)){
-                        parser_fatal_error(p, "Invalid floating point psuedoinstruction: %s", token_to_string(psuedo_instr));
+                        parser_error_loc(p,psuedo_instr_token.col, psuedo_instr_token.line_number, "Invalid floating point Psuedoinstruction\n");
+                        goto next_iteration;
                     }
                     is_floating_point = true;
                 } 
@@ -303,14 +302,20 @@ static void parse_data_section(Parser* p){
                 switch (psuedo_instr) {
                     case TOK_DB: {
                         uint8_t temp = 0;
-                        if(num > UINT8_MAX && !is_int8(num)) parser_fatal_error(p, "Invalid Size: %ld\n", num);
+                        if(num > UINT8_MAX && !is_int8(num)){
+                            parser_error(p, "Invalid Size\n");
+                            goto next_iteration;
+                        } 
                         temp = (uint8_t)num; 
                         section_add_data(&program.data,&temp, 1);
                         break;
                     }
                     case TOK_DW: {
                         uint16_t temp = 0;
-                        if(num > UINT16_MAX && !is_int16(num)) parser_fatal_error(p, "Invalid Size: %ld\n", num);
+                        if(num > UINT16_MAX && !is_int16(num)){
+                            parser_error(p, "Invalid Size\n");
+                            goto next_iteration;
+                        } 
                         temp = (uint16_t)num;  
                         section_add_data(&program.data,&temp, 2);
                         break;
@@ -323,7 +328,10 @@ static void parse_data_section(Parser* p){
                             section_add_data(&program.data,&num, 4);
                             break;
                         } else{
-                            if(num > UINT32_MAX && !is_int32(num)) parser_fatal_error(p, "Invalid Size: %ld\n", num);
+                            if(num > UINT32_MAX && !is_int32(num)){
+                                goto next_iteration;
+                                parser_error(p, "Invalid Size\n", num);
+                            } 
                             temp = (uint32_t)num;
                         } 
                         section_add_data(&program.data,&temp, 4);
@@ -342,24 +350,32 @@ static void parse_data_section(Parser* p){
                     }
                     case TOK_DT: {
                         if(sizeof(long double) < 10){
-                            parser_fatal_error(p, "Error: Don't support machines that don't have 128 bit floats yet");
+                            parser_error(p, "Error: Don't support machines that don't have 128 bit floats yet");
+                            goto next_iteration;
                         }
                         long double num = strtold(p->currentToken.literal, NULL);
                         section_add_data(&program.data,&num, 10);
                         break;
                     }
                     default:
-                        parser_fatal_error(p, "Unreachable"); 
+                        parser_error_loc(p,psuedo_instr_token.line_number, psuedo_instr_token.col,
+                                "Invalid Data Section Instruction\n"); 
+                        goto next_iteration;
                 }
             } else if(p->currentToken.type == TOK_STRING){
-                if(psuedo_instr != TOK_DB) parser_fatal_error(p, "Only byte size strings are allowed\n");
+                if(psuedo_instr != TOK_DB){
+                    parser_error(p, "Only strings with one byte characters are allowed\n");
+                    goto next_iteration;
+                } 
                 section_add_data(&program.data, p->currentToken.literal, strlen(p->currentToken.literal) + 1);
             } else{
-                parser_fatal_error(p, "Invalid for operand\n");
+                parser_error(p, "Invalid Type in data section\n");
+                goto next_iteration;
             } 
             parser_next_token(p);
         } while(parser_match_consume_token(p, TOK_COMMA));
 
+        next_iteration:
         parser_expect_consume_token(p, TOK_NEW_LINE);
 
     }
@@ -409,17 +425,18 @@ typedef struct {
 
 
     };
+    int line;
+    int col;
 } Operand;
 
 
 
 
-static Operand parse_memory(Parser* p, OperandType mem_type){
-    Operand result = {0};
-    result.mem.base = REG_MAX;
-    result.mem.index = REG_MAX;
-    result.mem.rex = REX_PREFIX(0, 0, 0, 0);
-    result.type = mem_type;
+static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
+    op->mem.base = REG_MAX;
+    op->mem.index = REG_MAX;
+    op->mem.rex = REX_PREFIX(0, 0, 0, 0);
+    op->type = mem_type;
 
     OperandType base_size = OPERAND_NOP;
     OperandType index_size = OPERAND_NOP;
@@ -428,12 +445,19 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
 
     Token t = parser_next_token(p);
 
+    int l = t.line_number;
+    int c = t.col;
+
+
+    op->line = l; 
+    op->col = c; 
+
     while(t.type != TOK_CLOSING_BRACKET){
         switch (t.type) {
             case TOK_IDENTIFIER:
-                result.mem.label = p->currentToken.literal;
+                op->mem.label = p->currentToken.literal;
                 //TODO ALLOW BOTH LABEL AND INTEGER OFFSET 
-                mem_set_label(result.mem);
+                mem_set_label(op->mem);
                 break;
             case TOK_REG: {
                     OperandType size = OPERAND_NOP;
@@ -441,34 +465,36 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
 
                     
                     if(is_r64(p->currentToken.reg)){
-                        result.mem.rex |= REX_W;
+                        op->mem.rex |= REX_W;
                         size = OPERAND_R64;
                         reg = p->currentToken.reg - REG_RAX;
                     } else if(is_r32(p->currentToken.reg)){
                         size = OPERAND_R32;
                         reg = p->currentToken.reg - REG_EAX;
-                        mem_set_prefix(result.mem);
+                        mem_set_prefix(op->mem);
                     } else{
                         //In 64 bit mode these registers need to be 32 or 64 bit
-                        parser_fatal_error(p, "Invalid Size\n");
+                        parser_error(p, "Invalid Size\n");
+                        return false;
                     }
  
-                    if(result.mem.base == REG_MAX && parser_peek_token(p).type != TOK_MULTIPLY){
+                    if(op->mem.base == REG_MAX && parser_peek_token(p).type != TOK_MULTIPLY){
                         if(is_extended_reg(reg)){
-                            result.mem.rex |= REX_B;
+                            op->mem.rex |= REX_B;
                             reg -= 8;
                         }
                         base_size = size;
-                        result.mem.base = reg;
-                    } else if(result.mem.index == REG_MAX){
+                        op->mem.base = reg;
+                    } else if(op->mem.index == REG_MAX){
                         if(is_extended_reg(reg)){
-                            result.mem.rex |= REX_X;
+                            op->mem.rex |= REX_X;
                             reg -= 8;
                         }
                         index_size = size;
-                        result.mem.index = reg;
+                        op->mem.index = reg;
                     } else{
-                        parser_fatal_error(p, "Invalid address\n");
+                        parser_error(p, "Invalid address\n");
+                        return false;
                     } 
                 }
                 break;
@@ -479,24 +505,26 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
                         case 1:
                             break;
                         case 2:
-                            result.mem.scale |= 1; 
+                            op->mem.scale |= 1; 
                             break;
                         case 4:
-                            result.mem.scale |= 2;
+                            op->mem.scale |= 2;
                             break;
                         case 8:
-                            result.mem.scale |= 3;
+                            op->mem.scale |= 3;
                             break;
                         default:
-                            parser_fatal_error(p, "Invalid Scale Factor: %i\n", temp);
+                            parser_error(p, "Invalid Scale Factor: %i\n", temp);
+                            return false;
                     } 
                 } else{
-                    result.mem.offset = temp; 
+                    op->mem.offset = temp; 
                 }
                 break;
             }
             default:
-                parser_fatal_error(p, "Invalid Token: %s\n", token_to_string(t.type));
+                parser_error(p, "Invalid Token: %s\n", token_to_string(t.type));
+                return false;
         
         }
 
@@ -507,7 +535,8 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
             case TOK_MULTIPLY:{
                 Token next = parser_peek_token(p); 
                 if(next.type != TOK_INT || check_scale == true){ 
-                    parser_fatal_error(p, "Invalid Address\n");
+                    parser_error(p, "Invalid Address\n");
+                    return false;
                 }
                 check_scale = true;
             }
@@ -515,7 +544,8 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
             case TOK_ADD: {
                     Token next = parser_peek_token(p);
                     if(next.type == TOK_CLOSING_BRACKET){
-                        parser_fatal_error(p, "Expected Label, Offset, or Register: %s\n", token_to_string(t.type));
+                        parser_error(p, "Expected Label, Offset, or Register: %s\n", token_to_string(t.type));
+                        return false;
                     }
 
                 }
@@ -524,7 +554,8 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
                 goto endloop;
 
             default:
-                parser_fatal_error(p, "Invalid Token: %s\n", token_to_string(t.type)); 
+                parser_error(p, "Invalid Token: %s\n", token_to_string(t.type)); 
+                return false;
         }
 
 
@@ -538,50 +569,52 @@ static Operand parse_memory(Parser* p, OperandType mem_type){
 
     //ensure the registeres are the same size
     if(base_size != OPERAND_NOP && index_size != OPERAND_NOP && base_size != index_size){ 
-        parser_fatal_error(p, "Invalid: Registers must be the same size\n");
+        parser_error_loc(p,l,c, "Invalid Address: Registers must be the same size\n");
+        return false;
     }
 
-    return result;
+    return true;
 }
 
 
 
 
 
-static Operand parse_operand(Parser* p){
-    Operand result = {0};
+static bool parse_operand(Parser* p, Operand* op){
+    op->line = p->currentToken.line_number;
+    op->col = p->currentToken.col;
 
     switch (p->currentToken.type) {
         case TOK_REG: {
             uint8_t w = 0;
             
             if(is_r256(p->currentToken.reg)){
-                result.type = OPERAND_YMM;
-                result.reg.registerIndex = p->currentToken.reg - REG_YMM0;
+                op->type = OPERAND_YMM;
+                op->reg.registerIndex = p->currentToken.reg - REG_YMM0;
             }
             else if(is_r128(p->currentToken.reg)){
-                result.type = OPERAND_XMM;
-                result.reg.registerIndex = p->currentToken.reg - REG_XMM0;
+                op->type = OPERAND_XMM;
+                op->reg.registerIndex = p->currentToken.reg - REG_XMM0;
             } else if(is_mmx(p->currentToken.reg)){
-                result.type = OPERAND_MM;
-                result.reg.registerIndex = p->currentToken.reg - REG_MM0;
+                op->type = OPERAND_MM;
+                op->reg.registerIndex = p->currentToken.reg - REG_MM0;
             }
             else if(is_r64(p->currentToken.reg)){
                 w = 1;
-                result.type = OPERAND_R64;
-                result.reg.registerIndex = p->currentToken.reg - REG_RAX;
+                op->type = OPERAND_R64;
+                op->reg.registerIndex = p->currentToken.reg - REG_RAX;
             } else if(is_r32(p->currentToken.reg)){
-                result.type = OPERAND_R32;
-                result.reg.registerIndex = p->currentToken.reg - REG_EAX;
+                op->type = OPERAND_R32;
+                op->reg.registerIndex = p->currentToken.reg - REG_EAX;
             } else if(is_r16(p->currentToken.reg)){
-                result.type = OPERAND_R16;
-                result.reg.registerIndex = p->currentToken.reg - REG_AX;
+                op->type = OPERAND_R16;
+                op->reg.registerIndex = p->currentToken.reg - REG_AX;
             } else{
-                result.type = OPERAND_R8;
-                result.reg.registerIndex = p->currentToken.reg - REG_AL;
+                op->type = OPERAND_R8;
+                op->reg.registerIndex = p->currentToken.reg - REG_AL;
             }
-            result.reg.rex = REX_PREFIX(w, 0, 0, 0);
-            return result;
+            op->reg.rex = REX_PREFIX(w, 0, 0, 0);
+            return true;
         }
 
         case TOK_OPENING_PAREN:
@@ -589,14 +622,14 @@ static Operand parse_operand(Parser* p){
         case TOK_NEG:
         case TOK_SUB:
         case TOK_INT:
-            result.imm64 = parse_and_eval_expression(p);
-            result.type = (result.imm64 > INT64_MAX) ? OPERAND_SIGNED : OPERAND_IMM64;
-            return result; 
+            op->imm64 = parse_and_eval_expression(p);
+            op->type = (op->imm64 > INT64_MAX) ? OPERAND_SIGNED : OPERAND_IMM64;
+            return true; 
 
         case TOK_IDENTIFIER: 
-            result.type = OPERAND_L64;
-            result.label = p->currentToken.literal; 
-            return result;
+            op->type = OPERAND_L64;
+            op->label = p->currentToken.literal; 
+            return true;
 
         case TOK_ST0:
         case TOK_ST1:
@@ -606,47 +639,47 @@ static Operand parse_operand(Parser* p){
         case TOK_ST5:
         case TOK_ST6:
         case TOK_ST7:
-            result.type = OPERAND_STI;
-            result.fpu_stack_index = p->currentToken.type - TOK_ST0;
-            return result;
+            op->type = OPERAND_STI;
+            op->fpu_stack_index = p->currentToken.type - TOK_ST0;
+            return true;
 
         case TOK_BYTE:
             parser_next_token(p);
             parser_expect_token(p, TOK_OPENING_BRACKET);
-            return parse_memory(p, OPERAND_M8); 
+            return parse_memory(p, OPERAND_M8, op); 
 
         case TOK_WORD:
             parser_next_token(p);
             parser_expect_token(p, TOK_OPENING_BRACKET);
-            return parse_memory(p, OPERAND_M16); 
+            return parse_memory(p, OPERAND_M16, op); 
 
         case TOK_DWORD:
             parser_next_token(p);
             parser_expect_token(p, TOK_OPENING_BRACKET);
-            return parse_memory(p, OPERAND_M32); 
+            return parse_memory(p, OPERAND_M32, op); 
 
         case TOK_QWORD:
             parser_next_token(p);
             parser_expect_token(p, TOK_OPENING_BRACKET);
-            return parse_memory(p, OPERAND_M64); 
+            return parse_memory(p, OPERAND_M64, op); 
         case TOK_TWORD:
             parser_next_token(p);
             parser_expect_token(p, TOK_OPENING_BRACKET);
-            return parse_memory(p, OPERAND_M80); 
+            return parse_memory(p, OPERAND_M80, op); 
         case TOK_DQWORD:
             parser_next_token(p);
             parser_expect_token(p, TOK_OPENING_BRACKET);
-            return parse_memory(p, OPERAND_M128);
+            return parse_memory(p, OPERAND_M128, op);
         case TOK_YWORD:
             parser_next_token(p);
             parser_expect_token(p, TOK_OPENING_BRACKET);
-            return parse_memory(p, OPERAND_M256);
+            return parse_memory(p, OPERAND_M256, op);
         case TOK_OPENING_BRACKET:
-            return parse_memory(p, OPERAND_MEM_ANY); 
+            return parse_memory(p, OPERAND_MEM_ANY, op); 
         default:
-            program_fatal_error("Operand Type not supported yet: %s\n",token_to_string(p->currentToken.type));
-
-    
+            parser_error(p, "Invalid Operand\n");
+            return false;
+ 
     }
 }
 
@@ -707,7 +740,7 @@ static Instruction* find_instruction(uint64_t instr, Operand operand[4]){
 
 
     // loop through each variant of the instruction check if the operands match 
-    for(int i = op_table_index + 1; i < op_table_index + instruction_variant_count + 1; i++){ 
+    for(uint64_t i = op_table_index + 1; i < op_table_index + instruction_variant_count + 1; i++){ 
         Instruction instruct_var = INSTRUCTION_TABLE[i];
         bool op1_bool = check_operand_type(instruct_var.op1, operand[0].type, operand[0].reg.registerIndex);
         if(!op1_bool) continue;
@@ -1108,7 +1141,6 @@ static void emit_instruction(Instruction* instruction, Operand operand[4]){
 
 
     //indicates an immediate
-    //for now immediates will only be in operand 2
     switch (instruction->ib) {
         //no immediate
         case -1:
@@ -1129,13 +1161,13 @@ static void emit_instruction(Instruction* instruction, Operand operand[4]){
             break;
         }
         default:
-            program_fatal_error("Unreachable\n");
+            fatal_error("Unreachable\n");
         
     }
         
 }
 
-static void match_operand_pairs(Operand* op1, Operand *op2){
+static void match_operand_pairs(Parser *p, Operand* op1, Operand *op2){
     uint16_t operand_override_prefix = 0x66;
 
     //if we have extended registers r8-r15
@@ -1159,7 +1191,7 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
         op2->reg.registerIndex -= 8;
     }
 
- 
+    const char* INVALID_OP_SIZE = "Immediate Larger than destination\n";
      
     if(op2->type == OPERAND_IMM64 || op2->type == OPERAND_SIGNED){
         switch (op1->type) {
@@ -1178,9 +1210,9 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
             case OPERAND_R32:
             case OPERAND_M32:
                 if(op2->type == OPERAND_SIGNED){
-                    if(!is_int32(op2->imm64)) program_fatal_error("Invalid Operand Size\n"); 
+                    if(!is_int32(op2->imm64)) parser_error_loc(p,op2->line, op2->col, INVALID_OP_SIZE); 
                 } else{
-                    if(!(op2->imm64 <= UINT32_MAX))program_fatal_error("Invalid Operand Size\n"); 
+                    if(!(op2->imm64 <= UINT32_MAX))parser_error_loc(p,op2->line, op2->col, INVALID_OP_SIZE); 
                 }
                 op2->type = OPERAND_IMM32;
                 op2->imm32 = (uint32_t)op2->imm64;
@@ -1188,9 +1220,9 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
             case OPERAND_M16:
             case OPERAND_R16:
                 if(op2->type == OPERAND_SIGNED){
-                    if(!is_int16(op2->imm64)) program_fatal_error("Invalid Operand Size\n"); 
+                    if(!is_int16(op2->imm64)) parser_error_loc(p,op2->line, op2->col, INVALID_OP_SIZE); 
                 } else{
-                    if(!(op2->imm64 <= UINT16_MAX))program_fatal_error("Invalid Operand Size\n"); 
+                    if(!(op2->imm64 <= UINT16_MAX))parser_error_loc(p,op2->line, op2->col, INVALID_OP_SIZE); 
                 }
                 section_add_data(&program.text,&operand_override_prefix, 1);
                 op2->type = OPERAND_IMM16;
@@ -1199,15 +1231,15 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
             case OPERAND_M8:
             case OPERAND_R8:
                 if(op2->type == OPERAND_SIGNED){
-                    if(!is_int8(op2->imm64)) program_fatal_error("Invalid Operand Size\n"); 
+                    if(!is_int8(op2->imm64)) parser_error_loc(p,op2->line, op2->col, INVALID_OP_SIZE); 
                 } else{
-                    if(!(op2->imm64 <= UINT8_MAX))program_fatal_error("Invalid Operand Size\n"); 
+                    if(!(op2->imm64 <= UINT8_MAX))parser_error_loc(p,op2->line, op2->col, INVALID_OP_SIZE); 
                 }
                 op2->type = OPERAND_IMM8;
                 op2->imm8 = (uint8_t)op2->imm64;
                 break;
             case OPERAND_MEM_ANY:
-                program_fatal_error("Expected Size specifier\n");
+                parser_error_loc(p,op1->line, op1->col, "Cannot infer size of memory location. Use a size specifier\n");
                 break;
         
             default:
@@ -1254,7 +1286,7 @@ static void match_operand_pairs(Operand* op1, Operand *op2){
         case OPERAND_MM:
             return;
         default:
-            program_fatal_error("Operand Combo not supported yet: %s, %s\n", 
+            fatal_error("Operand Combo not supported yet: %s, %s\n", 
                     operand_to_string(op1->type), operand_to_string(op2->type));
 
     }
@@ -1330,20 +1362,26 @@ static void parse_text_section(Parser* p){
         if(p->currentToken.type == TOK_GLOBAL || p->currentToken.type == TOK_EXTERN){
             int section = (p->currentToken.type == TOK_GLOBAL) ? SECTION_TEXT : SECTION_EXTERN;
             parser_next_token(p);
-            parser_expect_token(p, TOK_IDENTIFIER);
+            if(!parser_expect_token(p, TOK_IDENTIFIER)){
+                goto next_iteration;
+            }
 
             Token id = p->currentToken;
             //TODO: ALLOW MANY GLOBAL DECLARATIONS AT ONCE
-            symbol_table_add(id.literal, 0, section, VISIBILITY_GLOBAL);
+            symbol_table_add(p, id.literal, 0, section, VISIBILITY_GLOBAL);
             parser_next_token(p);
-            parser_expect_consume_token(p, TOK_NEW_LINE);
+            if(!parser_expect_consume_token(p, TOK_NEW_LINE)){
+                goto next_iteration;
+            }
         }
         else if(p->currentToken.type == TOK_IDENTIFIER){
             Token id = p->currentToken;
             parser_next_token(p);
-            parser_expect_consume_token(p, TOK_COLON); 
+            if(!parser_expect_consume_token(p, TOK_COLON)){
+                goto next_iteration;
+            } 
             parser_next_token(p);
-            symbol_table_add(id.literal, program.text.size, SECTION_TEXT, VISIBILITY_LOCAL);
+            symbol_table_add(p, id.literal, program.text.size, SECTION_TEXT, VISIBILITY_LOCAL);
         } else if (p->currentToken.type == TOK_INSTRUCTION) {
                 Operand operands[4] = {0};
                 int operand_count = 0;
@@ -1353,18 +1391,22 @@ static void parse_text_section(Parser* p){
                 while(p->currentToken.type != TOK_NEW_LINE){
                     Token op = parser_next_token(p);
                     if(op.type == TOK_NEW_LINE) break;
-                    operands[operand_count++] = parse_operand(p);
+
+                    if(!parse_operand(p, &operands[operand_count++])){
+                       goto next_iteration; 
+                    }
 
                     parser_next_token(p);
 
                     if(!match(p, TOK_COMMA, TOK_NEW_LINE)){
-                        parser_fatal_error(p, "Expected comma or new line after operand got %s\n", token_to_string(p->currentToken.type));
-
+                        parser_error(p, "Expected comma or new line after operand got %s\n", 
+                                token_to_string(p->currentToken.type));
+                        goto next_iteration;
                     }
 
                 }
 
-                if(operand_count == 2)match_operand_pairs(&operands[0], &operands[1]);
+                if(operand_count == 2)match_operand_pairs(p, &operands[0], &operands[1]);
                 else if(operand_count == 3) match_operand_triples(&operands[0], &operands[1], &operands[2]);
                 else if (operand_count == 4){
                     if(operands[3].type == OPERAND_IMM64){
@@ -1380,16 +1422,18 @@ static void parse_text_section(Parser* p){
                         scratch_buffer_fmt("%s ", operand_to_string(operands[i].type));
                     }
                     char* temp = scratch_buffer_as_str();
-                    parser_fatal_error_loc(p,instr_line, instr_col, "Couldn't find instruction for nmemonic: %s %s\n", 
+                    parser_error_loc(p,instr_line, instr_col, "Couldn't find instruction for nmemonic: %s %s\n", 
                             get_keyword(instr)->name, temp); 
                 } else{
                     emit_instruction(found_instruction, operands);
                 }
 
+            next_iteration:
                 parser_expect_consume_token(p, TOK_NEW_LINE);
 
         } else{
-            parser_fatal_error(p, "Invalid token found in text section\n");
+            parser_error(p, "Invalid token found in text section\n");
+            parser_next_token(p);
         }
     }
 
@@ -1402,7 +1446,7 @@ static void parse_tokens(ArrayList* tokens){
     p.currentToken.type = TOK_MAX;
     array_list_create_cap(program.symTable.symbols, SymbolTableEntry, 16);
  
-    while(p.tokenIndex < p.tokens->size){
+    while(p.tokenIndex < (uint32_t)p.tokens->size){
         if(setjmp(p.jmp) == 1){
             //print_text_section();        
             break;
@@ -1412,7 +1456,8 @@ static void parse_tokens(ArrayList* tokens){
             parser_next_token(&p);
 
             if(p.currentToken.type != TOK_SECTION){
-                parser_fatal_error(&p, "Expected Section got %s\n", token_to_string(p.currentToken.type));     
+                //TODO: DON'T MAKE THIS A FATAL ERROR
+                fatal_error("Expected Section got %s\n", token_to_string(p.currentToken.type));     
             }
         }
         
@@ -1442,7 +1487,7 @@ static void parse_tokens(ArrayList* tokens){
                 break;
 
             default:
-                parser_fatal_error(&p, "Expected Section Name got %s\n", token_to_string(p.currentToken.type));     
+                fatal_error("Expected Section Name got %s\n", token_to_string(p.currentToken.type));     
                         
         }
     }
@@ -1454,6 +1499,7 @@ static void parse_tokens(ArrayList* tokens){
 
 
 bool basm_assemble_program(){
+     program.ret_code = 0;
      current_fb = file_buffer_create(asm_flags.input_file);
 
      if(current_fb == NULL) return false;
@@ -1461,13 +1507,17 @@ bool basm_assemble_program(){
 
      ArrayList tokens = tokenize_file(); 
      tokens = preprocess_tokens(&tokens);
+
+     if(program.ret_code != 0){
+        return false;
+     }
     
      parse_tokens(&tokens);
 
      for(int i = 0; i < program.symTable.symbols.size; i++){
          SymbolTableEntry* e = &array_list_get(program.symTable.symbols, SymbolTableEntry, i);
          if(e->section == SECTION_UNDEFINED && e->visibility == VISIBILITY_UNDEFINED){
-             program_fatal_error("Symbol %s used but never defined\n", e->name);
+             fatal_error("Symbol %s used but never defined\n", e->name);
          }
 
          for(int j = 0; j < e->instances.size; j++){
@@ -1493,6 +1543,10 @@ bool basm_assemble_program(){
      }
 
      file_buffer_delete(current_fb);
+
+     if(program.ret_code != 0){
+        return false;
+     }
 
      if(asm_flags.ftype == BASM_FILE_ELF){
         return write_elf(asm_flags.input_file, asm_flags.output_file, &program);
