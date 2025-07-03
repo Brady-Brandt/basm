@@ -517,8 +517,8 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
                 } else{
                     //assume 32 for now 
                     reloc_e.offset = instance.offset;
-                    reloc_e.addend = e.section_offset;
-                    reloc_e.info = ((uint64_t)(e.section + 1) << 32)| RELOC_32;
+                    reloc_e.addend = e.section_offset + instance.addend;
+                    reloc_e.info = ((uint64_t)(e.section + 1) << 32)| RELOC_32S;
                 }
                 fwrite(&reloc_e, sizeof(reloc_e), 1, output_stream);
             }

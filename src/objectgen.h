@@ -21,6 +21,7 @@
 //SYMBOLS ARE ONLY VALID IN THE TEXT SECTION FOR NOW 
 typedef struct {
     uint64_t offset; 
+    int32_t addend;
     bool is_relative;
 }SymbolInstance;
 

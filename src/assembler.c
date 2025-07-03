@@ -143,8 +143,7 @@ void symbol_table_add(Parser* p, char* name, uint64_t offset, uint8_t section, u
     array_list_append(program.symTable.symbols, SymbolTableEntry, e);
 }
 
-//TODO: MAKE IT A MULTIPASS ASSEMBLER
-void symbol_table_add_instance(char* symbol_name, uint32_t offset, bool is_relative){
+void symbol_table_add_instance(char* symbol_name, uint32_t offset, int32_t addend, bool is_relative){ 
     for(int i = 0; i < program.symTable.symbols.size; i++){
         SymbolTableEntry* e = &array_list_get(program.symTable.symbols, SymbolTableEntry, i);
 
@@ -153,7 +152,7 @@ void symbol_table_add_instance(char* symbol_name, uint32_t offset, bool is_relat
                 array_list_create_cap(e->instances, SymbolInstance, 2);
             }
 
-            SymbolInstance current_instance = {offset, is_relative};
+            SymbolInstance current_instance = {offset,addend, is_relative};
             array_list_append(e->instances, SymbolInstance, current_instance); 
             return;
         }
@@ -167,7 +166,7 @@ void symbol_table_add_instance(char* symbol_name, uint32_t offset, bool is_relat
     e.section = SECTION_UNDEFINED;
     e.visibility = VISIBILITY_UNDEFINED;
     array_list_create_cap(e.instances, SymbolInstance, 2);
-    SymbolInstance c = {offset, is_relative};
+    SymbolInstance c = {offset,addend, is_relative};
     array_list_append(e.instances, SymbolInstance, c); 
     array_list_append(program.symTable.symbols, SymbolTableEntry, e);
 }
@@ -329,8 +328,8 @@ static void parse_data_section(Parser* p){
                             break;
                         } else{
                             if(num > UINT32_MAX && !is_int32(num)){
-                                goto next_iteration;
                                 parser_error(p, "Invalid Size\n", num);
+                                goto next_iteration;
                             } 
                             temp = (uint32_t)num;
                         } 
@@ -382,8 +381,6 @@ static void parse_data_section(Parser* p){
 }
 
 
-#define mem_is_label(mem) ((mem.scale & 128))
-#define mem_set_label(mem) (mem.scale |= 128)
 #define mem_op_prefix(mem) (mem.scale & 64)
 #define mem_set_prefix(mem) (mem.scale |= 64)
 #define mem_get_scale(mem) ((mem.scale & 63))
@@ -416,11 +413,8 @@ typedef struct {
             //next bit indicates if we need address size override prefix
             uint8_t scale;         
 
-            //if value is zero, we aren't using either 
-            union{
-                int offset;            
-                char* label;
-            };
+            int32_t offset;            
+            char* label;
         } mem;
 
 
@@ -456,8 +450,6 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
         switch (t.type) {
             case TOK_IDENTIFIER:
                 op->mem.label = p->currentToken.literal;
-                //TODO ALLOW BOTH LABEL AND INTEGER OFFSET 
-                mem_set_label(op->mem);
                 break;
             case TOK_REG: {
                     OperandType size = OPERAND_NOP;
@@ -773,12 +765,18 @@ static Instruction* find_instruction(uint64_t instr, Operand operand[4]){
 static int modrm_sib_fields(Operand* op, uint8_t *data, char** label){
     uint8_t ADDRESS_OVERRIDE_PREFIX = 0x67;
     int size = 1;
-    int32_t offset = (int32_t)op->mem.offset;
+    int32_t offset = op->mem.offset;
 
-    if(mem_is_label(op->mem)){
+
+    if(op->mem.label != NULL){ 
         (*label) = op->mem.label;
-        offset = 0;
+        //this offset info is stored in the elf file format
+        //but for windows we need to keep it in the instruction output
+        if(asm_flags.ftype != BASM_FILE_PE){
+            offset = 0;
+        }
     }
+
     if(mem_op_prefix(op->mem)) section_add_data(&program.text, &ADDRESS_OVERRIDE_PREFIX, 1);
 
     if(op->mem.base == REG_MAX && op->mem.index == REG_MAX){
@@ -883,6 +881,8 @@ static void emit_vex_instruction(Instruction* instruction, Operand operand[4]){
     char* lbl = NULL;
     int imm_index = 1;
 
+    int32_t addend = 0;
+
     
     if(is_reg32_or_64(operand[0].type)){
         if(operand[0].reg.rex & REX_B) operand[0].reg.rex |= REX_R; 
@@ -919,6 +919,7 @@ static void emit_vex_instruction(Instruction* instruction, Operand operand[4]){
                 rm_portion_modrm = 2;
                 vex |= VEX_REGISTER(operand[1].reg.registerIndex);
             } else if(is_mem(operand[2].type)){
+                addend = operand[2].mem.offset;
                 imm_index++;
                 vex ^= operand[2].mem.rex << 13;
                 if(operand[1].reg.rex & REX_B){
@@ -943,6 +944,7 @@ static void emit_vex_instruction(Instruction* instruction, Operand operand[4]){
             modrm_sib[MODRM_INDEX] |=(operand[reg_portion_modrm].reg.registerIndex << 3);
             modrm_sib[MODRM_INDEX] |= operand[rm_portion_modrm].reg.registerIndex; 
         } else if (is_mem(operand[1].type)){
+            addend = operand[1].mem.offset;
             imm_index++;
             vex ^= (uint8_t)(operand[0].reg.rex << 7);
             vex ^= operand[1].mem.rex << 13;
@@ -963,6 +965,7 @@ static void emit_vex_instruction(Instruction* instruction, Operand operand[4]){
             modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl);
         }
     } else if(is_mem(operand[0].type)){
+        addend = operand[0].mem.offset;
         vex |= 0x80;
         if(operand[1].reg.rex & REX_R) operand[1].reg.rex |= REX_B; 
         vex ^= (uint8_t)(operand[1].reg.rex << 7);
@@ -1004,7 +1007,7 @@ static void emit_vex_instruction(Instruction* instruction, Operand operand[4]){
     if(modrm_size != 0) section_add_data(&program.text, modrm_sib, modrm_size);
 
     if(lbl != NULL){
-        symbol_table_add_instance(lbl, program.text.size - DISPLACEMENT_SIZE, false);
+        symbol_table_add_instance(lbl, program.text.size - DISPLACEMENT_SIZE, addend, false);
     }
 
     
@@ -1040,7 +1043,7 @@ static void emit_instruction(Instruction* instruction, Operand operand[4]){
     char* lbl = NULL;
 
     int imm_index = 1;
-
+    int32_t addend = 0;
 
     //indicate opcode extension in the reg portion of modrm
     if(instruction->digit != -1){
@@ -1062,7 +1065,7 @@ static void emit_instruction(Instruction* instruction, Operand operand[4]){
             uint32_t zero = 0;
             //add some temp zeros
             section_add_data(&program.text, &zero, 4);
-            symbol_table_add_instance(operand[0].label, program.text.size, true); 
+            symbol_table_add_instance(operand[0].label, program.text.size, 0,true); 
             return;
         } else if (is_general_reg(operand[0].type) && is_extended_reg(operand[0].reg.registerIndex)) {
             operand[0].reg.rex |= REX_B;
@@ -1095,6 +1098,7 @@ static void emit_instruction(Instruction* instruction, Operand operand[4]){
                 modrm_sib[MODRM_INDEX] |= operand[1].reg.registerIndex; 
             }else{
                rex |= operand[1].mem.rex;
+               addend = operand[1].mem.offset;
                modrm_sib[MODRM_INDEX] |= (operand[0].reg.registerIndex << 3);
                modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl);
             }
@@ -1110,6 +1114,7 @@ static void emit_instruction(Instruction* instruction, Operand operand[4]){
 
     } else if(is_mem(operand[0].type)){
         rex |= operand[0].mem.rex;
+        addend = operand[0].mem.offset;
         if(is_general_reg(operand[1].type)){
             rex |= operand[1].reg.rex;
             modrm_size = 1;
@@ -1136,7 +1141,7 @@ static void emit_instruction(Instruction* instruction, Operand operand[4]){
     if(modrm_size != 0) section_add_data(&program.text, modrm_sib, modrm_size);
 
     if(lbl != NULL){
-        symbol_table_add_instance(lbl, program.text.size - DISPLACEMENT_SIZE, false);
+        symbol_table_add_instance(lbl, program.text.size - DISPLACEMENT_SIZE, addend, false);
     } 
 
 
