@@ -1345,6 +1345,10 @@ Three byte
 //R bit gets inverted 
 #define REX_TO_ONE_BYTE_VEX(rex) ((~(rex >> 2)) << 7)
 
+//convert the rex prefix on memory operand to vex 
+//perform xor on vex
+#define REX_MEM_TO_VEX(rex) ((uint16_t)rex << 13)
+
 #define ONE_VEX_TO_TWO_BYTE_VEX(vex) (((VEX_TWO_BYTE_R) & ((vex & 0x80) << 8)) | vex & 0x7F7F)
 #define VEX_REGISTER(reg) (((~(reg)) & 0xF) << 3)
 
@@ -1376,6 +1380,7 @@ static void emit_vex_instruction(const Instruction* instruction, Operand operand
                 modrm_sib[MODRM_INDEX] |= operand[1].reg.registerIndex; 
                 modrm_size++;
             } else{ 
+                vex ^= REX_MEM_TO_VEX(operand[1].mem.rex);
                 addend = operand[1].mem.offset;
                 modrm_sib[MODRM_INDEX] |= (operand[0].reg.registerIndex << 3);
                 modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl);
@@ -1393,6 +1398,7 @@ static void emit_vex_instruction(const Instruction* instruction, Operand operand
                 modrm_sib[MODRM_INDEX] |= operand[0].reg.registerIndex; 
                 modrm_size++;
             } else{ 
+                vex ^= REX_MEM_TO_VEX(operand[0].mem.rex);
                 addend = operand[0].mem.offset;
                 modrm_sib[MODRM_INDEX] |= (operand[1].reg.registerIndex << 3);
                 modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
@@ -1411,6 +1417,7 @@ static void emit_vex_instruction(const Instruction* instruction, Operand operand
                 modrm_sib[MODRM_INDEX] |= operand[2].reg.registerIndex; 
                 modrm_size++;
             } else{ 
+                vex ^= REX_MEM_TO_VEX(operand[2].mem.rex);
                 addend = operand[2].mem.offset; 
                 modrm_sib[MODRM_INDEX] |= (operand[0].reg.registerIndex << 3);
                 modrm_size = modrm_sib_fields(&operand[2], modrm_sib, &lbl);
@@ -1429,6 +1436,7 @@ static void emit_vex_instruction(const Instruction* instruction, Operand operand
                 modrm_sib[MODRM_INDEX] |= operand[0].reg.registerIndex; 
                 modrm_size++;
             } else{ 
+                vex ^= REX_MEM_TO_VEX(operand[2].mem.rex);
                 addend = operand[2].mem.offset;
                 modrm_sib[MODRM_INDEX] |= (operand[2].reg.registerIndex << 3);
                 modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
@@ -1446,6 +1454,7 @@ static void emit_vex_instruction(const Instruction* instruction, Operand operand
                 modrm_sib[MODRM_INDEX] |= operand[1].reg.registerIndex; 
                 modrm_size++;
             } else{ 
+                vex ^= REX_MEM_TO_VEX(operand[1].mem.rex);
                 addend = operand[1].mem.offset;
                 modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl);
             }
