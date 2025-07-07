@@ -159,7 +159,7 @@ instr_packing_macros = """
 """
 
 def write_instruction_debug(gperf_input_file):
-    gperf_input_file.write("void print_instruction(Instruction* instr){\n")
+    gperf_input_file.write("void print_instruction(const Instruction* instr){\n")
     # finding the name of the nmemonic is hard because we don't know 
     # were in the hashtable the nmemonic lies 
     # because of this we kind of just have to brute force linear search
@@ -205,7 +205,7 @@ e_loop:
 
 
 class Instruction:
-    def __init__(self, rex, opcode, digit, ib, r) -> None:
+    def __init__(self, rex: int, opcode: list[int], digit: int, ib: int, r: int) -> None:
         self.rex = rex
         self.opcode = opcode 
         self.digit =  digit
@@ -225,6 +225,7 @@ class Instruction:
                 opcode += hex(self.opcode[i]) + ','
             else:
                 opcode += "0x00" + ','
+        # remove trailing comma
         opcode = opcode[:-1]
         opcode += '}'
 
@@ -233,9 +234,22 @@ class Instruction:
         op3 = f"(OperandType){self.op3}"
 
         return begin + f"(uint16_t){hex(self.rex)}, {op1}, {op2}, {op3}, {opcode}, {op_len}, {self.digit}, {self.ib}, {self.r}}},"
-        
 
+    def get_size(self):
+        size = len(self.opcode)
+        if self.rex >= 0x40:
+            size += 1
+        if self.digit != -1 or self.r & MODRM_CONTAINS_REG_AND_MEM:
+            size += 1
+        if self.ib != -1:
+            size += self.ib
 
+        if self.r & TWO_BYTE_VEX:
+            size += 2
+        elif self.r & THREE_BYTE_VEX:
+            size += 3
+
+        return size
 
 
 def parse_opcode(op):
@@ -677,8 +691,7 @@ with open("instructions.dat", "r") as f:
             if parsed_operands != None:
                 parsed_instruction.op1 = parsed_operands.op1 
                 parsed_instruction.op2 = parsed_operands.op2
-                parsed_instruction.op3 = parsed_operands.op3
- 
+                parsed_instruction.op3 = parsed_operands.op3 
                 try:
                     instructions[parsed_operands.nmemonic].append(parsed_instruction)
                 except KeyError:
@@ -716,6 +729,7 @@ with open("instructions.dat", "r") as f:
     types_h_file.write("const char* operand_to_string(OperandType type);\n")
     types_h_file.write("const struct Keyword* get_keyword(uint64_t index);\n")
     types_h_file.write("uint64_t keyword_get_index(const struct Keyword* kw);\n")
+    types_h_file.write("extern void print_instruction(const Instruction* instr);\n")
 
     gperf_input_file.write("const char* operand_to_string(OperandType type){\n")
     gperf_input_file.write("    switch(type){\n")
@@ -739,11 +753,11 @@ with open("instructions.dat", "r") as f:
         gperf_input_file.write(variant_count.to_c_struct() + '\n')
         instr_variant_lookup.append(current_index)
         current_index += 1
-        for instr_variant in instructions[instr]:
+        instructions[instr].sort(key=lambda var: var.get_size())
+        for instr_variant in instructions[instr]: 
             gperf_input_file.write(instr_variant.to_c_struct() + '\n')
             current_index += 1
-            instruction_table_size += 1
-
+            instruction_table_size += 1 
     gperf_input_file.write("};\n")
     gperf_input_file.write(f"#define INSTRUCTION_TABLE_SIZE {instruction_table_size}\n")
     gperf_input_file.write("%}\n")
