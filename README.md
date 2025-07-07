@@ -1,5 +1,5 @@
 # Basm 
-Basm is an x86_64 compiler that uses syntax similiar to NASM. It currently supports around 300 instructions and can only assemble instructions 
+Basm is an x86_64 compiler that uses syntax similiar to NASM. It currently supports around 1100 instructions and can only assemble instructions 
 in long mode (64 bit mode). 
 
 ## Getting Started
@@ -54,16 +54,13 @@ Basm is able to assemble some code but there are still a lot of incomplete featu
 It should only be used for simple, hobby projects right now. 
 
 ### Known Issues
-- Can't use both a label and an offset when addressing (ex. mov rax, [label + 100] won't work yet)
 - Moving a label as in (mov rax, label) does not move the address of the label into rax
 - Windows doesn't support file names larger than 18 chars or labels larger than 8
 - Currently assume all jump addresses are rel32
-- Some instructions cannot infer the size of the memory operand
-- Issues regarding immediate sizes 
 
 ### Planned Features (Not in a Particular Order) 
 - [ ] Mach File Support (Macos Support)
-- [x] SSE/AVX instructions (Most have been added, not supporting EVEX right now)
+- [x] SSE/AVX instructions (Most have been added, not going to support AVX512 instructions)
 - [ ] Preprocessor
 - [ ] Support for instruction prefixes
 - [ ] Implementing Hashmaps for the Symbol Tables
