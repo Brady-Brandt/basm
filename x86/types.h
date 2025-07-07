@@ -266,4 +266,5 @@ const char* token_to_string(TokenType type);
 const char* operand_to_string(OperandType type);
 const struct Keyword* get_keyword(uint64_t index);
 uint64_t keyword_get_index(const struct Keyword* kw);
+extern void print_instruction(const Instruction* instr);
 extern const Instruction INSTRUCTION_TABLE[];
