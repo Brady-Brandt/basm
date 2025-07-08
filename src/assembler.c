@@ -1716,6 +1716,11 @@ static void parse_text_section(Parser* p){
                     Token op = parser_next_token(p);
                     if(op.type == TOK_NEW_LINE) break;
 
+                    if(operand_count == 4){
+                        parser_error(p, "Instructions have a maximum of four operands\n");
+                        goto next_iteration;
+                    }
+
                     if(!parse_operand(p, &operands[operand_count++])){
                        goto next_iteration; 
                     }
