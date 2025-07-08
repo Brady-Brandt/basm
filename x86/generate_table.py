@@ -272,8 +272,10 @@ def parse_opcode(op):
             new_op += c 
 
         prev = c
-
-
+    #VEX.128.66.0F 38.WIG 35 /r VPMOVZXDQ xmm1, xmm2/m64
+    #another unwanted space
+    new_op = new_op.replace("66.0F 38.","66.0F38.")
+    
     chunks = new_op.split(' ')
    
     digit = -1
@@ -356,20 +358,33 @@ def parse_opcode(op):
                 elif enc == "F3":
                     vex |= 2
                 elif enc == "F2":
-                    vex |= 3
+                    vex |= 3 
+                elif enc == "0F":
+                    is_three_byte = True
+                    two_vex |= 1
                 elif enc == "0F38":
                     is_three_byte = True
                     two_vex |= 2
                 elif enc == "0F3A":
                     is_three_byte = True
                     two_vex |= 3
-                elif enc == "W0":
+                elif enc == "W0" or enc == "0":
                     is_three_byte = True
                 elif enc == "W1":
                     is_three_byte = True
                     vex |= 128
-                elif enc == "Wig":
+                elif enc == "660F":
+                    #missing period between 66 & 0F
+                    vex |= 1
+                    is_three_byte = True
+                    two_vex |= 1
+                elif enc == "WIG":
                     pass 
+                elif enc == "NP":
+                    #ignore this for now
+                    pass
+                else:
+                    print(f"INVALID VEX PREFIX: {new_op}")
             
             if is_three_byte:
                 r |= THREE_BYTE_VEX
@@ -396,9 +411,35 @@ def parse_opcode(op):
             ib = 8
         elif chunk == "ct":
             ib = 10
-        
+
+        elif ':' in chunk:
+            # just going to ignore the mod portion 
+            # of modrm since that information is implied within the operands
+            modrm_layout = chunk.split(':')
+            reg_portion = modrm_layout[1]
+            rm_portion = modrm_layout[2]
+
+            try:
+                # this is essentially just an opcode extension
+                digit = int(reg_portion, 2)
+            except ValueError:
+                pass
+
+            try:
+                int(rm_portion, 2)
+                # not really sure what to do here yet
+                print("Failed", chunk)
+                return None
+            except ValueError:
+                pass
+        #this is implied within the operands
+        elif chunk == "(mod=11)":
+            continue
+ 
         else:
             try:
+                #PAVGB unwanted comma
+                chunk = chunk.replace(',', '')
                 # some instructions the opcode 0x0f38 is mushed into one
                 if len(chunk) == 4:
                     high = int(chunk[:2], 16)
@@ -409,7 +450,7 @@ def parse_opcode(op):
                     op = int(chunk, 16) 
                     opcode.append(op)
             except ValueError:
-                print(f"Failed: {chunk} in {chunks}")
+                #print(f"Failed: {chunk} in {chunks}")
                 return None
 
         prev = chunk
@@ -460,6 +501,7 @@ operand_types["m32" ] =  iota()
 operand_types["m64" ] =  iota()
 operand_types["m128" ] =  iota()
 operand_types["m256" ] =  iota()
+operand_types["m512" ] =  iota()
 
 # put this after because it doesn't really fit in with the rest
 operand_types["m80" ] =  iota()
@@ -541,10 +583,11 @@ def check_operand(nmemonic, op):
         return operand_types["r/m64"]
     if op == "r32/m32":
         return operand_types["r/m32"]
-    
+    if op == "m384":
+        return operand_types["mem_any"]
     # implicit defined in instruction encoding so we 
     # treat them like no operand
-    if op == "<XMM0>" or op == "<YMM0>" or op.lower() == '<eax>' or op=='<edx>':
+    if op.startswith("<XMM") or op == "<YMM0>" or op.lower() == '<eax>' or op=='<edx>':
         return operand_types["NOP"]
     if op == "ST(0)": 
         # these instructions operate on the fpu stack
@@ -680,12 +723,13 @@ with open("instructions.dat", "r") as f:
 
             # there is a formatting issue with ROUNDPS in instructions.dat
             if operands.startswith('/r ib'):
-                opcode += ' ' + operands[:7]
-                operands = operands[6:]
+                opcode += ' ' + operands[:5]
+                operands = operands[5:]
 
             parsed_instruction= parse_opcode(opcode)
             if parsed_instruction == None:
-                    continue
+                #print("Failed", opcode, operands, sep=" ")
+                continue
 
             parsed_operands = parse_operands(operands)
             if parsed_operands != None:

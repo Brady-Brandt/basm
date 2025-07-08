@@ -87,7 +87,7 @@ B   0   Extension of the ModR/M r/m field, SIB base field, or Opcode reg field
 #define is_immediate(i) (i >= OPERAND_IMM8 && i <= OPERAND_IMM64)
 #define is_label(l) (l >= OPERAND_L8 && l <= OPERAND_L64)
 #define is_general_reg(r) (r >= OPERAND_R8 && r <= OPERAND_R64)
-#define is_mem(m) (m >= OPERAND_M8 && m <= OPERAND_M80)
+#define is_mem(m) (m >= OPERAND_M8 && m <= OPERAND_M80 || m == OPERAND_MEM_ANY)
 #define is_relative(x) (x >= OPERAND_REL8 && x <= OPERAND_REL32)
 
 
@@ -975,7 +975,8 @@ static const Instruction* find_instruction_one_operand(uint64_t instr_index, Ope
 
         if(instruct_var.op2 != OPERAND_NOP) continue;
 
-        if(instruct_var.op1 == op->type) return (Instruction*)&INSTRUCTION_TABLE[i];
+        if(instruct_var.op1 == op->type ) return (Instruction*)&INSTRUCTION_TABLE[i];
+        
 
         if(is_immediate(instruct_var.op1) && fit_immediate(instruct_var.op1, op)){
             return (Instruction*)&INSTRUCTION_TABLE[i];
@@ -995,6 +996,12 @@ static const Instruction* find_instruction_one_operand(uint64_t instr_index, Ope
         if(check_operand_certain_register(instruct_var.op1, op->type, op->reg.registerIndex)){
             return (Instruction*)&INSTRUCTION_TABLE[i];
         }
+
+        if(instruct_var.op1 == OPERAND_M512 && op->type == OPERAND_MEM_ANY){
+            op->type = OPERAND_M512;
+            return &INSTRUCTION_TABLE[i];
+        } 
+
     }
 
     return NULL;
@@ -1335,6 +1342,7 @@ Three byte
 
 */
 
+#define VEX_ONE_BYTE_DEFAULT 0x80
 #define VEX_TWO_BYTE_R 0x8000
 #define VEX_TWO_BYTE_X 0x4000
 #define VEX_TWO_BYTE_B 0x2000
@@ -1364,6 +1372,17 @@ static void emit_vex_instruction(const Instruction* instruction, Operand operand
     int32_t addend = 0;
 
     switch (encoding) {
+        case OP_ENC_RM: {
+            if(instruction->digit != -1){
+                modrm_sib[MODRM_INDEX] |= instruction->digit << 3;
+            }
+            vex |= VEX_UNUSED_REG;
+            vex |= (uint8_t)VEX_ONE_BYTE_DEFAULT;
+            vex ^= REX_MEM_TO_VEX(operand[0].mem.rex);
+            addend = operand[0].mem.offset;
+            modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl); 
+        }
+        break;
         case OP_ENC_REG_RM_VEX:
         case OP_ENC_REG_RM: { 
             vex |= (uint8_t)REX_TO_ONE_BYTE_VEX(operand[0].reg.rex);
@@ -1445,7 +1464,7 @@ static void emit_vex_instruction(const Instruction* instruction, Operand operand
         } 
         break;
         case OP_ENC_VEX_RM: {
-            vex |= (uint8_t)0x80;
+            vex |= (uint8_t)VEX_ONE_BYTE_DEFAULT;
             modrm_sib[MODRM_INDEX] |= instruction->digit << 3;
             vex |= VEX_REGISTER(operand[0].reg.registerIndex);
             if(is_advanced_reg(operand[1].type) || is_reg32_or_64(operand[1].type)){
@@ -1462,7 +1481,7 @@ static void emit_vex_instruction(const Instruction* instruction, Operand operand
         }
         break;
         default:
-            fatal_error("This instruction encoding is not yet supported\n");
+            fatal_error("This instruction encoding is not yet supported: %d\n", encoding);
     }
 
     if((instruction->r & INSTR_USES_2VEX) && ((vex & 0xE000) == 0xE000)){
@@ -1611,7 +1630,7 @@ static void emit_instruction(const Instruction* instruction, Operand operand[4],
         }
         break;
         default:
-            fatal_error("Encoding not supported yet\n");
+            fatal_error("Encoding not supported yet: %d\n", encoding);
     
     }
  
