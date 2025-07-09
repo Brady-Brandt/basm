@@ -835,7 +835,7 @@ static OperandEncoding two_ops_get_encoding(const Instruction* instr, Operand* o
 }
 
 //returns how operands should be encoded and sets the rex prefixes for three operands
-static OperandEncoding three_ops_get_encoding(const Instruction* instr, Operand* op1, Operand* op2, Operand* op3){
+static OperandEncoding three_ops_get_encoding(const Instruction* instr, Operand* op1, Operand* op2, Operand* op3){  
     if(instr->op1 >= OPERAND_RM16 && instr->op1 <= OPERAND_RM64 || 
             instr->op1 == OPERAND_XMMM64 || instr->op1 == OPERAND_XMMM128 || 
             instr->op1 == OPERAND_M128 || instr->op1 == OPERAND_M256){
@@ -854,6 +854,7 @@ static OperandEncoding three_ops_get_encoding(const Instruction* instr, Operand*
             }
             return OP_ENC_RM_REG;
         } else{
+            if(instr->op3 == OPERAND_CL) return OP_ENC_RM_REG;
             if((is_general_reg(op3->type) || is_xy_reg(op3->type)) && is_extended_reg(op3->reg.registerIndex)){
                 op3->reg.rex |= REX_R;
                 op3->reg.registerIndex -= 8;
@@ -1049,8 +1050,14 @@ static const Instruction* find_instruction_two_operands(uint64_t instr_index, Op
 
         if(instruct_var.op3 != OPERAND_NOP) continue;
         
+
         if(!check_operand_type(instruct_var.op1, op1->type, op1->reg.registerIndex)){
-            continue;
+            if(!is_immediate(instruct_var.op1)){
+                continue;
+            }
+            if(!fit_immediate(instruct_var.op1, op1)){
+                continue;
+            }
         }
 
 
@@ -1154,7 +1161,10 @@ static const Instruction* find_instruction_three_operands(uint64_t instr_index, 
             }
         } else if (op3->type == OPERAND_SIGNED || op3->type == OPERAND_IMM64) {
             if(fit_immediate(instruct_var.op3, op3)) return &INSTRUCTION_TABLE[i]; 
-        } else if (check_operand_type_three(instruct_var.op3, op3->type)) {
+        } else if (instruct_var.op3 == OPERAND_CL && op3->type == OPERAND_R8 && op3->reg.registerIndex == 1) {
+            return &INSTRUCTION_TABLE[i]; 
+        } 
+        else if (check_operand_type_three(instruct_var.op3, op3->type)) {
             return &INSTRUCTION_TABLE[i]; 
         }
             
@@ -1559,6 +1569,7 @@ static void emit_instruction(const Instruction* instruction, Operand operand[4],
     }
 
     emit_operand_overide_prefix(operand[0].type);
+
  
     switch (encoding) {
         case OP_ENC_NONE: {
@@ -1663,7 +1674,7 @@ static void emit_instruction(const Instruction* instruction, Operand operand[4],
             section_add_data(&program.text, &operand[imm_index].imm8, 1);
             break;
         case 2: {
-            section_add_data(&program.text, &operand[imm_index].imm16, 2);
+            section_add_data(&program.text, &operand[imm_index].imm16, 2); 
             break;
         }
         case 4: {
