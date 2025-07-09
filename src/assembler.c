@@ -429,7 +429,7 @@ typedef struct {
 static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
     op->mem.base = REG_MAX;
     op->mem.index = REG_MAX;
-    op->mem.rex = REX_PREFIX(0, 0, 0, 0);
+    op->mem.rex |= REX_PREFIX(0, 0, 0, 0);
     op->type = mem_type;
 
     OperandType base_size = OPERAND_NOP;
@@ -458,7 +458,6 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
 
                     
                     if(is_r64(p->currentToken.reg)){
-                        op->mem.rex |= REX_W;
                         size = OPERAND_R64;
                         reg = p->currentToken.reg - REG_RAX;
                     } else if(is_r32(p->currentToken.reg)){
@@ -527,7 +526,6 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
         }
 
         t = parser_next_token(p);
-
 
         switch (t.type) {
             case TOK_MULTIPLY:{
@@ -643,34 +641,35 @@ static bool parse_operand(Parser* p, Operand* op){
 
         case TOK_BYTE:
             parser_next_token(p);
-            parser_expect_token(p, TOK_OPENING_BRACKET);
+            if(!parser_expect_token(p, TOK_OPENING_BRACKET)) return false;
             return parse_memory(p, OPERAND_M8, op); 
 
         case TOK_WORD:
             parser_next_token(p);
-            parser_expect_token(p, TOK_OPENING_BRACKET);
+            if(!parser_expect_token(p, TOK_OPENING_BRACKET)) return false;
             return parse_memory(p, OPERAND_M16, op); 
 
         case TOK_DWORD:
             parser_next_token(p);
-            parser_expect_token(p, TOK_OPENING_BRACKET);
+            if(!parser_expect_token(p, TOK_OPENING_BRACKET)) return false;
             return parse_memory(p, OPERAND_M32, op); 
 
         case TOK_QWORD:
             parser_next_token(p);
-            parser_expect_token(p, TOK_OPENING_BRACKET);
+            if(!parser_expect_token(p, TOK_OPENING_BRACKET)) return false;
+            op->mem.rex |= REX_W;
             return parse_memory(p, OPERAND_M64, op); 
         case TOK_TWORD:
             parser_next_token(p);
-            parser_expect_token(p, TOK_OPENING_BRACKET);
+            if(!parser_expect_token(p, TOK_OPENING_BRACKET)) return false;
             return parse_memory(p, OPERAND_M80, op); 
         case TOK_DQWORD:
             parser_next_token(p);
-            parser_expect_token(p, TOK_OPENING_BRACKET);
+            if(!parser_expect_token(p, TOK_OPENING_BRACKET)) return false;
             return parse_memory(p, OPERAND_M128, op);
         case TOK_YWORD:
             parser_next_token(p);
-            parser_expect_token(p, TOK_OPENING_BRACKET);
+            if(!parser_expect_token(p, TOK_OPENING_BRACKET)) return false;
             return parse_memory(p, OPERAND_M256, op);
         case TOK_OPENING_BRACKET:
             return parse_memory(p, OPERAND_MEM_ANY, op); 
@@ -1008,6 +1007,7 @@ static const Instruction* find_instruction_one_operand(uint64_t instr_index, Ope
                 op->type = OPERAND_M512;
                 return &INSTRUCTION_TABLE[i];
             } 
+            else continue;
         } 
 
     }
