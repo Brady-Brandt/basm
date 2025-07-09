@@ -943,7 +943,7 @@ static bool check_operand_type(OperandType table_instr, OperandType input_instr,
 
     if(table_instr == OPERAND_M && input_instr >= OPERAND_MEM_ANY && input_instr <= OPERAND_M64) return true;
 
-    if(table_instr >= OPERAND_XMMM32 && table_instr <= OPERAND_XMMM128){
+    if(table_instr >= OPERAND_XMMM8 && table_instr <= OPERAND_XMMM128){
         if(input_instr == OPERAND_XMM || (input_instr + (OPERAND_XMMM8 - OPERAND_M8)) == table_instr ) return true;
     }
  
@@ -1003,9 +1003,11 @@ static const Instruction* find_instruction_one_operand(uint64_t instr_index, Ope
             return (Instruction*)&INSTRUCTION_TABLE[i];
         }
 
-        if(instruct_var.op1 == OPERAND_M512 && op->type == OPERAND_MEM_ANY){
-            op->type = OPERAND_M512;
-            return &INSTRUCTION_TABLE[i];
+        if(op->type == OPERAND_MEM_ANY){
+            if(instruct_var.op1 == OPERAND_M512){
+                op->type = OPERAND_M512;
+                return &INSTRUCTION_TABLE[i];
+            } 
         } 
 
     }
