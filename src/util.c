@@ -132,7 +132,7 @@ void file_buffer_delete(FileBuffer* buff){
 }
 
 bool file_buffer_eof(FileBuffer* buff){
-    return buff->size < FILE_BUFFER_CAPACITY && buff->index >= buff->size - 1;
+    return buff->size < FILE_BUFFER_CAPACITY && buff->index >= buff->size;
 }
 
 
@@ -154,7 +154,7 @@ char file_buffer_peek_char(FileBuffer* buff){
         buff->index = 0;
     }
 
-    else if(buff->index >= buff->size - 1){
+    else if(buff->index >= buff->size){
         fpos_t pos;
         fgetpos(buff->file, &pos);
         char c = fgetc(buff->file);
