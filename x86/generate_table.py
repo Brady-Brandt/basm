@@ -784,6 +784,7 @@ with open("instructions.dat", "r") as f:
     gperf_input_file.write("    default: return \"INVALID OPERAND\";\n}}\n")
     
     types_h_file.write("extern const Instruction INSTRUCTION_TABLE[];\n")
+    types_h_file.write("extern const int KEYWORD_TABLE_SIZE;\n")
     gperf_input_file.write("const Instruction INSTRUCTION_TABLE[] = {\n")
 
 
@@ -803,7 +804,6 @@ with open("instructions.dat", "r") as f:
             current_index += 1
             instruction_table_size += 1 
     gperf_input_file.write("};\n")
-    gperf_input_file.write(f"#define INSTRUCTION_TABLE_SIZE {instruction_table_size}\n")
     gperf_input_file.write("%}\n")
 
     # write the gperf output
@@ -875,6 +875,7 @@ struct Keyword {const char* name; TokenType type; uint16_t value;};
 
 
     gperf_input_file.write("%%\n")
+    gperf_input_file.write("const int KEYWORD_TABLE_SIZE = MAX_HASH_VALUE;\n")
     gperf_input_file.write("const struct Keyword* get_keyword(uint64_t index){ return &KEYWORD_TABLE[index];}\n")
     gperf_input_file.write("uint64_t keyword_get_index(const struct Keyword* kw) { return ((uint8_t*)kw - (uint8_t*)KEYWORD_TABLE) / sizeof(struct Keyword);}\n")
     # write debug functions

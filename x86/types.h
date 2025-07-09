@@ -269,3 +269,4 @@ const struct Keyword* get_keyword(uint64_t index);
 uint64_t keyword_get_index(const struct Keyword* kw);
 extern void print_instruction(const Instruction* instr);
 extern const Instruction INSTRUCTION_TABLE[];
+extern const int KEYWORD_TABLE_SIZE;
