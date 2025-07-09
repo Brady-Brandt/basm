@@ -436,6 +436,7 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
     OperandType index_size = OPERAND_NOP;
 
     bool check_scale = false;
+    bool scale_set = false;
 
     Token t = parser_next_token(p);
 
@@ -492,7 +493,11 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                 break;
             case TOK_INT:{
                 int temp = (int)string_to_int(p->currentToken.literal);
-                if(check_scale){
+                if(check_scale || parser_peek_token(p).type == TOK_MULTIPLY){
+                    if(scale_set){
+                        parser_error(p, "Cannot have more than one Scale Factor\n");
+                        return false;
+                    }
                     switch (temp) {
                         case 1:
                             break;
@@ -508,6 +513,7 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                         default:
                             parser_error(p, "Invalid Scale Factor: %i\n", temp);
                             return false;
+                        scale_set = true;
                     } 
                 } else{
                     op->mem.offset = temp; 
@@ -526,7 +532,7 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
         switch (t.type) {
             case TOK_MULTIPLY:{
                 Token next = parser_peek_token(p); 
-                if(next.type != TOK_INT || check_scale == true){ 
+                if(next.type != TOK_INT && next.type != TOK_REG || check_scale == true){ 
                     parser_error(p, "Invalid Address\n");
                     return false;
                 }
@@ -968,7 +974,6 @@ static const Instruction* find_instruction_one_operand(uint64_t instr_index, Ope
     uint64_t op_table_index = get_keyword(instr_index)->value;    
     int instruction_variant_count = INSTRUCTION_TABLE[op_table_index].variant_count;
 
-
     // loop through each variant of the instruction check if the operands match 
     for(uint64_t i = op_table_index + 1; i < op_table_index + instruction_variant_count + 1; i++){ 
         Instruction instruct_var = INSTRUCTION_TABLE[i];
@@ -1009,9 +1014,6 @@ static const Instruction* find_instruction_one_operand(uint64_t instr_index, Ope
 
 
 static const Instruction* find_instruction_two_operands(uint64_t instr_index, Operand* op1, Operand* op2){
-    uint16_t operand_override_prefix = 0x66;
-
-
     //if we have extended registers r8-r15
     //convert them to their respected index  and set the REX prefix accordingly
     if((is_general_reg(op1->type) || is_advanced_reg(op1->type)) && is_extended_reg(op1->reg.registerIndex)){
@@ -1035,15 +1037,7 @@ static const Instruction* find_instruction_two_operands(uint64_t instr_index, Op
 
     //infer size of memory location if operand 2 is a register 
     if(op1->type == OPERAND_MEM_ANY && is_general_reg(op2->type)){
-        op1->type = op2->type + (OPERAND_M8 - OPERAND_R8);
-        if(op2->type == OPERAND_R16){
-            section_add_data(&program.text,&operand_override_prefix, 1);
-        }
-    }
-
-    //MAY MOVE THIS TO EMIT INSTRUCTION
-    if(op1->type == OPERAND_R16 || op1->type == OPERAND_M16){
-        section_add_data(&program.text,&operand_override_prefix, 1);
+        op1->type = op2->type + (OPERAND_M8 - OPERAND_R8); 
     }
 
     uint64_t op_table_index = get_keyword(instr_index)->value;    
@@ -1107,15 +1101,8 @@ static bool check_operand_type_three(OperandType table_instr, OperandType input_
 
 
 
-static const Instruction* find_instruction_three_operands(uint64_t instr_index, Operand* op1, Operand* op2, Operand* op3){
-    uint16_t operand_override_prefix = 0x66;
- 
-    //MAY MOVE THIS TO EMIT INSTRUCTION
-    if(op1->type == OPERAND_R16 || op1->type == OPERAND_M16 || op2->type == OPERAND_M16 || op2->type == OPERAND_R16){
-        section_add_data(&program.text,&operand_override_prefix, 1);
-    }
-
-    uint64_t op_table_index = get_keyword(instr_index)->value;    
+static const Instruction* find_instruction_three_operands(uint64_t instr_index, Operand* op1, Operand* op2, Operand* op3){ 
+    uint64_t op_table_index = get_keyword(instr_index)->value; 
     int instruction_variant_count = INSTRUCTION_TABLE[op_table_index].variant_count;
     
     // loop through each variant of the instruction check if the operands match 
@@ -1372,6 +1359,11 @@ static void emit_vex_instruction(const Instruction* instruction, Operand operand
     int32_t addend = 0;
 
     switch (encoding) {
+        case OP_ENC_NONE: {
+            vex |= VEX_ONE_BYTE_DEFAULT;
+            vex |= VEX_UNUSED_REG;
+        }
+        break;
         case OP_ENC_RM: {
             if(instruction->digit != -1){
                 modrm_sib[MODRM_INDEX] |= instruction->digit << 3;
@@ -1481,6 +1473,7 @@ static void emit_vex_instruction(const Instruction* instruction, Operand operand
         }
         break;
         default:
+            print_instruction(instruction);
             fatal_error("This instruction encoding is not yet supported: %d\n", encoding);
     }
 
@@ -1526,8 +1519,14 @@ static void emit_vex_instruction(const Instruction* instruction, Operand operand
             section_add_data(&program.text, &operand[imm_index].imm8, 1); 
         }
     }
+}
 
 
+static inline void emit_operand_overide_prefix(OperandType op1){
+    uint8_t prefix = 0x66;
+    if(op1 == OPERAND_M16 || op1 == OPERAND_R16 || op1 == OPERAND_IMM16){ 
+        section_add_data(&program.text,&prefix, 1);
+    }
 
 }
 
@@ -1558,6 +1557,8 @@ static void emit_instruction(const Instruction* instruction, Operand operand[4],
         modrm_size = 1;
         modrm_sib[MODRM_INDEX] |= (instruction->digit << 3);
     }
+
+    emit_operand_overide_prefix(operand[0].type);
  
     switch (encoding) {
         case OP_ENC_NONE: {
@@ -1630,6 +1631,7 @@ static void emit_instruction(const Instruction* instruction, Operand operand[4],
         }
         break;
         default:
+            print_instruction(instruction);
             fatal_error("Encoding not supported yet: %d\n", encoding);
     
     }
