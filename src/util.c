@@ -147,20 +147,12 @@ char file_buffer_get_char(FileBuffer* buff){
 }
 
 char file_buffer_peek_char(FileBuffer* buff){
-    if(buff->size == 0){ 
+    if(buff->size == 0 || buff->index >= buff->size){ 
         size_t size = fread(buff->data, 1, FILE_BUFFER_CAPACITY, buff->file);
         if(size == 0) return EOF;
         buff->size = size; 
         buff->index = 0;
-    }
-
-    else if(buff->index >= buff->size){
-        fpos_t pos;
-        fgetpos(buff->file, &pos);
-        char c = fgetc(buff->file);
-        fsetpos(buff->file, &pos);
-        return c;
-    }
+    } 
     return buff->data[buff->index];
 }
 
