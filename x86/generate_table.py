@@ -78,6 +78,38 @@ typedef enum {
 } TokenType;
 """
 
+operand_encodings = """
+typedef enum {
+    OP_ENC_ZO,
+    OP_ENC_I,
+    OP_ENC_MI,
+    OP_ENC_MR,
+    OP_ENC_RM,
+    OP_ENC_RVM,
+    OP_ENC_RMI,
+    OP_ENC_RMV,
+    OP_ENC_RVMI,
+    OP_ENC_RM0,
+    OP_ENC_RVMR,
+    OP_ENC_VM,
+    OP_ENC_O,
+    OP_ENC_D,
+    OP_ENC_M,
+    OP_ENC_II,
+    OP_ENC_FPU,
+    OP_ENC_R,
+    OP_ENC_FD,
+    OP_ENC_TD,
+    OP_ENC_OI,
+    OP_ENC_M1,
+    OP_ENC_MC,
+    OP_ENC_MRI,
+    OP_ENC_MRC,
+    OP_ENC_MVR,
+    OP_ENC_RVSV,
+}OperandEncoding;
+"""
+
 INPUT_FILE_NAME = "gerf_input_nmemonic.dat"
 TYPES_FILE_NAME = "types.h"
 
@@ -97,6 +129,7 @@ types_h_file.write(f"REG_MAX,\n")
 types_h_file.write("} RegisterType;\n")
 
 types_h_file.write(f"{tokens}\n")
+types_h_file.write(f"{operand_encodings}\n")
 
 
 gperf_input_file.write("const char* token_to_string(TokenType type){\n switch(type){\n")
@@ -132,30 +165,19 @@ typedef struct {
     uint8_t bytes[4];
     uint8_t size;
     int8_t digit;
-    int8_t ib;
-    uint8_t r; 
+    uint8_t encoding;
+    uint8_t flags; 
 } Instruction;\n
 """
 
-MODRM_CONTAINS_REG_AND_MEM = 0x1 
-ADD_REG_TO_OPCODE = 0x2
-REX = 0x4
-TWO_BYTE_VEX = 0x8
-THREE_BYTE_VEX = 0x10
-
-
-
-# encode the fourth parameter in the immediate byte of the struct
-# only valid in vex instructions
-INSTR_OP4_IS_REG = 0x2
+REX = 0x1
+TWO_BYTE_VEX = 0x2
+THREE_BYTE_VEX = 0x4
 
 instr_packing_macros = """
-#define MODRM_CONTAINS_REG_AND_MEM 0x1 
-#define ADD_REG_TO_OPCODE 0x2
-#define INSTR_USES_REX 0x4
-#define INSTR_USES_2VEX 0x8
-#define INSTR_USES_3VEX 0x10
-#define INSTR_OP4_IS_REG 0x2
+#define INSTR_USES_REX 0x1
+#define INSTR_USES_2VEX 0x2
+#define INSTR_USES_3VEX 0x4
 """
 
 def write_instruction_debug(gperf_input_file):
@@ -193,11 +215,9 @@ e_loop:
     gperf_input_file.write("    printf(\"Operand 2: %s\\n\", operand_to_string(instr->op2));\n")
     gperf_input_file.write("    printf(\"Operand 3: %s\\n\", operand_to_string(instr->op3));\n")
     gperf_input_file.write("    printf(\"Opcode Extension: %i\\n\", instr->digit);\n")
-    gperf_input_file.write("    printf(\"Immediate Byte: %i\\n\", instr->ib);\n")
-    gperf_input_file.write("    printf(\"Modrm contains Reg: %s\\n\", ((instr->r & 0x1) != 0) ? \"true\" : \"false\");\n")
-    gperf_input_file.write("    printf(\"Add Register to Opcode: %s\\n\", ((instr->r & 0x2) != 0) ? \"true\" : \"false\");\n")
-    gperf_input_file.write("    printf(\"Uses 2 byte Vex: %s\\n\", ((instr->r & 0x8) != 0) ? \"true\" : \"false\");\n")
-    gperf_input_file.write("    printf(\"Uses 3 byte Vex: %s\\n\", ((instr->r & 0x10) != 0) ? \"true\" : \"false\");\n")
+    gperf_input_file.write("    printf(\"Operand Encoding: %i\\n\", instr->encoding);\n")
+    gperf_input_file.write("    printf(\"Uses 2 byte Vex: %s\\n\", ((instr->flags & 0x8) != 0) ? \"true\" : \"false\");\n")
+    gperf_input_file.write("    printf(\"Uses 3 byte Vex: %s\\n\", ((instr->flags & 0x10) != 0) ? \"true\" : \"false\");\n")
     gperf_input_file.write("    printf(\"Rex Prefix: %i\\n\", instr->rex);\n}\n")
     
 
@@ -205,12 +225,15 @@ e_loop:
 
 
 class Instruction:
-    def __init__(self, rex: int, opcode: list[int], digit: int, ib: int, r: int) -> None:
+    def __init__(self, rex: int, opcode: list[int], digit: int, flags: int, imm_size: int, has_modrm: bool) -> None:
         self.rex = rex
         self.opcode = opcode 
         self.digit =  digit
-        self.ib = ib
-        self.r = r
+        self.encoding: str = ""
+        self.flags = flags
+
+        self.immediate_size = imm_size
+        self.has_modrm = has_modrm
 
         self.op1 = 0
         self.op2 = 0
@@ -232,21 +255,23 @@ class Instruction:
         op1 = f"(OperandType){self.op1}"
         op2 = f"(OperandType){self.op2}"
         op3 = f"(OperandType){self.op3}"
-
-        return begin + f"(uint16_t){hex(self.rex)}, {op1}, {op2}, {op3}, {opcode}, {op_len}, {self.digit}, {self.ib}, {self.r}}},"
+        
+        # for the header that comes before each instructions operand variant list
+        if self.encoding == "":
+            self.encoding = 'ZO'
+        return begin + f"(uint16_t){hex(self.rex)}, {op1}, {op2}, {op3}, {opcode}, {op_len}, {self.digit}, OP_ENC_{self.encoding}, {self.flags}}},"
 
     def get_size(self):
         size = len(self.opcode)
         if self.rex >= 0x40:
             size += 1
-        if self.digit != -1 or self.r & MODRM_CONTAINS_REG_AND_MEM:
+        if self.digit != -1 or self.has_modrm:
             size += 1
-        if self.ib != -1:
-            size += self.ib
 
-        if self.r & TWO_BYTE_VEX:
+        size += self.immediate_size
+        if self.flags & TWO_BYTE_VEX:
             size += 2
-        elif self.r & THREE_BYTE_VEX:
+        elif self.flags & THREE_BYTE_VEX:
             size += 3
 
         return size
@@ -279,8 +304,9 @@ def parse_opcode(op):
     chunks = new_op.split(' ')
    
     digit = -1
-    r = 0
+    flags = 0
     ib = -1
+    has_modrm = False
     rex = 0
 
     vex = 0
@@ -300,19 +326,18 @@ def parse_opcode(op):
         if chunk[0] == "/":
             try:
                 if chunk[1].isdigit():
-                   digit = int(chunk[1]) 
+                    digit = int(chunk[1]) 
                 elif chunk[1] == "r":
-                    r |= MODRM_CONTAINS_REG_AND_MEM
-                elif chunk[1:] == 'is4':
-                    ib = INSTR_OP4_IS_REG 
-                elif chunk[1:] == 'ib':
+                    has_modrm = True
+                elif chunk[1:] == 'is4' or chunk[1:] == 'ib':
                     ib = 1
                 else:
                     print(f"Failed: {chunk} in {chunks}")
             except IndexError:
                 if chunks[1] == '6E':
                     # again more inconsistency 
-                    r |= MODRM_CONTAINS_REG_AND_MEM
+                    has_modrm = True
+                    pass
                 else:
                     print(f"Failed: {chunk} in {chunks}")
                     return None
@@ -324,7 +349,6 @@ def parse_opcode(op):
                 # we know we have to add it to the opcode
                 assert len(chunk) == 1, f"Chunks containg +i should be size 1 not {len(chunk)}"
             elif any(chunk == op for op in low_op):
-                r |= ADD_REG_TO_OPCODE
                 assert len(chunk) == 2, f"Chunks containg +rx should be size 2 not {len(chunk)}"
             else:
                 try:
@@ -387,9 +411,9 @@ def parse_opcode(op):
                     print(f"INVALID VEX PREFIX: {new_op}")
             
             if is_three_byte:
-                r |= THREE_BYTE_VEX
+                flags |= THREE_BYTE_VEX
             else:
-                r |= TWO_BYTE_VEX 
+                flags |= TWO_BYTE_VEX 
 
         elif chunk == "ib" or chunk == "ib1" or chunk == "imm8":
             ib = 1
@@ -455,11 +479,11 @@ def parse_opcode(op):
 
         prev = chunk
 
-    if (r & TWO_BYTE_VEX) or (r & THREE_BYTE_VEX):
-        return Instruction((two_vex << 8) | vex, opcode, digit, ib, r)
+    if (flags & TWO_BYTE_VEX) or (flags & THREE_BYTE_VEX):
+        return Instruction((two_vex << 8) | vex, opcode, digit, flags, ib, has_modrm)
     else:
-        r |= REX
-        return Instruction(rex, opcode, digit, ib, r)
+        flags |= REX
+        return Instruction(rex, opcode, digit,flags, ib, has_modrm)
 
 
 
@@ -718,8 +742,9 @@ with open("instructions.dat", "r") as f:
                     instructions[inst_name] = []
         else:
             op_row = line.split('|')
-            opcode = op_row[0].strip()
-            operands= op_row[1].strip()
+            encoding = op_row[0].strip()
+            opcode = op_row[1].strip()
+            operands= op_row[2].strip()
 
             # there is a formatting issue with ROUNDPS in instructions.dat
             if operands.startswith('/r ib'):
@@ -733,9 +758,19 @@ with open("instructions.dat", "r") as f:
 
             parsed_operands = parse_operands(operands)
             if parsed_operands != None:
-                parsed_instruction.op1 = parsed_operands.op1 
-                parsed_instruction.op2 = parsed_operands.op2
-                parsed_instruction.op3 = parsed_operands.op3 
+                
+                # for instructions with the segment registers even though they technically don't take any operands
+                # we need to get segment register to determine which opcode to use
+                if encoding == 'ZO' and not (parsed_operands.op1 >= operand_types['ES'] and parsed_operands.op1 <= operand_types['GS']):
+                    parsed_instruction.op1 = 0 
+                    parsed_instruction.op2 = 0 
+                    parsed_instruction.op3 = 0 
+                else:
+                    parsed_instruction.op1 = parsed_operands.op1 
+                    parsed_instruction.op2 = parsed_operands.op2
+                    parsed_instruction.op3 = parsed_operands.op3 
+
+                parsed_instruction.encoding = encoding
                 try:
                     instructions[parsed_operands.nmemonic].append(parsed_instruction)
                 except KeyError:
@@ -794,7 +829,7 @@ with open("instructions.dat", "r") as f:
     for i, instr in enumerate(sorted_instructions):
         # before each instruction variant we just have a struct
         # that tells you have many variants there are
-        variant_count = Instruction(len(instructions[instr]), [0,0,0,0], 0, 0,0)
+        variant_count = Instruction(len(instructions[instr]), [0,0,0,0], 0, 0,0, False)
         gperf_input_file.write(variant_count.to_c_struct() + '\n')
         instr_variant_lookup.append(current_index)
         current_index += 1

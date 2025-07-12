@@ -176,6 +176,37 @@ typedef enum {
     TOK_MAX,
 } TokenType;
 
+
+typedef enum {
+    OP_ENC_ZO,
+    OP_ENC_I,
+    OP_ENC_MI,
+    OP_ENC_MR,
+    OP_ENC_RM,
+    OP_ENC_RVM,
+    OP_ENC_RMI,
+    OP_ENC_RMV,
+    OP_ENC_RVMI,
+    OP_ENC_RM0,
+    OP_ENC_RVMR,
+    OP_ENC_VM,
+    OP_ENC_O,
+    OP_ENC_D,
+    OP_ENC_M,
+    OP_ENC_II,
+    OP_ENC_FPU,
+    OP_ENC_R,
+    OP_ENC_FD,
+    OP_ENC_TD,
+    OP_ENC_OI,
+    OP_ENC_M1,
+    OP_ENC_MC,
+    OP_ENC_MRI,
+    OP_ENC_MRC,
+    OP_ENC_MVR,
+    OP_ENC_RVSV,
+}OperandEncoding;
+
 typedef enum {
     OPERAND_NOP = 0,
     OPERAND_REL8 = 1,
@@ -251,17 +282,14 @@ typedef struct {
     uint8_t bytes[4];
     uint8_t size;
     int8_t digit;
-    int8_t ib;
-    uint8_t r; 
+    uint8_t encoding;
+    uint8_t flags; 
 } Instruction;
 
 
-#define MODRM_CONTAINS_REG_AND_MEM 0x1 
-#define ADD_REG_TO_OPCODE 0x2
-#define INSTR_USES_REX 0x4
-#define INSTR_USES_2VEX 0x8
-#define INSTR_USES_3VEX 0x10
-#define INSTR_OP4_IS_REG 0x2
+#define INSTR_USES_REX 0x1
+#define INSTR_USES_2VEX 0x2
+#define INSTR_USES_3VEX 0x4
 struct Keyword {const char* name; TokenType type; uint16_t value;};
 const char* token_to_string(TokenType type);
 const char* operand_to_string(OperandType type);
