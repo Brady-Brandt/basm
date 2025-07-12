@@ -1043,6 +1043,7 @@ static const Instruction* find_instruction_four_operands(uint64_t instr_index, O
 #define SIB_INDEX 1
 #define DISPLACEMENT_SIZE 4
 
+//TODO: SOME problems with RBP and ESP  
 static int modrm_sib_fields(Operand* op, uint8_t *data, char** label){
     uint8_t ADDRESS_OVERRIDE_PREFIX = 0x67;
     int size = 1;
@@ -1239,6 +1240,7 @@ static void emit_instruction(const Instruction* instruction, Operand operand[4])
                 modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
             } else{
                 set_b(&operand[0], &vex, &rex);
+                modrm_sib[MODRM_INDEX] |= 192;
                 modrm_sib[MODRM_INDEX] |= operand[0].reg.registerIndex;
                 modrm_size = 1;
             }
