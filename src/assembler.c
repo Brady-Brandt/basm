@@ -1260,7 +1260,7 @@ static void emit_instruction(const Instruction* instruction, Operand operand[4])
                 modrm_size++;
             } else{ 
                 vex ^= REX_MEM_TO_VEX(operand[0].mem.rex);
-                rex |= operand[0].reg.rex;
+                rex |= operand[0].mem.rex;
                 addend = operand[0].mem.offset;
                 modrm_sib[MODRM_INDEX] |= (operand[1].reg.registerIndex << 3);
                 modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
