@@ -1169,9 +1169,9 @@ static inline void set_r(Operand* op, uint16_t* vex, uint8_t* rex){
 }
 
 
-static inline void emit_operand_overide_prefix(OperandType op1){
+static inline void emit_operand_overide_prefix(OperandType op1, OperandType op2){
     uint8_t prefix = 0x66;
-    if(op1 == OPERAND_M16 || op1 == OPERAND_R16 || op1 == OPERAND_IMM16){ 
+    if(op1 == OPERAND_M16 || op1 == OPERAND_R16 || op1 == OPERAND_IMM16 || op2 == OPERAND_R16){ 
         section_add_data(&program.text,&prefix, 1);
     }
 
@@ -1209,7 +1209,7 @@ static void emit_instruction(const Instruction* instruction, Operand operand[4])
         modrm_sib[MODRM_INDEX] |= (instruction->digit << 3);
     }
 
-    emit_operand_overide_prefix(operand[0].type);
+    emit_operand_overide_prefix(operand[0].type, operand[1].type);
 
     switch (instruction->encoding) {
         case OP_ENC_ZO:
@@ -1257,7 +1257,7 @@ static void emit_instruction(const Instruction* instruction, Operand operand[4])
                 modrm_sib[MODRM_INDEX] |= 192;
                 modrm_sib[MODRM_INDEX] |=(operand[1].reg.registerIndex << 3);
                 modrm_sib[MODRM_INDEX] |= operand[0].reg.registerIndex; 
-                modrm_size++;
+                modrm_size = 1;
             } else{ 
                 vex ^= REX_MEM_TO_VEX(operand[0].mem.rex);
                 rex |= operand[0].mem.rex;
@@ -1300,7 +1300,7 @@ static void emit_instruction(const Instruction* instruction, Operand operand[4])
                 modrm_sib[MODRM_INDEX] |= 192;
                 modrm_sib[MODRM_INDEX] |=(operand[0].reg.registerIndex << 3);
                 modrm_sib[MODRM_INDEX] |= operand[2].reg.registerIndex; 
-                modrm_size++;
+                modrm_size = 1;
             } else{ 
                 vex ^= REX_MEM_TO_VEX(operand[2].mem.rex);
                 addend = operand[2].mem.offset; 
@@ -1316,14 +1316,16 @@ static void emit_instruction(const Instruction* instruction, Operand operand[4])
                 set_b(&operand[1], &vex, &rex);
                 modrm_sib[MODRM_INDEX] |= 192;
                 modrm_sib[MODRM_INDEX] |= operand[1].reg.registerIndex; 
-                modrm_size++;
+                modrm_size = 1;
             } else{ 
                 vex ^= REX_MEM_TO_VEX(operand[1].mem.rex);
                 addend = operand[1].mem.offset; 
                 modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl);
             }
             break;
- 
+        case OP_ENC_VMI: 
+            //fallthrough expected
+            imm_index = 2;
         case OP_ENC_VM: 
             vex |= (uint8_t)VEX_ONE_BYTE_DEFAULT;
             vex |= VEX_REGISTER(operand[0].reg.registerIndex);
@@ -1331,7 +1333,7 @@ static void emit_instruction(const Instruction* instruction, Operand operand[4])
                 set_b(&operand[1], &vex, &rex);
                 modrm_sib[MODRM_INDEX] |= 192;
                 modrm_sib[MODRM_INDEX] |= operand[1].reg.registerIndex; 
-                modrm_size++;
+                modrm_size = 1;
             } else{ 
                 vex ^= REX_MEM_TO_VEX(operand[1].mem.rex);
                 addend = operand[1].mem.offset;
@@ -1346,7 +1348,7 @@ static void emit_instruction(const Instruction* instruction, Operand operand[4])
                 set_b(&operand[1], &vex, &rex);
                 modrm_sib[MODRM_INDEX] |= 192;
                 modrm_sib[MODRM_INDEX] |= operand[1].reg.registerIndex; 
-                modrm_size++;
+                modrm_size = 1;
             } else{ 
                 vex ^= REX_MEM_TO_VEX(operand[1].mem.rex);
                 addend = operand[1].mem.offset; 
@@ -1385,7 +1387,7 @@ static void emit_instruction(const Instruction* instruction, Operand operand[4])
         case OP_ENC_FPU: 
             if(operand[0].type == OPERAND_STI){
                 opcode[instruction->size - 1] += operand[0].fpu_stack_index; 
-            } else{
+            } else if(is_mem(operand[0].type)){
                 rex |= operand[0].mem.rex;
                 addend = operand[0].mem.offset;
                 modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl); 
@@ -1446,7 +1448,6 @@ static void emit_instruction(const Instruction* instruction, Operand operand[4])
         section_add_data(&program.text, &lower, 1);  
         section_add_data(&program.text, opcode, instruction->size); 
     }
-
 
     if(modrm_size != 0) section_add_data(&program.text, modrm_sib, modrm_size);
 
