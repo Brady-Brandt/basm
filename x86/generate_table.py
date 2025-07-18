@@ -89,6 +89,7 @@ typedef enum {
     OP_ENC_RMI,
     OP_ENC_RMV,
     OP_ENC_RVMI,
+    OP_ENC_VMI,
     OP_ENC_RM0,
     OP_ENC_RVMR,
     OP_ENC_VM,
@@ -326,7 +327,7 @@ def parse_opcode(op):
         if chunk[0] == "/":
             try:
                 if chunk[1].isdigit():
-                    digit = int(chunk[1]) 
+                    digit = int(chunk[1:]) 
                 elif chunk[1] == "r":
                     has_modrm = True
                 elif chunk[1:] == 'is4' or chunk[1:] == 'ib':

@@ -76,23 +76,21 @@ def get_encoding(nm, encoding_val, tables, page_num):
                         return 'RM'
                 elif 'vex' in row[op2].lower():
                     if 'r/m' in row[op3].lower():
-                        # PINSRB
-                        # pymupdf can't get the fourth operand for this instruction for some reason
-                        # so we have to manually check it
                         try:
-                            row[op4]
-                        except:
+                            if 'imm8[7:4]' in row[op4].lower():
+                                return 'RVMR'
+                            elif 'imm8' in row[op4].lower(): 
+                                return 'RVMI'
+                            elif 'n/a' in row[op4].lower():
+                                return 'RVM'
+                        except IndexError:
+                            # PINSRB
+                            # pymupdf can't get the fourth operand for this instruction for some reason
+                            # so we have to manually check it
                             if encoding_val == 'A':
                                 return 'RMI'
                             else:
-                                return 'RVM'
-
-                        if 'imm8[7:4]' in row[op4]:
-                            return 'RVMR'
-                        elif 'imm8' == row[op4].lower(): 
-                            return 'RVMI'
-                        else:
-                            return 'RVM'
+                                return 'RVMI' 
                 elif 'vsib' in row[op2].lower():
                     return 'RVSV'
                 elif 'n/a' in row[op2].lower():
@@ -116,7 +114,10 @@ def get_encoding(nm, encoding_val, tables, page_num):
                     return 'MI'
             elif 'vex' in row[op1].lower():
                 if 'r/m' in row[op2].lower():
-                    return 'VM'
+                    if 'imm' in row[op3].lower():
+                        return 'VMI'
+                    else:
+                        return 'VM'
             elif 'n/a' in row[op1].lower():
                 return 'ZO'
             elif 'imm' in row[op1].lower():

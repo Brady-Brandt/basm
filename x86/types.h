@@ -187,6 +187,7 @@ typedef enum {
     OP_ENC_RMI,
     OP_ENC_RMV,
     OP_ENC_RVMI,
+    OP_ENC_VMI,
     OP_ENC_RM0,
     OP_ENC_RVMR,
     OP_ENC_VM,
