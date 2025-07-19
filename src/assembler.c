@@ -79,7 +79,7 @@ B   0   Extension of the ModR/M r/m field, SIB base field, or Opcode reg field
 // CONVERTED TO AN INDEX 0-15
 #define is_extended_reg(type) (type >= 8 && type <= 15)
 
-
+#define is_ah_to_bh(index) (index >= (REG_AH - REG_AL) && index <= (REG_BH - REG_AL))
 #define is_xy_reg(r) (r == OPERAND_XMM || r == OPERAND_YMM)
 //potentially remove mm and make rename this to is_sse_reg
 #define is_advanced_reg(r) (r >= OPERAND_MM && r <= OPERAND_YMM)
@@ -1190,7 +1190,7 @@ static inline void emit_operand_overide_prefix(OperandType op1, OperandType inst
 #define VEX_REGISTER(reg) (((~(reg)) & 0xF) << 3)
 
 
-static void emit_instruction(const Instruction* instruction, Operand operand[4]){
+static void emit_instruction(Parser *p, const Instruction* instruction, Operand operand[4]){
     uint16_t vex = 0xE000;
     uint8_t rex = 0;
     uint8_t modrm_sib[6] = {0};
@@ -1207,6 +1207,15 @@ static void emit_instruction(const Instruction* instruction, Operand operand[4])
     if(instruction->digit != -1){
         modrm_size = 1;
         modrm_sib[MODRM_INDEX] |= (instruction->digit << 3);
+    }
+
+    bool op1_is_upper_reg = false;
+    bool op2_is_upper_reg = false;
+
+    if(operand[0].type == OPERAND_R8 && is_ah_to_bh(operand[0].reg.registerIndex)){
+        op1_is_upper_reg = true;
+    } else if(operand[1].type == OPERAND_R8 && is_ah_to_bh(operand[1].reg.registerIndex)){
+        op2_is_upper_reg = true;
     }
 
     emit_operand_overide_prefix(operand[0].type, instruction->op2);
@@ -1412,6 +1421,17 @@ static void emit_instruction(const Instruction* instruction, Operand operand[4])
     if(instruction->flags & INSTR_USES_REX){
         rex |= instruction->rex;
         if(rex > 0x40){
+            if(op1_is_upper_reg){
+                parser_error_loc(p, operand[0].line, 
+                        operand[0].col, "Cannot use AH, BH, CH, or DH with rex prefix\n");
+                return;
+            } else if(op2_is_upper_reg){
+                parser_error_loc(p, operand[1].line, 
+                        operand[1].col, "Cannot use AH, BH, CH, or DH with rex prefix\n");
+                return;
+            }
+
+
             //rex prefix must come right before escape prefix
             if(opcode[1] == 0x0f){ 
                 section_add_data(&program.text, &opcode[0], 1);
@@ -1578,7 +1598,7 @@ static void parse_text_section(Parser* p){
                     parser_error_loc(p,instr_line, instr_col, "Couldn't find instruction for nmemonic: %s %s\n", 
                             get_keyword(instr)->name, temp); 
                 } else{
-                    emit_instruction(found_instruction, operands);
+                    emit_instruction(p, found_instruction, operands);
                 }
 
             next_iteration:
