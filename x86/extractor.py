@@ -3,10 +3,7 @@ import pymupdf
 
 instructions = {}
 
-
-
 unsupported = []
-
 
 letters = []
 
@@ -16,6 +13,18 @@ known_pages = []
 doc = pymupdf.open("intel.pdf")
 
 encodings = []
+
+
+# operand encoding for these instructions as stated in the intel manual is incorrect
+correct_encodings = { 
+        "VPCMPISTRM": 'RMI',
+        "PCMPISTRM" : 'RMI',
+        "PTWRITE": 'M',
+        "PCMPISTRI": 'RMI',
+        "VPCMPISTRI": 'RMI',
+        "SHA256RNDS2": 'RM0',
+        "HRESET": 'I',
+}
 
 
 out = open("instructions.dat", "w") 
@@ -73,6 +82,9 @@ def get_encoding(nm, encoding_val, tables, page_num):
                     elif 'imm' in row[op3].lower():
                         return 'RMI'
                     elif 'n/a' in row[op3].lower() or 'implicit' in row[op3].lower(): 
+                        # operanding encoding for these instruction is incorrect
+                        if nm != None and ('vpermilps' in nm.lower() or 'vpermilpd' in nm.lower()):
+                            return 'RMI'
                         return 'RM'
                 elif 'vex' in row[op2].lower():
                     if 'r/m' in row[op3].lower():
@@ -105,9 +117,10 @@ def get_encoding(nm, encoding_val, tables, page_num):
                     if 'reg' in row[op3].lower():
                         return 'MVR'
                     # it seems there was a typo in the operand table
-                    # for MOVLPD
+                    # for MOVLPD based on the operands it seems
+                    # it should be RVM
                     elif 'r/m' in row[op3].lower():
-                        return 'MVR'
+                        return 'RVM'
                 elif 'implicit' in row[op2].lower() or 'n/a' in row[op2].lower():
                     return 'M'
                 elif 'imm' in row[op2].lower():
@@ -192,7 +205,7 @@ def write_opcode_table(instruction, file, op_table, tables, page_num):
             # make sure the entire instruction is on one line
             if len(tmp) > 2:
                 for i in range(2, len(tmp)):
-                    tmp[1] += tmp[i]
+                    tmp[1] += ' ' + tmp[i]
             
 
             opcode = tmp[0]
@@ -202,10 +215,12 @@ def write_opcode_table(instruction, file, op_table, tables, page_num):
             encoding = row[1]
             encoding = encoding.replace('\n','')
 
-            # the operand encoding for this instruction 
-            # is wrong
-            if instruction != None and 'sha256rnds2' in instruction.lower():
-                encoding = 'RM0'
+            # fix the instructions with incorrect encodings
+            if instruction != None:
+                for right_enc in correct_encodings:
+                    if right_enc.lower() in instruction.lower():
+                        encoding = correct_encodings[right_enc]
+                        break
             
             # fxtract has a different opcode table format then
             # than the rest of the fpu instructions
@@ -251,6 +266,12 @@ def write_opcode_table(instruction, file, op_table, tables, page_num):
 
             row[0] = row[0].replace("/r1", "/r")
             row[1] = row[1].replace("81", "8")
+
+            row[1] = row[1].replace("UD01", "UD0")
+            row[1] = row[1].replace("FNSTSW1", "FNSTSW")
+            row[1] = row[1].replace("FNCLEX1", "FNCLEX")
+            row[1] = row[1].replace("FNINIT1", "FNINIT")
+
             row[1] = row[1].replace("82", "8")
             row[1] = row[1].replace("g2", "g")
             row[1] = row[1].replace("83", "8")

@@ -49,18 +49,18 @@ RM   |03 /r                                  |ADD r32, r/m32
 RM   |REX.W + 03 /r                          |ADD r64, r/m64
 ADDPD—Add
 RM   |66 0F 58 /r                            |ADDPD xmm1, xmm2/m128
-RVM  |VEX.128.66.0F.WIG 58 /r                |VADDPD xmm1,xmm2,xmm3/m128
-RVM  |VEX.256.66.0F.WIG 58 /r                |VADDPD ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F.WIG 58 /r                |VADDPD xmm1,xmm2, xmm3/m128
+RVM  |VEX.256.66.0F.WIG 58 /r                |VADDPD ymm1, ymm2, ymm3/m256
 ADDPS—Add
 RM   |NP 0F 58 /r                            |ADDPS xmm1, xmm2/m128
 RVM  |VEX.128.0F.WIG 58 /r                   |VADDPS xmm1,xmm2, xmm3/m128
 RVM  |VEX.256.0F.WIG 58 /r                   |VADDPS ymm1, ymm2, ymm3/m256
 ADDSD—Add
 RM   |F2 0F 58 /r                            |ADDSD xmm1, xmm2/m64
-RVM  |VEX.LIG.F2.0F.WIG 58 /r                |VADDSD xmm1, xmm2,xmm3/m64
+RVM  |VEX.LIG.F2.0F.WIG 58 /r                |VADDSD xmm1, xmm2, xmm3/m64
 ADDSS—Add
 RM   |F3 0F 58 /r                            |ADDSS xmm1, xmm2/m32
-RVM  |VEX.LIG.F3.0F.WIG 58 /r                |VADDSS xmm1,xmm2,xmm3/m32
+RVM  |VEX.LIG.F3.0F.WIG 58 /r                |VADDSS xmm1,xmm2, xmm3/m32
 ADDSUBPD—Packed
 RM   |66 0F D0 /r                            |ADDSUBPD xmm1, xmm2/m128
 RVM  |VEX.128.66.0F.WIG D0 /r                |VADDSUBPD xmm1, xmm2, xmm3/m128
@@ -139,16 +139,16 @@ RVM  |VEX.128.66.0F 54 /r                    |VANDPD xmm1, xmm2, xmm3/m128
 RVM  |VEX.256.66.0F 54 /r                    |VANDPD ymm1, ymm2, ymm3/m256
 ANDPS—Bitwise
 RM   |NP 0F 54 /r                            |ANDPS xmm1, xmm2/m128
-RVM  |VEX.128.0F 54 /r                       |VANDPS xmm1,xmm2,xmm3/m128
-RVM  |VEX.256.0F 54 /r                       |VANDPS ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.0F 54 /r                       |VANDPS xmm1,xmm2, xmm3/m128
+RVM  |VEX.256.0F 54 /r                       |VANDPS ymm1, ymm2, ymm3/m256
 ANDNPD—Bitwise
 RM   |66 0F 55 /r                            |ANDNPD xmm1, xmm2/m128
-RVM  |VEX.128.66.0F 55 /r                    |VANDNPD xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F 55/r                     |VANDNPD ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F 55 /r                    |VANDNPD xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F 55/r                     |VANDNPD ymm1, ymm2, ymm3/m256
 ANDNPS—Bitwise
 RM   |NP 0F 55 /r                            |ANDNPS xmm1, xmm2/m128
-RVM  |VEX.128.0F 55 /r                       |VANDNPS xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.0F 55 /r                       |VANDNPS ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.0F 55 /r                       |VANDNPS xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.0F 55 /r                       |VANDNPS ymm1, ymm2, ymm3/m256
 BEXTR—Bit
 RMV  |VEX.LZ.0F38.W0 F7 /r                   |BEXTR r32a, r/m32, r32b
 RMV  |VEX.LZ.0F38.W1 F7 /r                   |BEXTR r64a, r/m64, r64b
@@ -385,12 +385,12 @@ RM   |3B /r                                  |CMP r32, r/m32
 RM   |REX.W + 3B /r                          |CMP r64, r/m64
 CMPPD—Compare
 RMI  |66 0F C2 /r ib                         |CMPPD xmm1, xmm2/m128, imm8
-RVMI |VEX.128.66.0F.WIG C2 /r ib             |VCMPPD xmm1, xmm2, xmm3/m128,imm8
-RVMI |VEX.256.66.0F.WIG C2 /r ib             |VCMPPD ymm1, ymm2, ymm3/m256,imm8
+RVMI |VEX.128.66.0F.WIG C2 /r ib             |VCMPPD xmm1, xmm2, xmm3/m128, imm8
+RVMI |VEX.256.66.0F.WIG C2 /r ib             |VCMPPD ymm1, ymm2, ymm3/m256, imm8
 CMPPS—Compare
 RMI  |NP 0F C2 /r ib                         |CMPPS xmm1, xmm2/m128, imm8
-RVMI |VEX.128.0F.WIG C2 /r ib                |VCMPPS xmm1, xmm2,xmm3/m128, imm8
-RVMI |VEX.256.0F.WIG C2 /r ib                |VCMPPS ymm1, ymm2,ymm3/m256, imm8
+RVMI |VEX.128.0F.WIG C2 /r ib                |VCMPPS xmm1, xmm2, xmm3/m128, imm8
+RVMI |VEX.256.0F.WIG C2 /r ib                |VCMPPS ymm1, ymm2, ymm3/m256, imm8
 CMPS/CMPSB/CMPSW/CMPSD/CMPSQ—Compare
 ZO   |A6                                     |CMPS m8, m8
 ZO   |A7                                     |CMPS m16, m16
@@ -402,10 +402,10 @@ ZO   |A7                                     |CMPSD
 ZO   |REX.W + A7                             |CMPSQ
 CMPSD—Compare
 RMI  |F2 0F C2 /r ib                         |CMPSD xmm1, xmm2/m64, imm8
-RVMI |VEX.LIG.F2.0F.WIG C2 /r ib             |VCMPSD xmm1, xmm2, xmm3/m64,imm8
+RVMI |VEX.LIG.F2.0F.WIG C2 /r ib             |VCMPSD xmm1, xmm2, xmm3/m64, imm8
 CMPSS—Compare
 RMI  |F3 0F C2 /r ib                         |CMPSS xmm1, xmm2/m32, imm8
-RVMI |VEX.LIG.F3.0F.WIG C2 /r ib             |VCMPSS xmm1, xmm2, xmm3/m32,imm8
+RVMI |VEX.LIG.F3.0F.WIG C2 /r ib             |VCMPSS xmm1, xmm2, xmm3/m32, imm8
 CMPXCHG—Compare
 MR   |0F B0/r                                |CMPXCHG r/m8, r8
 MR   |REX + 0F B0/r                          |CMPXCHG r/m8,r8
@@ -474,7 +474,7 @@ RVM  |VEX.LIG.F3.0F.W0 2A /r                 |VCVTSI2SS xmm1, xmm2, r/m32
 RVM  |VEX.LIG.F3.0F.W1 2A /r                 |VCVTSI2SS xmm1, xmm2, r/m64
 CVTSS2SD—Convert
 RM   |F3 0F 5A /r                            |CVTSS2SD xmm1, xmm2/m32
-RVM  |VEX.LIG.F3.0F.WIG 5A /r                |VCVTSS2SD xmm1, xmm2,xmm3/m32
+RVM  |VEX.LIG.F3.0F.WIG 5A /r                |VCVTSS2SD xmm1, xmm2, xmm3/m32
 CVTSS2SI—Convert
 RM   |F3 0F 2D /r                            |CVTSS2SI r32, xmm1/m32
 RM   |F3 REX.W 0F 2D /r                      |CVTSS2SI r64, xmm1/m32
@@ -542,7 +542,7 @@ RVMI |VEX.256.66.0F3A.WIG 40 /r ib           |VDPPS ymm1, ymm2, ymm3/m256, imm8
 EMMS—Empty
 ZO   |NP 0F 77                               |EMMS
 ENCODEKEY128—Encode
-RM   |F3 0F 38 FA 11:rrr:bbb                 |ENCODEKEY128 r32, r32, <XMM0-2>,<XMM4-6>
+RM   |F3 0F 38 FA 11:rrr:bbb                 |ENCODEKEY128 r32, r32, <XMM0-2>, <XMM4-6>
 ENCODEKEY256—Encode
 RM   |F3 0F 38 FB 11:rrr:bbb                 |ENCODEKEY256 r32, r32 <XMM0-6>
 ENDBR32—Terminate
@@ -581,7 +581,7 @@ FCHS—Change
 FPU  |D9 E0                                  |FCHS
 FCLEX/FNCLEX—Clear
 FPU  |9B DB E2                               |FCLEX
-FPU  |DB E2                                  |FNCLEX1
+FPU  |DB E2                                  |FNCLEX
 FCMOVcc—Floating-Point
 FPU  |DA C0+i                                |FCMOVB ST(0), ST(i)
 FPU  |DA C8+i                                |FCMOVE ST(0), ST(i)
@@ -638,7 +638,7 @@ FINCSTP—Increment
 FPU  |D9 F7                                  |FINCSTP
 FINIT/FNINIT—Initialize
 FPU  |9B DB E3                               |FINIT
-FPU  |DB E3                                  |FNINIT1
+FPU  |DB E3                                  |FNINIT
 FIST/FISTP—Store
 FPU  |DF /2                                  |FIST m16int
 FPU  |DB /2                                  |FIST m32int
@@ -717,8 +717,8 @@ FPU  |D9 /6                                  |FNSTENV1 m14/28byte
 FSTSW/FNSTSW—Store
 FPU  |9B DD /7                               |FSTSW m2byte
 FPU  |9B DF E0                               |FSTSW AX
-FPU  |DD /7                                  |FNSTSW1 m2byte
-FPU  |DF E0                                  |FNSTSW1 AX
+FPU  |DD /7                                  |FNSTSW m2byte
+FPU  |DF E0                                  |FNSTSW AX
 FSUB/FSUBP/FISUB—Subtract
 FPU  |D8 /4                                  |FSUB m32fp
 FPU  |DC /4                                  |FSUB m64fp
@@ -763,17 +763,17 @@ FPU  |D9 F1                                  |FYL2X
 FYL2XP1—Compute
 FPU  |D9 F9                                  |FYL2XP1
 GF2P8AFFINEINVQB—Galois
-RMI  |66 0F3A CF /r /ib                      |GF2P8AFFINEINVQB xmm1,xmm2/m128, imm8
-RVMI |VEX.128.66.0F3A.W1 CF /r /ib           |VGF2P8AFFINEINVQB xmm1, xmm2,xmm3/m128, imm8
-RVMI |VEX.256.66.0F3A.W1 CF /r /ib           |VGF2P8AFFINEINVQB ymm1, ymm2,ymm3/m256, imm8
+RMI  |66 0F3A CF /r /ib                      |GF2P8AFFINEINVQB xmm1, xmm2/m128, imm8
+RVMI |VEX.128.66.0F3A.W1 CF /r /ib           |VGF2P8AFFINEINVQB xmm1, xmm2, xmm3/m128, imm8
+RVMI |VEX.256.66.0F3A.W1 CF /r /ib           |VGF2P8AFFINEINVQB ymm1, ymm2, ymm3/m256, imm8
 GF2P8AFFINEQB—Galois
-RMI  |66 0F3A CE /r /ib                      |GF2P8AFFINEQB xmm1,xmm2/m128, imm8
-RVMI |VEX.128.66.0F3A.W1 CE /r /ib           |VGF2P8AFFINEQB xmm1, xmm2,xmm3/m128, imm8
-RVMI |VEX.256.66.0F3A.W1 CE /r /ib           |VGF2P8AFFINEQB ymm1, ymm2,ymm3/m256, imm8
+RMI  |66 0F3A CE /r /ib                      |GF2P8AFFINEQB xmm1, xmm2/m128, imm8
+RVMI |VEX.128.66.0F3A.W1 CE /r /ib           |VGF2P8AFFINEQB xmm1, xmm2, xmm3/m128, imm8
+RVMI |VEX.256.66.0F3A.W1 CE /r /ib           |VGF2P8AFFINEQB ymm1, ymm2, ymm3/m256, imm8
 GF2P8MULB—Galois
 RM   |66 0F38 CF /r                          |GF2P8MULB xmm1, xmm2/m128
-RVM  |VEX.128.66.0F38.W0 CF /r               |VGF2P8MULB xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.W0 CF /r               |VGF2P8MULB ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.W0 CF /r               |VGF2P8MULB xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.W0 CF /r               |VGF2P8MULB ymm1, ymm2, ymm3/m256
 HADDPD—Packed
 RM   |66 0F 7C /r                            |HADDPD xmm1, xmm2/m128
 RVM  |VEX.128.66.0F.WIG 7C /r                |VHADDPD xmm1,xmm2, xmm3/m128
@@ -785,7 +785,7 @@ RVM  |VEX.256.F2.0F.WIG 7C /r                |VHADDPS ymm1, ymm2, ymm3/m256
 HLT—Halt
 ZO   |F4                                     |HLT
 HRESET—History
-M    |F3 0F 3A F0 C0 /ib                     |HRESET imm8, <EAX>
+I    |F3 0F 3A F0 C0 /ib                     |HRESET imm8, <EAX>
 HSUBPD—Packed
 RM   |66 0F 7D /r                            |HSUBPD xmm1, xmm2/m128
 RVM  |VEX.128.66.0F.WIG 7D /r                |VHSUBPD xmm1,xmm2, xmm3/m128
@@ -839,7 +839,7 @@ ZO   |6D                                     |INSW
 ZO   |6D                                     |INSD
 INSERTPS—Insert
 RMI  |66 0F 3A 21 /r ib                      |INSERTPS xmm1, xmm2/m32, imm8
-RVMI |VEX.128.66.0F3A.WIG 21 /r ib           |VINSERTPS xmm1, xmm2, xmm3/m32,imm8
+RVMI |VEX.128.66.0F3A.WIG 21 /r ib           |VINSERTPS xmm1, xmm2, xmm3/m32, imm8
 INVD—Invalidate
 ZO   |0F 08                                  |INVD
 INVLPG—Invalidate
@@ -999,8 +999,8 @@ RVM  |VEX.128.66.0F.WIG 5F /r                |VMAXPD xmm1, xmm2, xmm3/m128
 RVM  |VEX.256.66.0F.WIG 5F /r                |VMAXPD ymm1, ymm2, ymm3/m256
 MAXPS—Maximum
 RM   |NP 0F 5F /r                            |MAXPS xmm1, xmm2/m128
-RVM  |VEX.128.0F.WIG 5F /r                   |VMAXPS xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.0F.WIG 5F /r                   |VMAXPS ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.0F.WIG 5F /r                   |VMAXPS xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.0F.WIG 5F /r                   |VMAXPS ymm1, ymm2, ymm3/m256
 MAXSD—Return
 RM   |F2 0F 5F /r                            |MAXSD xmm1, xmm2/m64
 RVM  |VEX.LIG.F2.0F.WIG 5F /r                |VMAXSD xmm1, xmm2, xmm3/m64
@@ -1011,12 +1011,12 @@ MFENCE—Memory
 ZO   |NP 0F AE F0                            |MFENCE
 MINPD—Minimum
 RM   |66 0F 5D /r                            |MINPD xmm1, xmm2/m128
-RVM  |VEX.128.66.0F.WIG 5D /r                |VMINPD xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F.WIG 5D /r                |VMINPD ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F.WIG 5D /r                |VMINPD xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F.WIG 5D /r                |VMINPD ymm1, ymm2, ymm3/m256
 MINPS—Minimum
 RM   |NP 0F 5D /r                            |MINPS xmm1, xmm2/m128
-RVM  |VEX.128.0F.WIG 5D /r                   |VMINPS xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.0F.WIG 5D /r                   |VMINPS ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.0F.WIG 5D /r                   |VMINPS xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.0F.WIG 5D /r                   |VMINPS ymm1, ymm2, ymm3/m256
 MINSD—Return
 RM   |F2 0F 5D /r                            |MINSD xmm1, xmm2/m64
 RVM  |VEX.LIG.F2.0F.WIG 5D /r                |VMINSD xmm1, xmm2, xmm3/m64
@@ -1146,7 +1146,7 @@ RM   |NP 0F 16 /r                            |MOVLHPS xmm1, xmm2
 RVM  |VEX.128.0F.WIG 16 /r                   |VMOVLHPS xmm1, xmm2, xmm3
 MOVLPD—Move
 RM   |66 0F 12 /r                            |MOVLPD xmm1, m64
-MVR  |VEX.128.66.0F.WIG 12 /r                |VMOVLPD xmm2, xmm1, m64
+RVM  |VEX.128.66.0F.WIG 12 /r                |VMOVLPD xmm2, xmm1, m64
 MR   |66 0F 13/r                             |MOVLPD m64, xmm1
 MR   |VEX.128.66.0F.WIG 13/r                 |VMOVLPD m64, xmm1
 MOVLPS—Move
@@ -1368,8 +1368,8 @@ RVM  |VEX.256.66.0F.WIG 63 /r                |VPACKSSWB ymm1, ymm2, ymm3/m256
 RVM  |VEX.256.66.0F.WIG 6B /r                |VPACKSSDW ymm1, ymm2, ymm3/m256
 PACKUSDW—Pack
 RM   |66 0F 38 2B /r                         |PACKUSDW xmm1, xmm2/m128
-RVM  |VEX.128.66.0F38 2B /r                  |VPACKUSDW xmm1,xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38 2B /r                  |VPACKUSDW ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38 2B /r                  |VPACKUSDW xmm1,xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38 2B /r                  |VPACKUSDW ymm1, ymm2, ymm3/m256
 PACKUSWB—Pack
 RM   |NP 0F 67 /r1                           |PACKUSWB mm, mm/m64
 RM   |66 0F 67 /r                            |PACKUSWB xmm1, xmm2/m128
@@ -1413,8 +1413,8 @@ RVM  |VEX.256.66.0F.WIG DD /r                |VPADDUSW ymm1, ymm2, ymm3/m256
 PALIGNR—Packed
 RMI  |NP 0F 3A 0F /r ib1                     |PALIGNR mm1, mm2/m64, imm8
 RMI  |66 0F 3A 0F /r ib                      |PALIGNR xmm1, xmm2/m128, imm8
-RVMI |VEX.128.66.0F3A.WIG 0F /r ib           |VPALIGNR xmm1, xmm2, xmm3/m128,imm8
-RVMI |VEX.256.66.0F3A.WIG 0F /r ib           |VPALIGNR ymm1, ymm2, ymm3/m256,imm8
+RVMI |VEX.128.66.0F3A.WIG 0F /r ib           |VPALIGNR xmm1, xmm2, xmm3/m128, imm8
+RVMI |VEX.256.66.0F3A.WIG 0F /r ib           |VPALIGNR ymm1, ymm2, ymm3/m256, imm8
 PAND—Logical
 RM   |NP 0F DB /r1                           |PAND mm, mm/m64
 RM   |66 0F DB /r                            |PAND xmm1, xmm2/m128
@@ -1489,11 +1489,11 @@ RM   |66 0F 38 37 /r                         |PCMPGTQ xmm1,xmm2/m128
 RVM  |VEX.128.66.0F38.WIG 37 /r              |VPCMPGTQ xmm1, xmm2, xmm3/m128
 RVM  |VEX.256.66.0F38.WIG 37 /r              |VPCMPGTQ ymm1, ymm2, ymm3/m256
 PCMPISTRI—Packed
-RM   |66 0F 3A 63 /r imm8                    |PCMPISTRI xmm1, xmm2/m128, imm8
-RM   |VEX.128.66.0F3A.WIG 63 /r ib           |VPCMPISTRI xmm1, xmm2/m128, imm8
+RMI  |66 0F 3A 63 /r imm8                    |PCMPISTRI xmm1, xmm2/m128, imm8
+RMI  |VEX.128.66.0F3A.WIG 63 /r ib           |VPCMPISTRI xmm1, xmm2/m128, imm8
 PCMPISTRM—Packed
-RM   |66 0F 3A 62 /r imm8                    |PCMPISTRM xmm1, xmm2/m128, imm8
-RM   |VEX.128.66.0F3A.WIG 62 /r ib           |VPCMPISTRM xmm1, xmm2/m128, imm8
+RMI  |66 0F 3A 62 /r imm8                    |PCMPISTRM xmm1, xmm2/m128, imm8
+RMI  |VEX.128.66.0F3A.WIG 62 /r ib           |VPCMPISTRM xmm1, xmm2/m128, imm8
 PCONFIG—Platform
 ZO   |NP 0F 01 C5                            |PCONFIG
 PDEP—Parallel
@@ -1612,8 +1612,8 @@ RVM  |VEX.256.66.0F DA /r                    |VPMINUB ymm1, ymm2, ymm3/m256
 RVM  |VEX.256.66.0F38 3A/r                   |VPMINUW ymm1, ymm2, ymm3/m256
 PMINUD/PMINUQ—Minimum
 RM   |66 0F 38 3B /r                         |PMINUD xmm1, xmm2/m128
-RVM  |VEX.128.66.0F38.WIG 3B /r              |VPMINUD xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.WIG 3B /r              |VPMINUD ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.WIG 3B /r              |VPMINUD xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.WIG 3B /r              |VPMINUD ymm1, ymm2, ymm3/m256
 PMOVMSKB—Move
 RM   |NP 0F D7 /r1                           |PMOVMSKB reg, mm
 RM   |66 0F D7 /r                            |PMOVMSKB reg, xmm
@@ -1660,8 +1660,8 @@ RM   |VEX.256.66.0F38.WIG 34 /r              |VPMOVZXWQ ymm1, xmm2/m64
 RM   |VEX.256.66.0F38.WIG 35 /r              |VPMOVZXDQ ymm1, xmm2/m128
 PMULDQ—Multiply
 RM   |66 0F 38 28 /r                         |PMULDQ xmm1, xmm2/m128
-RVM  |VEX.128.66.0F38.WIG 28 /r              |VPMULDQ xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.WIG 28 /r              |VPMULDQ ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.WIG 28 /r              |VPMULDQ xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.WIG 28 /r              |VPMULDQ ymm1, ymm2, ymm3/m256
 PMULHRSW—Packed
 RM   |NP 0F 38 0B /r1                        |PMULHRSW mm1, mm2/m64
 RM   |66 0F 38 0B /r                         |PMULHRSW xmm1, xmm2/m128
@@ -1679,8 +1679,8 @@ RVM  |VEX.128.66.0F.WIG E5 /r                |VPMULHW xmm1, xmm2, xmm3/m128
 RVM  |VEX.256.66.0F.WIG E5 /r                |VPMULHW ymm1, ymm2, ymm3/m256
 PMULLD/PMULLQ—Multiply
 RM   |66 0F 38 40 /r                         |PMULLD xmm1, xmm2/m128
-RVM  |VEX.128.66.0F38.WIG 40 /r              |VPMULLD xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.WIG 40 /r              |VPMULLD ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.WIG 40 /r              |VPMULLD xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.WIG 40 /r              |VPMULLD ymm1, ymm2, ymm3/m256
 PMULLW—Multiply
 RM   |NP 0F D5 /r1                           |PMULLW mm, mm/m64
 RM   |66 0F D5 /r                            |PMULLW xmm1, xmm2/m128
@@ -1874,8 +1874,8 @@ RM   |66 0F 38 17 /r                         |PTEST xmm1, xmm2/m128
 RM   |VEX.128.66.0F38.WIG 17 /r              |VPTEST xmm1, xmm2/m128
 RM   |VEX.256.66.0F38.WIG 17 /r              |VPTEST ymm1, ymm2/m256
 PTWRITE—Write
-RM   |F3 REX.W 0F AE /4                      |PTWRITE r64/m64
-RM   |F3 0F AE /4                            |PTWRITE r32/m32
+M    |F3 REX.W 0F AE /4                      |PTWRITE r64/m64
+M    |F3 0F AE /4                            |PTWRITE r32/m32
 PUNPCKHBW/PUNPCKHWD/PUNPCKHDQ/PUNPCKHQDQ—
 RM   |NP 0F 68 /r1                           |PUNPCKHBW mm, mm/m64
 RM   |66 0F 68 /r                            |PUNPCKHBW xmm1, xmm2/m128
@@ -2080,7 +2080,7 @@ RMI  |66 0F 3A 09 /r ib                      |ROUNDPD xmm1, xmm2/m128, imm8
 RMI  |VEX.128.66.0F3A.WIG 09 /r ib           |VROUNDPD xmm1, xmm2/m128, imm8
 RMI  |VEX.256.66.0F3A.WIG 09 /r ib           |VROUNDPD ymm1, ymm2/m256, imm8
 ROUNDPS—Round
-RMI  |66 0F 3A 08                            |/r ibROUNDPS xmm1, xmm2/m128, imm8
+RMI  |66 0F 3A 08                            |/r ib ROUNDPS xmm1, xmm2/m128, imm8
 RMI  |VEX.128.66.0F3A.WIG 08 /r ib           |VROUNDPS xmm1, xmm2/m128, imm8
 RMI  |VEX.256.66.0F3A.WIG 08 /r ib           |VROUNDPS ymm1, ymm2/m256, imm8
 ROUNDSD—Round
@@ -2276,19 +2276,19 @@ ZO   |NP 0F AE F8                            |SFENCE
 SGDT—Store
 M    |0F 01 /0                               |SGDT m
 SHA1RNDS4—Perform
-RMI  |NP 0F 3A CC /r ib                      |SHA1RNDS4 xmm1,xmm2/m128, imm8
+RMI  |NP 0F 3A CC /r ib                      |SHA1RNDS4 xmm1, xmm2/m128, imm8
 SHA1NEXTE—Calculate
-RM   |NP 0F 38 C8 /r                         |SHA1NEXTE xmm1,xmm2/m128
+RM   |NP 0F 38 C8 /r                         |SHA1NEXTE xmm1, xmm2/m128
 SHA1MSG1—Perform
-RM   |NP 0F 38 C9 /r                         |SHA1MSG1 xmm1,xmm2/m128
+RM   |NP 0F 38 C9 /r                         |SHA1MSG1 xmm1, xmm2/m128
 SHA1MSG2—Perform
-RM   |NP 0F 38 CA /r                         |SHA1MSG2 xmm1,xmm2/m128
+RM   |NP 0F 38 CA /r                         |SHA1MSG2 xmm1, xmm2/m128
 SHA256RNDS2—Perform
-RM0  |NP 0F 38 CB /r                         |SHA256RNDS2 xmm1,xmm2/m128, <XMM0>
+RM0  |NP 0F 38 CB /r                         |SHA256RNDS2 xmm1, xmm2/m128, <XMM0>
 SHA256MSG1—Perform
-RM   |NP 0F 38 CC /r                         |SHA256MSG1 xmm1,xmm2/m128
+RM   |NP 0F 38 CC /r                         |SHA256MSG1 xmm1, xmm2/m128
 SHA256MSG2—Perform
-RM   |NP 0F 38 CD /r                         |SHA256MSG2 xmm1,xmm2/m128
+RM   |NP 0F 38 CD /r                         |SHA256MSG2 xmm1, xmm2/m128
 SHLD—Double
 MRI  |0F A4 /r ib                            |SHLD r/m16, r16, imm8
 MRC  |0F A5 /r                               |SHLD r/m16, r16, CL
@@ -2305,12 +2305,12 @@ MRC  |0F AD /r                               |SHRD r/m32, r32, CL
 MRC  |REX.W + 0F AD /r                       |SHRD r/m64, r64, CL
 SHUFPD—Packed
 RMI  |66 0F C6 /r ib                         |SHUFPD xmm1, xmm2/m128, imm8
-RVMI |VEX.128.66.0F.WIG C6 /r ib             |VSHUFPD xmm1, xmm2, xmm3/m128,imm8
-RVMI |VEX.256.66.0F.WIG C6 /r ib             |VSHUFPD ymm1, ymm2, ymm3/m256,imm8
+RVMI |VEX.128.66.0F.WIG C6 /r ib             |VSHUFPD xmm1, xmm2, xmm3/m128, imm8
+RVMI |VEX.256.66.0F.WIG C6 /r ib             |VSHUFPD ymm1, ymm2, ymm3/m256, imm8
 SHUFPS—Packed
 RMI  |NP 0F C6 /r ib                         |SHUFPS xmm1, xmm3/m128, imm8
-RVMI |VEX.128.0F.WIG C6 /r ib                |VSHUFPS xmm1, xmm2, xmm3/m128,imm8
-RVMI |VEX.256.0F.WIG C6 /r ib                |VSHUFPS ymm1, ymm2, ymm3/m256,imm8
+RVMI |VEX.128.0F.WIG C6 /r ib                |VSHUFPS xmm1, xmm2, xmm3/m128, imm8
+RVMI |VEX.256.0F.WIG C6 /r ib                |VSHUFPS ymm1, ymm2, ymm3/m256, imm8
 SIDT—Store
 M    |0F 01 /1                               |SIDT m
 SLDT—Store
@@ -2332,7 +2332,7 @@ RM   |F2 0F 51/r                             |SQRTSD xmm1,xmm2/m64
 RVM  |VEX.LIG.F2.0F.WIG 51/r                 |VSQRTSD xmm1,xmm2, xmm3/m64
 SQRTSS—Compute
 RM   |F3 0F 51 /r                            |SQRTSS xmm1, xmm2/m32
-RVM  |VEX.LIG.F3.0F.WIG 51 /r                |VSQRTSS xmm1, xmm2,xmm3/m32
+RVM  |VEX.LIG.F3.0F.WIG 51 /r                |VSQRTSS xmm1, xmm2, xmm3/m32
 STAC—Set
 ZO   |NP 0F 01 CB                            |STAC
 STC—Set
@@ -2454,7 +2454,7 @@ UCOMISS—Unordered
 RM   |NP 0F 2E /r                            |UCOMISS xmm1, xmm2/m32
 RM   |VEX.LIG.0F.WIG 2E /r                   |VUCOMISS xmm1, xmm2/m32
 UD—Undefined
-RM   |0F FF /r                               |UD01 r32, r/m32
+RM   |0F FF /r                               |UD0 r32, r/m32
 RM   |0F B9 /r                               |UD1 r32, r/m32
 ZO   |0F 0B                                  |UD2
 UIRET—User-Interrupt
@@ -2465,20 +2465,20 @@ UMWAIT—User
 M    |F2 0F AE /6                            |UMWAIT r32, <edx>, <eax>
 UNPCKHPD—Unpack
 RM   |66 0F 15 /r                            |UNPCKHPD xmm1, xmm2/m128
-RVM  |VEX.128.66.0F.WIG 15 /r                |VUNPCKHPD xmm1,xmm2,xmm3/m128
-RVM  |VEX.256.66.0F.WIG 15 /r                |VUNPCKHPD ymm1,ymm2,ymm3/m256
+RVM  |VEX.128.66.0F.WIG 15 /r                |VUNPCKHPD xmm1,xmm2, xmm3/m128
+RVM  |VEX.256.66.0F.WIG 15 /r                |VUNPCKHPD ymm1,ymm2, ymm3/m256
 UNPCKHPS—Unpack
 RM   |NP 0F 15 /r                            |UNPCKHPS xmm1, xmm2/m128
-RVM  |VEX.128.0F.WIG 15 /r                   |VUNPCKHPS xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.0F.WIG 15 /r                   |VUNPCKHPS ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.0F.WIG 15 /r                   |VUNPCKHPS xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.0F.WIG 15 /r                   |VUNPCKHPS ymm1, ymm2, ymm3/m256
 UNPCKLPD—Unpack
 RM   |66 0F 14 /r                            |UNPCKLPD xmm1, xmm2/m128
-RVM  |VEX.128.66.0F.WIG 14 /r                |VUNPCKLPD xmm1,xmm2,xmm3/m128
-RVM  |VEX.256.66.0F.WIG 14 /r                |VUNPCKLPD ymm1,ymm2,ymm3/m256
+RVM  |VEX.128.66.0F.WIG 14 /r                |VUNPCKLPD xmm1,xmm2, xmm3/m128
+RVM  |VEX.256.66.0F.WIG 14 /r                |VUNPCKLPD ymm1,ymm2, ymm3/m256
 UNPCKLPS—Unpack
 RM   |NP 0F 14 /r                            |UNPCKLPS xmm1, xmm2/m128
-RVM  |VEX.128.0F.WIG 14 /r                   |VUNPCKLPS xmm1,xmm2,xmm3/m128
-RVM  |VEX.256.0F.WIG 14 /r                   |VUNPCKLPSymm1,ymm2,ymm3/m256
+RVM  |VEX.128.0F.WIG 14 /r                   |VUNPCKLPS xmm1,xmm2, xmm3/m128
+RVM  |VEX.256.0F.WIG 14 /r                   |VUNPCKLPS ymm1,ymm2,ymm3/m256
 VBROADCAST—Load
 RM   |VEX.128.66.0F38.W0 18 /r               |VBROADCASTSS xmm1, m32
 RM   |VEX.256.66.0F38.W0 18 /r               |VBROADCASTSS ymm1, m32
@@ -2491,131 +2491,131 @@ VCVTPH2PS/VCVTPH2PSX—Convert
 RM   |VEX.128.66.0F38.W0 13 /r               |VCVTPH2PS xmm1, xmm2/m64
 RM   |VEX.256.66.0F38.W0 13 /r               |VCVTPH2PS ymm1, xmm2/m128
 VCVTPS2PH—Convert
-MRI  |VEX.128.66.0F3A.W0 1D /r ib            |VCVTPS2PH xmm1/m64, xmm2,imm8
-MRI  |VEX.256.66.0F3A.W0 1D /r ib            |VCVTPS2PH xmm1/m128, ymm2,imm8
+MRI  |VEX.128.66.0F3A.W0 1D /r ib            |VCVTPS2PH xmm1/m64, xmm2, imm8
+MRI  |VEX.256.66.0F3A.W0 1D /r ib            |VCVTPS2PH xmm1/m128, ymm2, imm8
 VERR/VERW—Verify
 M    |0F 00 /4                               |VERR r/m16
 M    |0F 00 /5                               |VERW r/m16
 VEXTRACTF128/VEXTRACTF32x4/VEXTRACTF64x2/VEXTRACTF32x8/VEXTRACTF64x4—
-MRI  |VEX.256.66.0F3A.W0 19 /r ib            |VEXTRACTF128 xmm1/m128, ymm2,imm8
+MRI  |VEX.256.66.0F3A.W0 19 /r ib            |VEXTRACTF128 xmm1/m128, ymm2, imm8
 VEXTRACTI128/VEXTRACTI32x4/VEXTRACTI64x2/VEXTRACTI32x8/VEXTRACTI64x4—Extract
-MRI  |VEX.256.66.0F3A.W0 39 /r ib            |VEXTRACTI128 xmm1/m128, ymm2,imm8
+MRI  |VEX.256.66.0F3A.W0 39 /r ib            |VEXTRACTI128 xmm1/m128, ymm2, imm8
 VFMADD132PD/VFMADD213PD/VFMADD231PD—Fused
-RVM  |VEX.128.66.0F38.W1 98 /r               |VFMADD132PD xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W1 A8 /r               |VFMADD213PD xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W1 B8 /r               |VFMADD231PD xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.W1 98 /r               |VFMADD132PD ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W1 A8 /r               |VFMADD213PD ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W1 B8 /r               |VFMADD231PD ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.W1 98 /r               |VFMADD132PD xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W1 A8 /r               |VFMADD213PD xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W1 B8 /r               |VFMADD231PD xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.W1 98 /r               |VFMADD132PD ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W1 A8 /r               |VFMADD213PD ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W1 B8 /r               |VFMADD231PD ymm1, ymm2, ymm3/m256
 VFMADD132PS/VFMADD213PS/VFMADD231PS—Fused
-RVM  |VEX.128.66.0F38.W0 98 /r               |VFMADD132PS xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W0 A8 /r               |VFMADD213PS xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W0 B8 /r               |VFMADD231PS xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.W0 98 /r               |VFMADD132PS ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W0 A8 /r               |VFMADD213PS ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.0 B8 /r                |VFMADD231PS ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.W0 98 /r               |VFMADD132PS xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W0 A8 /r               |VFMADD213PS xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W0 B8 /r               |VFMADD231PS xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.W0 98 /r               |VFMADD132PS ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W0 A8 /r               |VFMADD213PS ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.0 B8 /r                |VFMADD231PS ymm1, ymm2, ymm3/m256
 VFMADD132SD/VFMADD213SD/VFMADD231SD—Fused
-RVM  |VEX.LIG.66.0F38.W1 99 /r               |VFMADD132SD xmm1, xmm2,xmm3/m64
-RVM  |VEX.LIG.66.0F38.W1 A9 /r               |VFMADD213SD xmm1, xmm2,xmm3/m64
-RVM  |VEX.LIG.66.0F38.W1 B9 /r               |VFMADD231SD xmm1, xmm2,xmm3/m64
+RVM  |VEX.LIG.66.0F38.W1 99 /r               |VFMADD132SD xmm1, xmm2, xmm3/m64
+RVM  |VEX.LIG.66.0F38.W1 A9 /r               |VFMADD213SD xmm1, xmm2, xmm3/m64
+RVM  |VEX.LIG.66.0F38.W1 B9 /r               |VFMADD231SD xmm1, xmm2, xmm3/m64
 VFMADD132SS/VFMADD213SS/VFMADD231SS—Fused
-RVM  |VEX.LIG.66.0F38.W0 99 /r               |VFMADD132SS xmm1, xmm2,xmm3/m32
-RVM  |VEX.LIG.66.0F38.W0 A9 /r               |VFMADD213SS xmm1, xmm2,xmm3/m32
-RVM  |VEX.LIG.66.0F38.W0 B9 /r               |VFMADD231SS xmm1, xmm2,xmm3/m32
+RVM  |VEX.LIG.66.0F38.W0 99 /r               |VFMADD132SS xmm1, xmm2, xmm3/m32
+RVM  |VEX.LIG.66.0F38.W0 A9 /r               |VFMADD213SS xmm1, xmm2, xmm3/m32
+RVM  |VEX.LIG.66.0F38.W0 B9 /r               |VFMADD231SS xmm1, xmm2, xmm3/m32
 VFMADDSUB132PD/VFMADDSUB213PD/VFMADDSUB231PD—Fused
-RVM  |VEX.128.66.0F38.W1 96 /r               |VFMADDSUB132PD xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W1 A6 /r               |VFMADDSUB213PD xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W1 B6 /r               |VFMADDSUB231PD xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.W1 96 /r               |VFMADDSUB132PD ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W1 A6 /r               |VFMADDSUB213PD ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W1 B6 /r               |VFMADDSUB231PD ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.W1 96 /r               |VFMADDSUB132PD xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W1 A6 /r               |VFMADDSUB213PD xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W1 B6 /r               |VFMADDSUB231PD xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.W1 96 /r               |VFMADDSUB132PD ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W1 A6 /r               |VFMADDSUB213PD ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W1 B6 /r               |VFMADDSUB231PD ymm1, ymm2, ymm3/m256
 VFMADDSUB132PS/VFMADDSUB213PS/VFMADDSUB231PS—Fused
-RVM  |VEX.128.66.0F38.W0 96 /r               |VFMADDSUB132PS xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W0 A6 /r               |VFMADDSUB213PS xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W0 B6 /r               |VFMADDSUB231PS xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.W0 96 /r               |VFMADDSUB132PS ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W0 A6 /r               |VFMADDSUB213PS ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W0 B6 /r               |VFMADDSUB231PS ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.W0 96 /r               |VFMADDSUB132PS xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W0 A6 /r               |VFMADDSUB213PS xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W0 B6 /r               |VFMADDSUB231PS xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.W0 96 /r               |VFMADDSUB132PS ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W0 A6 /r               |VFMADDSUB213PS ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W0 B6 /r               |VFMADDSUB231PS ymm1, ymm2, ymm3/m256
 VFMSUB132PD/VFMSUB213PD/VFMSUB231PD—Fused
-RVM  |VEX.128.66.0F38.W1 9A /r               |VFMSUB132PD xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W1 AA /r               |VFMSUB213PD xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W1 BA /r               |VFMSUB231PD xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.W1 9A /r               |VFMSUB132PD ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W1 AA /r               |VFMSUB213PD ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W1 BA /r               |VFMSUB231PD ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.W1 9A /r               |VFMSUB132PD xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W1 AA /r               |VFMSUB213PD xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W1 BA /r               |VFMSUB231PD xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.W1 9A /r               |VFMSUB132PD ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W1 AA /r               |VFMSUB213PD ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W1 BA /r               |VFMSUB231PD ymm1, ymm2, ymm3/m256
 VFMSUB132PS/VFMSUB213PS/VFMSUB231PS—Fused
-RVM  |VEX.128.66.0F38.W0 9A /r               |VFMSUB132PS xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W0 AA /r               |VFMSUB213PS xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W0 BA /r               |VFMSUB231PS xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.W0 9A /r               |VFMSUB132PS ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W0 AA /r               |VFMSUB213PS ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.0 BA /r                |VFMSUB231PS ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.W0 9A /r               |VFMSUB132PS xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W0 AA /r               |VFMSUB213PS xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W0 BA /r               |VFMSUB231PS xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.W0 9A /r               |VFMSUB132PS ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W0 AA /r               |VFMSUB213PS ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.0 BA /r                |VFMSUB231PS ymm1, ymm2, ymm3/m256
 VFMSUB132SD/VFMSUB213SD/VFMSUB231SD—Fused
-RVM  |VEX.LIG.66.0F38.W1 9B /r               |VFMSUB132SD xmm1, xmm2,xmm3/m64
-RVM  |VEX.LIG.66.0F38.W1 AB /r               |VFMSUB213SD xmm1, xmm2,xmm3/m64
-RVM  |VEX.LIG.66.0F38.W1 BB /r               |VFMSUB231SD xmm1, xmm2,xmm3/m64
+RVM  |VEX.LIG.66.0F38.W1 9B /r               |VFMSUB132SD xmm1, xmm2, xmm3/m64
+RVM  |VEX.LIG.66.0F38.W1 AB /r               |VFMSUB213SD xmm1, xmm2, xmm3/m64
+RVM  |VEX.LIG.66.0F38.W1 BB /r               |VFMSUB231SD xmm1, xmm2, xmm3/m64
 VFMSUB132SS/VFMSUB213SS/VFMSUB231SS—Fused
-RVM  |VEX.LIG.66.0F38.W0 9B /r               |VFMSUB132SS xmm1, xmm2,xmm3/m32
-RVM  |VEX.LIG.66.0F38.W0 AB /r               |VFMSUB213SS xmm1, xmm2,xmm3/m32
-RVM  |VEX.LIG.66.0F38.W0 BB /r               |VFMSUB231SS xmm1, xmm2,xmm3/m32
+RVM  |VEX.LIG.66.0F38.W0 9B /r               |VFMSUB132SS xmm1, xmm2, xmm3/m32
+RVM  |VEX.LIG.66.0F38.W0 AB /r               |VFMSUB213SS xmm1, xmm2, xmm3/m32
+RVM  |VEX.LIG.66.0F38.W0 BB /r               |VFMSUB231SS xmm1, xmm2, xmm3/m32
 VFMSUBADD132PD/VFMSUBADD213PD/VFMSUBADD231PD—Fused
-RVM  |VEX.128.66.0F38.W1 97 /r               |VFMSUBADD132PD xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W1 A7 /r               |VFMSUBADD213PD xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W1 B7 /r               |VFMSUBADD231PD xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.W1 97 /r               |VFMSUBADD132PD ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W1 A7 /r               |VFMSUBADD213PD ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W1 B7 /r               |VFMSUBADD231PD ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.W1 97 /r               |VFMSUBADD132PD xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W1 A7 /r               |VFMSUBADD213PD xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W1 B7 /r               |VFMSUBADD231PD xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.W1 97 /r               |VFMSUBADD132PD ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W1 A7 /r               |VFMSUBADD213PD ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W1 B7 /r               |VFMSUBADD231PD ymm1, ymm2, ymm3/m256
 VFMSUBADD132PS/VFMSUBADD213PS/VFMSUBADD231PS—Fused
-RVM  |VEX.128.66.0F38.W0 97 /r               |VFMSUBADD132PS xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W0 A7 /r               |VFMSUBADD213PS xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W0 B7 /r               |VFMSUBADD231PS xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.W0 97 /r               |VFMSUBADD132PS ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W0 A7 /r               |VFMSUBADD213PS ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W0 B7 /r               |VFMSUBADD231PS ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.W0 97 /r               |VFMSUBADD132PS xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W0 A7 /r               |VFMSUBADD213PS xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W0 B7 /r               |VFMSUBADD231PS xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.W0 97 /r               |VFMSUBADD132PS ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W0 A7 /r               |VFMSUBADD213PS ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W0 B7 /r               |VFMSUBADD231PS ymm1, ymm2, ymm3/m256
 VFNMADD132PD/VFNMADD213PD/VFNMADD231PD—Fused
-RVM  |VEX.128.66.0F38.W1 9C /r               |VFNMADD132PD xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W1 AC /r               |VFNMADD213PD xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W1 BC /r               |VFNMADD231PD xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.W1 9C /r               |VFNMADD132PD ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W1 AC /r               |VFNMADD213PD ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W1 BC /r               |VFNMADD231PD ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.W1 9C /r               |VFNMADD132PD xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W1 AC /r               |VFNMADD213PD xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W1 BC /r               |VFNMADD231PD xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.W1 9C /r               |VFNMADD132PD ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W1 AC /r               |VFNMADD213PD ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W1 BC /r               |VFNMADD231PD ymm1, ymm2, ymm3/m256
 VFNMADD132PS/VFNMADD213PS/VFNMADD231PS—Fused
-RVM  |VEX.128.66.0F38.W0 9C /r               |VFNMADD132PS xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W0 AC /r               |VFNMADD213PS xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W0 BC /r               |VFNMADD231PS xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.W0 9C /r               |VFNMADD132PS ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W0 AC /r               |VFNMADD213PS ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.0 BC /r                |VFNMADD231PS ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.W0 9C /r               |VFNMADD132PS xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W0 AC /r               |VFNMADD213PS xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W0 BC /r               |VFNMADD231PS xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.W0 9C /r               |VFNMADD132PS ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W0 AC /r               |VFNMADD213PS ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.0 BC /r                |VFNMADD231PS ymm1, ymm2, ymm3/m256
 VFNMADD132SD/VFNMADD213SD/VFNMADD231SD—Fused
-RVM  |VEX.LIG.66.0F38.W1 9D /r               |VFNMADD132SD xmm1, xmm2,xmm3/m64
-RVM  |VEX.LIG.66.0F38.W1 AD /r               |VFNMADD213SD xmm1, xmm2,xmm3/m64
-RVM  |VEX.LIG.66.0F38.W1 BD /r               |VFNMADD231SD xmm1, xmm2,xmm3/m64
+RVM  |VEX.LIG.66.0F38.W1 9D /r               |VFNMADD132SD xmm1, xmm2, xmm3/m64
+RVM  |VEX.LIG.66.0F38.W1 AD /r               |VFNMADD213SD xmm1, xmm2, xmm3/m64
+RVM  |VEX.LIG.66.0F38.W1 BD /r               |VFNMADD231SD xmm1, xmm2, xmm3/m64
 VFNMADD132SS/VFNMADD213SS/VFNMADD231SS—Fused
-RVM  |VEX.LIG.66.0F38.W0 9D /r               |VFNMADD132SS xmm1, xmm2,xmm3/m32
-RVM  |VEX.LIG.66.0F38.W0 AD /r               |VFNMADD213SS xmm1, xmm2,xmm3/m32
-RVM  |VEX.LIG.66.0F38.W0 BD /r               |VFNMADD231SS xmm1, xmm2,xmm3/m32
+RVM  |VEX.LIG.66.0F38.W0 9D /r               |VFNMADD132SS xmm1, xmm2, xmm3/m32
+RVM  |VEX.LIG.66.0F38.W0 AD /r               |VFNMADD213SS xmm1, xmm2, xmm3/m32
+RVM  |VEX.LIG.66.0F38.W0 BD /r               |VFNMADD231SS xmm1, xmm2, xmm3/m32
 VFNMSUB132PD/VFNMSUB213PD/VFNMSUB231PD—Fused
-RVM  |VEX.128.66.0F38.W1 9E /r               |VFNMSUB132PD xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W1 AE /r               |VFNMSUB213PD xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W1 BE /r               |VFNMSUB231PD xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.W1 9E /r               |VFNMSUB132PD ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W1 AE /r               |VFNMSUB213PD ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W1 BE /r               |VFNMSUB231PD ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.W1 9E /r               |VFNMSUB132PD xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W1 AE /r               |VFNMSUB213PD xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W1 BE /r               |VFNMSUB231PD xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.W1 9E /r               |VFNMSUB132PD ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W1 AE /r               |VFNMSUB213PD ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W1 BE /r               |VFNMSUB231PD ymm1, ymm2, ymm3/m256
 VFNMSUB132PS/VFNMSUB213PS/VFNMSUB231PS—Fused
-RVM  |VEX.128.66.0F38.W0 9E /r               |VFNMSUB132PS xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W0 AE /r               |VFNMSUB213PS xmm1, xmm2,xmm3/m128
-RVM  |VEX.128.66.0F38.W0 BE /r               |VFNMSUB231PS xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.W0 9E /r               |VFNMSUB132PS ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.W0 AE /r               |VFNMSUB213PS ymm1, ymm2,ymm3/m256
-RVM  |VEX.256.66.0F38.0 BE /r                |VFNMSUB231PS ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.W0 9E /r               |VFNMSUB132PS xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W0 AE /r               |VFNMSUB213PS xmm1, xmm2, xmm3/m128
+RVM  |VEX.128.66.0F38.W0 BE /r               |VFNMSUB231PS xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.W0 9E /r               |VFNMSUB132PS ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.W0 AE /r               |VFNMSUB213PS ymm1, ymm2, ymm3/m256
+RVM  |VEX.256.66.0F38.0 BE /r                |VFNMSUB231PS ymm1, ymm2, ymm3/m256
 VFNMSUB132SD/VFNMSUB213SD/VFNMSUB231SD—Fused
-RVM  |VEX.LIG.66.0F38.W1 9F /r               |VFNMSUB132SD xmm1, xmm2,xmm3/m64
-RVM  |VEX.LIG.66.0F38.W1 AF /r               |VFNMSUB213SD xmm1, xmm2,xmm3/m64
-RVM  |VEX.LIG.66.0F38.W1 BF /r               |VFNMSUB231SD xmm1, xmm2,xmm3/m64
+RVM  |VEX.LIG.66.0F38.W1 9F /r               |VFNMSUB132SD xmm1, xmm2, xmm3/m64
+RVM  |VEX.LIG.66.0F38.W1 AF /r               |VFNMSUB213SD xmm1, xmm2, xmm3/m64
+RVM  |VEX.LIG.66.0F38.W1 BF /r               |VFNMSUB231SD xmm1, xmm2, xmm3/m64
 VFNMSUB132SS/VFNMSUB213SS/VFNMSUB231SS—Fused
-RVM  |VEX.LIG.66.0F38.W0 9F /r               |VFNMSUB132SS xmm1, xmm2,xmm3/m32
-RVM  |VEX.LIG.66.0F38.W0 AF /r               |VFNMSUB213SS xmm1, xmm2,xmm3/m32
-RVM  |VEX.LIG.66.0F38.W0 BF /r               |VFNMSUB231SS xmm1, xmm2,xmm3/m32
+RVM  |VEX.LIG.66.0F38.W0 9F /r               |VFNMSUB132SS xmm1, xmm2, xmm3/m32
+RVM  |VEX.LIG.66.0F38.W0 AF /r               |VFNMSUB213SS xmm1, xmm2, xmm3/m32
+RVM  |VEX.LIG.66.0F38.W0 BF /r               |VFNMSUB231SS xmm1, xmm2, xmm3/m32
 VGATHERDPD/VGATHERQPD—Gather
 RMV  |VEX.128.66.0F38.W1 92 /r               |VGATHERDPD xmm1, vm32x, xmm2
 RMV  |VEX.128.66.0F38.W1 93 /r               |VGATHERQPD xmm1, vm64x, xmm2
@@ -2627,9 +2627,9 @@ RVSV |VEX.128.66.0F38.W0 93 /r               |VGATHERQPS xmm1, vm64x, xmm2
 RVSV |VEX.256.66.0F38.W0 92 /r               |VGATHERDPS ymm1, vm32y, ymm2
 RVSV |VEX.256.66.0F38.W0 93 /r               |VGATHERQPS xmm1, vm64y, xmm2
 VINSERTF128/VINSERTF32x4/VINSERTF64x2/VINSERTF32x8/VINSERTF64x4—Insert
-RVMI |VEX.256.66.0F3A.W0 18 /r ib            |VINSERTF128 ymm1, ymm2,xmm3/m128, imm8
+RVMI |VEX.256.66.0F3A.W0 18 /r ib            |VINSERTF128 ymm1, ymm2, xmm3/m128, imm8
 VINSERTI128/VINSERTI32x4/VINSERTI64x2/VINSERTI32x8/VINSERTI64x4—Insert
-RVMI |VEX.256.66.0F3A.W0 38 /r ib            |VINSERTI128 ymm1, ymm2,xmm3/m128, imm8
+RVMI |VEX.256.66.0F3A.W0 38 /r ib            |VINSERTI128 ymm1, ymm2, xmm3/m128, imm8
 VMASKMOV—Conditional
 RVM  |VEX.128.66.0F38.W0 2C /r               |VMASKMOVPS xmm1, xmm2, m128
 RVM  |VEX.256.66.0F38.W0 2C /r               |VMASKMOVPS ymm1, ymm2, m256
@@ -2654,17 +2654,17 @@ RM   |VEX.256.66.0F38.W0 59 /r               |VPBROADCASTQ ymm1, xmm2/m64
 VPBROADCAST—Load
 RM   |VEX.256.66.0F38.W0 5A /r               |VBROADCASTI128 ymm1, m128
 VPDPBUSD—Multiply
-RVM  |VEX.128.66.0F38.W0 50 /r               |VPDPBUSD xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.W0 50 /r               |VPDPBUSD ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.W0 50 /r               |VPDPBUSD xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.W0 50 /r               |VPDPBUSD ymm1, ymm2, ymm3/m256
 VPDPBUSDS—Multiply
-RVM  |VEX.128.66.0F38.W0 51 /r               |VPDPBUSDS xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.W0 51 /r               |VPDPBUSDS ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.W0 51 /r               |VPDPBUSDS xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.W0 51 /r               |VPDPBUSDS ymm1, ymm2, ymm3/m256
 VPDPWSSD—Multiply
-RVM  |VEX.128.66.0F38.W0 52 /r               |VPDPWSSD xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.W0 52 /r               |VPDPWSSD ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.W0 52 /r               |VPDPWSSD xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.W0 52 /r               |VPDPWSSD ymm1, ymm2, ymm3/m256
 VPDPWSSDS—Multiply
-RVM  |VEX.128.66.0F38.W0 53 /r               |VPDPWSSDS xmm1, xmm2,xmm3/m128
-RVM  |VEX.256.66.0F38.W0 53 /r               |VPDPWSSDS ymm1, ymm2,ymm3/m256
+RVM  |VEX.128.66.0F38.W0 53 /r               |VPDPWSSDS xmm1, xmm2, xmm3/m128
+RVM  |VEX.256.66.0F38.W0 53 /r               |VPDPWSSDS ymm1, ymm2, ymm3/m256
 VPERM2F128—Permute
 RVMI |VEX.256.66.0F3A.W0 06 /r ib            |VPERM2F128 ymm1, ymm2, ymm3/m256, imm8
 VPERM2I128—Permute
@@ -2674,17 +2674,17 @@ RVM  |VEX.256.66.0F38.W0 36 /r               |VPERMD ymm1, ymm2, ymm3/m256
 VPERMILPD—Permute
 RVM  |VEX.128.66.0F38.W0 0D /r               |VPERMILPD xmm1, xmm2, xmm3/m128
 RVM  |VEX.256.66.0F38.W0 0D /r               |VPERMILPD ymm1, ymm2, ymm3/m256
-RM   |VEX.128.66.0F3A.W0 05 /r ib            |VPERMILPD xmm1, xmm2/m128, imm8
-RM   |VEX.256.66.0F3A.W0 05 /r ib            |VPERMILPD ymm1, ymm2/m256, imm8
+RMI  |VEX.128.66.0F3A.W0 05 /r ib            |VPERMILPD xmm1, xmm2/m128, imm8
+RMI  |VEX.256.66.0F3A.W0 05 /r ib            |VPERMILPD ymm1, ymm2/m256, imm8
 VPERMILPS—Permute
 RVM  |VEX.128.66.0F38.W0 0C /r               |VPERMILPS xmm1, xmm2, xmm3/m128
-RM   |VEX.128.66.0F3A.W0 04 /r ib            |VPERMILPS xmm1, xmm2/m128, imm8
+RMI  |VEX.128.66.0F3A.W0 04 /r ib            |VPERMILPS xmm1, xmm2/m128, imm8
 RVM  |VEX.256.66.0F38.W0 0C /r               |VPERMILPS ymm1, ymm2, ymm3/m256
-RM   |VEX.256.66.0F3A.W0 04 /r ib            |VPERMILPS ymm1, ymm2/m256, imm8
+RMI  |VEX.256.66.0F3A.W0 04 /r ib            |VPERMILPS ymm1, ymm2/m256, imm8
 VPERMPD—Permute
 RMI  |VEX.256.66.0F3A.W1 01 /r ib            |VPERMPD ymm1, ymm2/m256, imm8
 VPERMPS—Permute
-RVM  |VEX.256.66.0F38.W0 16 /r               |VPERMPS ymm1, ymm2,ymm3/m256
+RVM  |VEX.256.66.0F38.W0 16 /r               |VPERMPS ymm1, ymm2, ymm3/m256
 VPERMQ—Qwords
 RMI  |VEX.256.66.0F3A.W1 00 /r ib            |VPERMQ ymm1, ymm2/m256, imm8
 VPGATHERDD/VPGATHERQD—Gather
