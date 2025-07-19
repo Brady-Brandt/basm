@@ -217,12 +217,9 @@ e_loop:
     gperf_input_file.write("    printf(\"Operand 3: %s\\n\", operand_to_string(instr->op3));\n")
     gperf_input_file.write("    printf(\"Opcode Extension: %i\\n\", instr->digit);\n")
     gperf_input_file.write("    printf(\"Operand Encoding: %i\\n\", instr->encoding);\n")
-    gperf_input_file.write("    printf(\"Uses 2 byte Vex: %s\\n\", ((instr->flags & 0x8) != 0) ? \"true\" : \"false\");\n")
-    gperf_input_file.write("    printf(\"Uses 3 byte Vex: %s\\n\", ((instr->flags & 0x10) != 0) ? \"true\" : \"false\");\n")
-    gperf_input_file.write("    printf(\"Rex Prefix: %i\\n\", instr->rex);\n}\n")
-    
-
-
+    gperf_input_file.write("    if(instr->flags & INSTR_USES_REX) printf(\"Rex: 0x%x\\n\", instr->rex);\n")
+    gperf_input_file.write("    else if(instr->flags & INSTR_USES_2VEX) printf(\"2 byte Vex: 0x%x\\n\", instr->two_vex);\n")
+    gperf_input_file.write("    else if(instr->flags & INSTR_USES_3VEX) printf(\"3 byte Vex: 0x%x\\n\", instr->three_vex);\n}\n")
 
 
 class Instruction:
@@ -241,9 +238,22 @@ class Instruction:
         self.op3 = 0
 
     def to_c_struct(self): 
+        # hreset has an opcode length of 5
+        # since we only have a length of 4 in out struct
+        # we are just going to pretend the last byte is an operand extension
+        if len(self.opcode) > 4:
+            assert self.digit == -1, f"Error: Opcode has length >4 and has an operand extension: {self.opcode}"
+            self.digit = self.opcode[-1] >> 3
+
         begin = "{" 
         opcode = "{"
         op_len = len(self.opcode)
+
+        if op_len > 4:
+            assert op_len <= 5, f"Opcode Too long {self.opcode}"
+            op_len = 4
+
+
         for i in range(4):
             if i < len(self.opcode):
                 opcode += hex(self.opcode[i]) + ','
@@ -463,6 +473,10 @@ def parse_opcode(op):
  
         else:
             try:
+                #VCVTTSS2S variants of this instruction have a 
+                # superscript that gets interpreted as part of the opcode when its not
+                if has_modrm:
+                    continue
                 #PAVGB unwanted comma
                 chunk = chunk.replace(',', '')
                 # some instructions the opcode 0x0f38 is mushed into one
