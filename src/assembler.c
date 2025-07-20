@@ -1819,7 +1819,7 @@ bool basm_assemble_program(){
 
 bool basm_parse_flags(int argc, char** argv){
     if(argc < 2){
-        fprintf(stderr, "./basm input_file\n");
+        fatal_error("No input file specified\nType basm --help for more info\n");
         return false;
     }
     asm_flags.output_file = "a.out";
@@ -1828,7 +1828,7 @@ bool basm_parse_flags(int argc, char** argv){
         if(strcmp("-f", argv[i]) == 0){
             i++;
             if(i == argc){
-                fprintf(stderr, "Invalid File Type\n");
+                fatal_error("Invalid File Type\n");
                 return false;
             }
             if(strcmp("win", argv[i]) == 0){
@@ -1836,13 +1836,13 @@ bool basm_parse_flags(int argc, char** argv){
             } else if (strcmp("elf", argv[i]) == 0) { 
                 asm_flags.ftype = BASM_FILE_ELF;
             } else{
-                fprintf(stderr, "Invalid File Type: %s\n", argv[i]);
+                fatal_error("Invalid File Type: %s\n", argv[i]);
                 return false;
             }
         } else if (strcmp("-o", argv[i]) == 0) {
             i++;
             if(i == argc){
-                fprintf(stderr, "Output file not specified\n");
+                fatal_error("Output file not specified\n");
                 return false;
             }
             asm_flags.output_file = argv[i];
@@ -1854,11 +1854,14 @@ bool basm_parse_flags(int argc, char** argv){
             asm_flags.input_file = argv[i];
         }
     }
+    
+    if(asm_flags.input_file == NULL) fatal_error("No input file\n");
+
     return true;
 }
 
 void basm_help(){
-    printf("./basm input_file\n");
+    printf("Usage: basm options file\n");
     printf("Flags: \n");
     printf("-f (file type)        -> win | elf\n");
     printf("-o (output file name) -> output file\n");
