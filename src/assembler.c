@@ -407,11 +407,7 @@ typedef struct {
             uint8_t base; //type reg
             uint8_t index; //type reg
 
-            //the msb is going to indicate whether the union
-            //is a label or an offset;
-            //1 == label,0 == offset
-            //next bit indicates if we need address size override prefix
-            uint8_t scale;         
+            uint8_t scale; //store if we need op override prefix in upper bit         
 
             int32_t offset;            
             char* label;
@@ -424,6 +420,24 @@ typedef struct {
 } Operand;
 
 
+static bool check_scale_factor(Parser* p, int scale, Operand* op){
+    switch (scale) {
+        case 1:
+            return true;
+        case 2:
+            op->mem.scale |= 1; 
+            return true;
+        case 4:
+            op->mem.scale |= 2;
+            return true;
+        case 8:
+            op->mem.scale |= 3;
+            return true;
+        default:
+            parser_error(p, "Invalid Scale Factor: %i\n", scale);
+            return false;
+    }
+}
 
 
 static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
@@ -435,28 +449,26 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
     OperandType base_size = OPERAND_NOP;
     OperandType index_size = OPERAND_NOP;
 
-    bool check_scale = false;
-    bool scale_set = false;
-
-    Token t = parser_next_token(p);
+    Token t = parser_peek_token(p);
 
     int l = t.line_number;
     int c = t.col;
-
-
     op->line = l; 
     op->col = c; 
 
     while(t.type != TOK_CLOSING_BRACKET){
+        t = parser_next_token(p);
         switch (t.type) {
             case TOK_IDENTIFIER:
+                if(op->mem.label != NULL){ 
+                    parser_error(p, "Invalid Address: Cannot have two labels in address\n");
+                    return false;
+                }
                 op->mem.label = p->currentToken.literal;
                 break;
             case TOK_REG: {
                     OperandType size = OPERAND_NOP;
-                    uint8_t reg = REG_MAX;
-
-                    
+                    uint8_t reg = REG_MAX; 
                     if(is_r64(p->currentToken.reg)){
                         size = OPERAND_R64;
                         reg = p->currentToken.reg - REG_RAX;
@@ -466,24 +478,42 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                         mem_set_prefix(op->mem);
                     } else{
                         //In 64 bit mode these registers need to be 32 or 64 bit
-                        parser_error(p, "Invalid Size\n");
+                        parser_error(p, "Invalid Register Size\n");
                         return false;
                     }
- 
-                    if(op->mem.base == REG_MAX && parser_peek_token(p).type != TOK_MULTIPLY){
-                        if(is_extended_reg(reg)){
-                            op->mem.rex |= REX_B;
-                            reg -= 8;
+
+                    if(parser_peek_token(p).type == TOK_MULTIPLY){
+                        if(op->mem.index != REG_MAX){
+                            parser_error(p, "Invalid address\n");
+                            return false;
                         }
-                        base_size = size;
-                        op->mem.base = reg;
-                    } else if(op->mem.index == REG_MAX){
-                        if(is_extended_reg(reg)){
-                            op->mem.rex |= REX_X;
-                            reg -= 8;
+
+                        if(reg == (REG_RSP - REG_RAX)){
+                            parser_error(p, "This register cannot be an index\n");
+                            return false;
                         }
+
+                        parser_next_token(p);
+                        parser_next_token(p);
+                        if(!parser_expect_token(p, TOK_INT)) return false;
+                        int scale = string_to_int(p->currentToken.literal);
+                        if(!check_scale_factor(p, scale, op)) return false; 
                         index_size = size;
                         op->mem.index = reg;
+                    } else if(op->mem.base == REG_MAX){ 
+                        base_size = size;
+                        op->mem.base = reg;
+                    } else if(op->mem.index == REG_MAX){ 
+                        //rsp/r12 cannot be an index 
+                        if(reg == (REG_RSP - REG_RAX)){
+                            index_size = base_size;
+                            op->mem.index = op->mem.base;
+                            op->mem.base = reg;
+                            base_size = size;
+                        } else{
+                            index_size = size;
+                            op->mem.index = reg;
+                        }
                     } else{
                         parser_error(p, "Invalid address\n");
                         return false;
@@ -491,84 +521,105 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                 }
                 break;
             case TOK_INT:{
-                int temp = (int)string_to_int(p->currentToken.literal);
-                if(check_scale || parser_peek_token(p).type == TOK_MULTIPLY){
-                    if(scale_set){
-                        parser_error(p, "Cannot have more than one Scale Factor\n");
+                int temp = (int)string_to_int(p->currentToken.literal);   
+                if(parser_peek_token(p).type == TOK_MULTIPLY){
+                    if(op->mem.index != REG_MAX){
+                        parser_error(p, "Invalid address\n");
                         return false;
                     }
-                    switch (temp) {
-                        case 1:
-                            break;
-                        case 2:
-                            op->mem.scale |= 1; 
-                            break;
-                        case 4:
-                            op->mem.scale |= 2;
-                            break;
-                        case 8:
-                            op->mem.scale |= 3;
-                            break;
-                        default:
-                            parser_error(p, "Invalid Scale Factor: %i\n", temp);
-                            return false;
-                        scale_set = true;
-                    } 
+                    parser_next_token(p);
+                    parser_next_token(p);
+                    if(!parser_expect_token(p, TOK_REG)) return false;
+
+                    OperandType size = OPERAND_NOP;
+                    uint8_t reg = REG_MAX; 
+                    if(is_r64(p->currentToken.reg)){
+                        size = OPERAND_R64;
+                        reg = p->currentToken.reg - REG_RAX;
+                    } else if(is_r32(p->currentToken.reg)){
+                        size = OPERAND_R32;
+                        reg = p->currentToken.reg - REG_EAX;
+                        mem_set_prefix(op->mem);
+                    } else{
+                        //In 64 bit mode these registers need to be 32 or 64 bit
+                        parser_error(p, "Invalid Register Size\n");
+                        return false;
+                    }
+
+                    if(reg == (REG_RSP - REG_RAX)){
+                        parser_error(p, "This register cannot be an index\n");
+                        return false;
+                    }
+
+                    if(!check_scale_factor(p, temp, op)) return false; 
+                    index_size = size;
+                    op->mem.index = reg;
                 } else{
-                    op->mem.offset = temp; 
+                    op->mem.offset += temp; 
                 }
                 break;
             }
-            default:
-                parser_error(p, "Invalid Token: %s\n", token_to_string(t.type));
-                return false;
-        
-        }
-
-        t = parser_next_token(p);
-
-        switch (t.type) {
-            case TOK_MULTIPLY:{
-                Token next = parser_peek_token(p); 
-                if(next.type != TOK_INT && next.type != TOK_REG || check_scale == true){ 
-                    parser_error(p, "Invalid Address\n");
+            case TOK_ADD: {
+                Token next = parser_peek_token(p);
+                if(next.type != TOK_IDENTIFIER && next.type != TOK_REG && next.type != TOK_INT && next.type != TOK_SUB){
+                    parser_error_loc(p, next.line_number, next.col, 
+                            "Expected Label, Offset, or Register\n");
                     return false;
                 }
-                check_scale = true;
             }
             break;
-            case TOK_ADD: {
-                    Token next = parser_peek_token(p);
-                    if(next.type == TOK_CLOSING_BRACKET){
-                        parser_error(p, "Expected Label, Offset, or Register: %s\n", token_to_string(t.type));
-                        return false;
-                    }
+            case TOK_SUB: {
+                parser_next_token(p);
+                if(!parser_expect_token(p, TOK_INT)) return false;
+                op->mem.offset -= (int32_t)string_to_int(p->currentToken.literal);    
+            }
+            break;
 
-                }
+            case TOK_MULTIPLY:
+                parser_error(p, "Invalid Scale\n");
+                return false;
                 break;
             case TOK_CLOSING_BRACKET:
-                goto endloop;
-
+                break;
             default:
-                parser_error(p, "Invalid Token: %s\n", token_to_string(t.type)); 
+                parser_error(p, "Invalid Token in address\n");
                 return false;
-        }
-
-
-        t = parser_next_token(p);
-
-
+        
+        }  
     }
-
-    endloop:
-
 
     //ensure the registeres are the same size
     if(base_size != OPERAND_NOP && index_size != OPERAND_NOP && base_size != index_size){ 
         parser_error_loc(p,l,c, "Invalid Address: Registers must be the same size\n");
         return false;
     }
+    
+    
+    if(op->mem.index != REG_MAX && op->mem.base == REG_MAX){
+        //converts [reg * 1] -> [reg]
+        if(mem_get_scale(op->mem) == 0){
+            op->mem.base = op->mem.index;
+            op->mem.index = REG_MAX;
+        } else if (mem_get_scale(op->mem) == 1) { 
+            //converts [reg * 2] -> [reg + reg]
+            op->mem.base = op->mem.index;
+            //set scale factor to 0
+            op->mem.scale ^= 1;
+        }
+        
+    }
 
+    if(is_extended_reg(op->mem.base)){
+        op->mem.rex |= REX_B;
+        op->mem.base -= 8;
+    }
+
+    if(is_extended_reg(op->mem.index)){
+        op->mem.rex |= REX_X;
+        op->mem.index -= 8;
+    }
+
+    
     return true;
 }
 
@@ -1043,7 +1094,9 @@ static const Instruction* find_instruction_four_operands(uint64_t instr_index, O
 #define SIB_INDEX 1
 #define DISPLACEMENT_SIZE 4
 
-//TODO: SOME problems with RBP and ESP  
+#define set_mod(mod) (mod << 6)
+#define set_sib(scale, index, base) ((scale << 6) | (index << 3) | base)
+
 static int modrm_sib_fields(Operand* op, uint8_t *data, char** label){
     uint8_t ADDRESS_OVERRIDE_PREFIX = 0x67;
     int size = 1;
@@ -1060,68 +1113,77 @@ static int modrm_sib_fields(Operand* op, uint8_t *data, char** label){
     }
 
     if(mem_op_prefix(op->mem)) section_add_data(&program.text, &ADDRESS_OVERRIDE_PREFIX, 1);
-
+        
+    //TODO: Add relative addressing
     if(op->mem.base == REG_MAX && op->mem.index == REG_MAX){
-        //TODO: FIGURE OUT WHEN THE R/M FIELD IS 101  
         data[MODRM_INDEX] |= 0x4;
         data[SIB_INDEX] = 0x25;
         size++;
         size += DISPLACEMENT_SIZE;  
         memcpy(data + 2, &offset, DISPLACEMENT_SIZE);
     } else if (op->mem.base != REG_MAX && op->mem.index == REG_MAX) {
-        //TODO: FIGURE OUT WHEN 8 bit displacements are used 
-        data[MODRM_INDEX] |= op->mem.base;
-        //check if we have an offset
-        if(op->mem.label != 0){
+        data[MODRM_INDEX] |= op->mem.base; 
+
+        int offset_size = 0;
+
+        if(op->mem.label != NULL || !is_int8(op->mem.offset)){
             // we want a 32 bit displacement
             data[MODRM_INDEX] += 0x80;
+            offset_size = DISPLACEMENT_SIZE;
             size += DISPLACEMENT_SIZE;
-            // the esp register requires a sib byte
-            if(op->mem.base == REG_ESP){
-                data[SIB_INDEX] = 0x24;
-                size++;
-                memcpy(data + 2, &offset, DISPLACEMENT_SIZE);
-            } else{
-                memcpy(data + 1, &offset, DISPLACEMENT_SIZE);
-            }
-        } else{
-            // the esp register requires a sib byte
-            if(op->mem.base == REG_ESP){
-                data[SIB_INDEX] = 0x24; 
-                size += 1 + DISPLACEMENT_SIZE;
-                memcpy(data + 2, &offset, DISPLACEMENT_SIZE);
-            } else if(op->mem.base == REG_EBP){
-                // in this case we have to just do an 8 bit displacement of zeros 
-                data[MODRM_INDEX] |= 1 << 6;
-                size++;
-                uint8_t zero = 0;
-                memcpy(data + 1, &zero, 1);
-            }
+        } else if(op->mem.base == (REG_RBP - REG_RAX)){
+            //can't just do [RBP] so we do [RBP + disp8]
+            data[MODRM_INDEX] |= set_mod(0x01);
+            size++;
+            offset_size = 1;
+        } else if(op->mem.offset != 0){
+            //8 bit displacement 
+            size += 1;
+            data[MODRM_INDEX] += 0x40;
+            offset_size  = 1; 
+        } 
+        // the rsp/r12 register requires a sib byte
+        if(op->mem.base == (REG_RSP - REG_RAX)){
+            if(offset_size == 0) data[MODRM_INDEX] = 0x4; 
+            data[SIB_INDEX] = 0x24; 
+            size += 1;
         }
+
+        if(offset_size != 0) memcpy(data + size - offset_size, &offset, offset_size);
+
     } else if (op->mem.base == REG_MAX && op->mem.index != REG_MAX) {
         //need an sib byte
         data[MODRM_INDEX] |= 0x4;
-        data[SIB_INDEX] |= op->mem.scale << 6;
-        data[SIB_INDEX] |= op->mem.index << 3;
-        data[SIB_INDEX] |= 0x5;
+        //0x5 indicates we have no base
+        data[SIB_INDEX] = set_sib(op->mem.scale, op->mem.index, 0x5);
         size++;
         size += DISPLACEMENT_SIZE;
         //either copy zeros, an offset or zeros for a label
+        //you need to have a disp32 if you are just using an index
         memcpy(data + 2, &offset, DISPLACEMENT_SIZE); 
     } else{
         //both a base and an index 
-        data[MODRM_INDEX] |= 0x4;
-        data[SIB_INDEX] |= op->mem.scale << 6;
-        data[SIB_INDEX] |= op->mem.index << 3;
-        data[SIB_INDEX] |= op->mem.base;
-        size++;
+        int offset_size = 0;
 
-        if(op->mem.offset != 0){
-            //SIB PLUS DIS 32
-            data[MODRM_INDEX] |= 1 << 7;
-            memcpy(data+2, &offset, DISPLACEMENT_SIZE);
-            size += DISPLACEMENT_SIZE;
+        if(op->mem.base == (REG_RBP - REG_RAX)){
+            data[SIB_INDEX] = set_sib(op->mem.scale, op->mem.index, 0x5);
+            offset_size = 1;
+        } else{
+            data[SIB_INDEX] = set_sib(op->mem.scale, op->mem.index, op->mem.base);
         }
+
+        data[MODRM_INDEX] |= 0x4;
+        if(op->mem.label != NULL || !is_int8(op->mem.offset)){
+            data[MODRM_INDEX] += 0x80;
+            size += DISPLACEMENT_SIZE;
+            offset_size = DISPLACEMENT_SIZE;
+        } else if (op->mem.offset != 0 || op->mem.base == (REG_RBP - REG_RAX)) { 
+            data[MODRM_INDEX] += 0x40;
+            size += 1;
+            offset_size = 1;
+        } 
+        size++;
+        if(offset_size != 0) memcpy(data + size - offset_size, &offset, offset_size); 
     } 
     
 
