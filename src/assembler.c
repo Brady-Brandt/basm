@@ -427,16 +427,37 @@ static bool check_scale_factor(Parser* p, int scale, Operand* op){
         case 2:
             op->mem.scale |= 1; 
             return true;
+        case 3:
+            //[reg * 3] -> [reg + reg * 2]
+            if(op->mem.base != REG_MAX) goto invalid_scale;
+            op->mem.base = op->mem.index;
+            op->mem.scale |= 1;
+            return true;
         case 4:
+            op->mem.scale |= 2;
+            return true;
+        case 5:
+            //[reg * 5] -> [reg + reg * 4]
+            if(op->mem.base != REG_MAX) goto invalid_scale;
+            op->mem.base = op->mem.index;
             op->mem.scale |= 2;
             return true;
         case 8:
             op->mem.scale |= 3;
             return true;
+        case 9:
+            //[reg * 9] -> [reg + reg * 8]
+            if(op->mem.base != REG_MAX) goto invalid_scale;
+            op->mem.base = op->mem.index;
+            op->mem.scale |= 3;
+            return true;
         default:
-            parser_error(p, "Invalid Scale Factor: %i\n", scale);
-            return false;
+            break;
     }
+invalid_scale:
+    parser_error(p, "Invalid Scale Factor: %i\n", scale);
+    return false;
+
 }
 
 
@@ -497,9 +518,9 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                         parser_next_token(p);
                         if(!parser_expect_token(p, TOK_INT)) return false;
                         int scale = string_to_int(p->currentToken.literal);
+                        op->mem.index = reg;
                         if(!check_scale_factor(p, scale, op)) return false; 
                         index_size = size;
-                        op->mem.index = reg;
                     } else if(op->mem.base == REG_MAX){ 
                         base_size = size;
                         op->mem.base = reg;
@@ -551,9 +572,9 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                         return false;
                     }
 
+                    op->mem.index = reg;
                     if(!check_scale_factor(p, temp, op)) return false; 
                     index_size = size;
-                    op->mem.index = reg;
                 } else{
                     op->mem.offset += temp; 
                 }
