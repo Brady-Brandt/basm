@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS = -DDEBUG -Wextra -g -I./
+CFLAGS = -DDEBUG -Wextra -g -I .
 
 TARGET = bin/basm 
 
