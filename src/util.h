@@ -93,10 +93,10 @@ int string_cmp_lower(const void* a, const void* b);
 
 noreturn void fatal_error(const char* fmt, ...);
 
-#if defined(_Win64)
-    #define COLORED_ERROR "Error"
+#if defined(_WIN64) 
+   void PRINT_COLORED_ERROR(); 
 #elif defined (__linux__)
-    #define COLORED_ERROR "\e[31mError: \e[0m" 
+    #define PRINT_COLORED_ERROR()  fprintf(stderr, "\e[31mError: \e[0m")
 #else 
-    #define COLORED_ERROR "Error"
+    #define PRINT_COLORED_ERROR()  fprintf(stderr, "Error: ")
 #endif

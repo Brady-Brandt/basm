@@ -205,9 +205,23 @@ int string_cmp_lower(const void* a, const void* b) {
     return tolower((unsigned char)*s1) - tolower((unsigned char)*s2);
 }
 
+#if defined(_WIN64) 
+//define this here as a function to prevent type conflicts
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+void PRINT_COLORED_ERROR() { 
+    HANDLE std_err = GetStdHandle(STD_ERROR_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO info = {0};
+    GetConsoleScreenBufferInfo(std_err, &info); 
+    SetConsoleTextAttribute(std_err, FOREGROUND_RED);
+    fprintf(stderr, "Error: ");
+   SetConsoleTextAttribute(std_err, info.wAttributes); 
+}
+#endif
+
 noreturn void fatal_error(const char* fmt, ...){
     //TODO: MAYBE DO SOME CLEANUP
-    fprintf(stderr, COLORED_ERROR);
+    PRINT_COLORED_ERROR();
     va_list list;
     va_start(list, fmt);
     vfprintf(stderr, fmt, list);

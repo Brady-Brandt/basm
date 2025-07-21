@@ -308,7 +308,7 @@ ArrayList tokenize_file(){
 
 
 void parser_error_loc(Parser* p, int line_num, int col, const char* fmt, ...){
-    fprintf(stderr,COLORED_ERROR);
+    PRINT_COLORED_ERROR();
     va_list list;
     va_start(list, fmt);
     vfprintf(stderr, fmt, list);
