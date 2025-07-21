@@ -660,8 +660,6 @@ bool write_pe(const char* input_file, const char* output_file, Program* p){
         sym_offset += p->data.size;
         head.section_count++;
     } 
-
-    //TODO: CHECK FOR FILE NAMES GREATER THAN 18 BYTES
     //At least 2 for the file name + One for .Absolut? 
     //Each section has 2
     head.symbol_count = 3 + head.section_count * 2 + p->symTable.symbols.size;
@@ -741,7 +739,6 @@ bool write_pe(const char* input_file, const char* output_file, Program* p){
     if(p->data.size != 0) fwrite(p->data.data, 1, p->data.size, output_stream);
 
 
-     //TODO: HANDLE FILE NAMES LARGER THAN 18 CHARS
     PESymbolTableEntry temp_entry = {0};
     strcpy(temp_entry.name, ".file");
     temp_entry.section = -2;
@@ -750,7 +747,9 @@ bool write_pe(const char* input_file, const char* output_file, Program* p){
     fwrite(&temp_entry, sizeof(temp_entry),1, output_stream);
 
     char file_name[18] = {0};
-    strcpy(file_name,input_file);
+    //nasm just seems to just truncate file name if it is larger than 18 chars
+    //so thats what we are going to do
+    strncpy(file_name,input_file, 18);
     fwrite(file_name, 1, 18, output_stream);
 
     write_pe_symbol_section(output_stream, ".text", 1, p->text.size, text_section.reloc_count);
