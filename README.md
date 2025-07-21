@@ -55,9 +55,7 @@ It should only be used for simple, hobby projects right now.
 
 ### Known Issues
 - Moving a label as in (mov rax, label) does not move the address of the label into rax
-- Windows doesn't support file names larger than 18 chars or labels larger than 8
 - Currently assume all jump addresses are rel32
-- Some instructions cannot operate on AH, BH, CH, DH and we don't check for this
 - Sign extended instructions are being used for unsigned immediates 
 
 ### Planned Features (Not in a Particular Order) 
