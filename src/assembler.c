@@ -530,6 +530,7 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                         if(!parser_expect_token(p, TOK_INT)) return false;
                         uint64_t scale = 0;
                         if(!string_to_int(p->currentToken.literal, &scale)){
+                            parser_error(p,"Invalid Number\n");
                             return false;
                         }
                         op->mem.index = reg;
@@ -557,7 +558,10 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                 break;
             case TOK_INT:{
                 uint64_t t = 0;
-                if(!string_to_int(p->currentToken.literal, &t)) return false;
+                if(!string_to_int(p->currentToken.literal, &t)){
+                    parser_error(p, "Invalid Number\n");
+                    return false;
+                }
                 
                 int32_t temp = (int32_t)t;
 
@@ -611,7 +615,10 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                 parser_next_token(p);
                 if(!parser_expect_token(p, TOK_INT)) return false;
                 uint64_t temp = 0;
-                if(!string_to_int(p->currentToken.literal, &temp)) return false;
+                if(!string_to_int(p->currentToken.literal, &temp)){
+                    parser_error(p, "Invalid Number\n");
+                    return false;
+                } 
                 op->mem.offset -= (int32_t)temp;   
             }
             break;
