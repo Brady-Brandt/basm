@@ -1329,6 +1329,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
     int imm_index = -1;
 
     uint8_t opcode[4] = {0};
+    int instruction_size = instruction->size;
     memcpy(opcode, instruction->bytes, instruction->size);
 
     int32_t addend = 0;
@@ -1348,7 +1349,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
         op2_is_upper_reg = true;
     }
 
-    emit_operand_overide_prefix(operand[0].type, instruction->op2);
+    if(instruction->encoding != OP_ENC_FPU) emit_operand_overide_prefix(operand[0].type, instruction->op2);
 
     switch (instruction->encoding) {
         case OP_ENC_ZO:
@@ -1527,6 +1528,16 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             if(operand[0].type == OPERAND_STI){
                 opcode[instruction->size - 1] += operand[0].fpu_stack_index; 
             } else if(is_mem(operand[0].type)){
+                //these instructions technically call fwait before being executed
+                //if we have an operand override prefix or rex prefix its must
+                //come after 0x9b (fwait)
+                if(opcode[0] == 0x9b){
+                    section_add_data(&program.text, &opcode[0], 1); 
+                    instruction_size--;
+                    opcode[0] = opcode[1]; 
+                    opcode[1] = opcode[2]; 
+                    opcode[2] = opcode[3]; 
+                }
                 rex |= operand[0].mem.rex;
                 addend = operand[0].mem.offset;
                 modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl); 
@@ -1570,7 +1581,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 section_add_data(&program.text, &rex, 1);
             }
         }
-        section_add_data(&program.text, opcode, instruction->size); 
+        section_add_data(&program.text, opcode, instruction_size); 
     } 
     else if((instruction->flags & INSTR_USES_2VEX) && ((vex & 0xE000) == 0xE000)){
         vex |= instruction->three_vex;
