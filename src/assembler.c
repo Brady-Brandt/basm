@@ -704,9 +704,12 @@ static bool parse_operand(Parser* p, Operand* op){
             } else if(is_r16(p->currentToken.reg)){
                 op->type = OPERAND_R16;
                 op->reg.registerIndex = p->currentToken.reg - REG_AX;
-            } else{
+            } else if(is_r8(p->currentToken.reg)){
                 op->type = OPERAND_R8;
                 op->reg.registerIndex = p->currentToken.reg - REG_AL;
+            } else{
+                op->type = OPERAND_SREG;
+                op->reg.registerIndex = p->currentToken.reg - REG_ES;
             }
             op->reg.rex = REX_PREFIX(w, 0, 0, 0);
             return true;
@@ -945,7 +948,7 @@ static const Instruction* find_instruction_one_operand(uint64_t instr_index, Ope
             if(instruct_var.op1 == OPERAND_M512){
                 op->type = OPERAND_M512;
                 return &INSTRUCTION_TABLE[i];
-            } 
+            }else if(instruction_variant_count == 1 && is_mem(instruct_var.op1)) return &INSTRUCTION_TABLE[i];
             else continue;
         } 
 
