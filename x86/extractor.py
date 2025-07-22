@@ -283,6 +283,8 @@ def write_opcode_table(instruction, file, op_table, tables, page_num):
             operands = operands.replace("FNSTSW1", "FNSTSW")
             operands = operands.replace("FNCLEX1", "FNCLEX")
             operands = operands.replace("FNINIT1", "FNINIT")
+            operands = operands.replace("FNSAVE1", "FNSAVE")
+            operands = operands.replace("FNSTENV1", "FNSTENV")
 
             operands = operands.replace("82", "8")
             operands = operands.replace("g2", "g")

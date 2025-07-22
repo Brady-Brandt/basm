@@ -691,7 +691,7 @@ FRSTOR—Restore
 FPU  |DD /4                                  |FRSTOR m94/108byte
 FSAVE/FNSAVE—Store
 FPU  |9B DD /6                               |FSAVE m94/108byte
-FPU  |DD /6                                  |FNSAVE1 m94/108byte
+FPU  |DD /6                                  |FNSAVE m94/108byte
 FSCALE—Scale
 FPU  |D9 FD                                  |FSCALE
 FSIN—Sine
@@ -713,7 +713,7 @@ FPU  |9B D9 /7                               |FSTCW m2byte
 FPU  |D9 /7                                  |FNSTCW1 m2byte
 FSTENV/FNSTENV—Store
 FPU  |9B D9 /6                               |FSTENV m14/28byte
-FPU  |D9 /6                                  |FNSTENV1 m14/28byte
+FPU  |D9 /6                                  |FNSTENV m14/28byte
 FSTSW/FNSTSW—Store
 FPU  |9B DD /7                               |FSTSW m2byte
 FPU  |9B DF E0                               |FSTSW AX
