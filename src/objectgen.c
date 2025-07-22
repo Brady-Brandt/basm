@@ -131,8 +131,7 @@ static uint64_t section_pad(Section* section, uint64_t offset, uint64_t alignmen
         uint64_t new_capacity = section->capacity * 2;
         section->data = realloc(section->data, new_capacity);
         if(section->data == NULL){
-            printf("Out of memory\n");
-            return 0;
+            fatal_error("Out of memory\n");
         }
         section->capacity = new_capacity;
     }
@@ -168,7 +167,7 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     FILE* output_stream = fopen(output_file, "wb");
 
     if(output_stream == NULL){
-        printf("Failed to create file %s\n", input_file);
+        fatal_error("Failed to create file %s\n", input_file);
         return false;
     }
 
@@ -643,7 +642,7 @@ bool write_pe(const char* input_file, const char* output_file, Program* p){
     FILE* output_stream = fopen(output_file, "wb");
 
     if(output_stream == NULL){
-        printf("Failed to create file %s\n", input_file);
+        fatal_error("Failed to create file %s\n", input_file);
         return false;
     }
 
