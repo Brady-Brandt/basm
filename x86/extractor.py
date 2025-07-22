@@ -190,7 +190,12 @@ def write_opcode_table(instruction, file, op_table, tables, page_num):
 
         if row[1] == None:
             break
-        
+
+        description_col = 0
+        for index, header in enumerate(op_table[0]):
+            if 'description' in header.lower():
+                description_col = index
+ 
         if in_op_en:
             # only support 64 bit instructions
             if row[2][0] != 'V':
@@ -211,6 +216,11 @@ def write_opcode_table(instruction, file, op_table, tables, page_num):
             opcode = tmp[0]
             operands = tmp[1]
             operands = operands.strip()
+
+            description = row[description_col].lower()
+
+            if 'sign extend' in description or 'sign-extend' in description:
+                operands = operands.replace('imm', 'simm')
 
             encoding = row[1]
             encoding = encoding.replace('\n','')
@@ -257,35 +267,42 @@ def write_opcode_table(instruction, file, op_table, tables, page_num):
             if row[3][0] != 'V':
                 continue    
 
+            opcode = row[0]
+            operands= row[1]
             encoding = row[2]
 
-            row[1] = row[1].replace("*", "")
-            row[1] = row[1].replace("\n", "")
-            row[1] = row[1].strip()
+            operands = operands.replace("*", "")
+            operands = operands.replace("\n", "")
+            operands = operands.strip()
             # try to get rid of the superscripts
 
-            row[0] = row[0].replace("/r1", "/r")
-            row[1] = row[1].replace("81", "8")
+            opcode = opcode.replace("/r1", "/r")
+            operands = operands.replace("81", "8")
 
-            row[1] = row[1].replace("UD01", "UD0")
-            row[1] = row[1].replace("FNSTSW1", "FNSTSW")
-            row[1] = row[1].replace("FNCLEX1", "FNCLEX")
-            row[1] = row[1].replace("FNINIT1", "FNINIT")
+            operands = operands.replace("UD01", "UD0")
+            operands = operands.replace("FNSTSW1", "FNSTSW")
+            operands = operands.replace("FNCLEX1", "FNCLEX")
+            operands = operands.replace("FNINIT1", "FNINIT")
 
-            row[1] = row[1].replace("82", "8")
-            row[1] = row[1].replace("g2", "g")
-            row[1] = row[1].replace("83", "8")
-            row[1] = row[1].replace("63", "6")
-            row[1] = row[1].replace("23", "2")
-            row[1] = row[1].replace("43", "4")
-            row[1] = row[1].replace("42", "4")
-            row[1] = row[1].replace("62", "6")
-            row[1] = row[1].replace("61", "6")
+            operands = operands.replace("82", "8")
+            operands = operands.replace("g2", "g")
+            operands = operands.replace("83", "8")
+            operands = operands.replace("63", "6")
+            operands = operands.replace("23", "2")
+            operands = operands.replace("43", "4")
+            operands = operands.replace("42", "4")
+            operands = operands.replace("62", "6")
+            operands = operands.replace("61", "6")
           
             # fpu instructions don't have encodings specified
             # in the tables 
-            if row[1][0].lower() == "f":
+            if operands[0].lower() == "f":
                 encoding = "FPU"
+
+
+            description = row[description_col].lower()
+            if 'sign extend' in description or 'sign-extend' in description:
+                operands = operands.replace('imm', 'simm')
 
             encoding = encoding.replace('\n','')
 
@@ -297,9 +314,9 @@ def write_opcode_table(instruction, file, op_table, tables, page_num):
 
             
             enc_padding = enc_padding_size - len(encoding)
-            padding= pad_size - len(row[0]) - len(encoding) - enc_padding - 1
+            padding= pad_size - len(opcode) - len(encoding) - enc_padding - 1
 
-            file.write(encoding + enc_padding * ' ' + '|' + row[0] + padding * " " + "|" + row[1] + "\n")
+            file.write(encoding + enc_padding * ' ' + '|' + opcode + padding * " " + "|" + operands + "\n")
 
 
     return True

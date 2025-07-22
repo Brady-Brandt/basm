@@ -720,7 +720,7 @@ static bool parse_operand(Parser* p, Operand* op){
             if(!parse_and_eval_expression(p, (int64_t*)&op->imm64)){
                return false; 
             }
-            op->type = ((uint64_t)1 << 63 & op->imm64) ? OPERAND_SIGNED : OPERAND_IMM64;
+            op->type = ((uint64_t)1 << 63 & op->imm64) ? OPERAND_SIMM64 : OPERAND_IMM64;
             return true; 
 
         case TOK_IDENTIFIER: 
@@ -808,23 +808,27 @@ static inline bool check_operand_certain_register(OperandType table_instr, Opera
 
 
 static bool fit_immediate(OperandType immediate_size, Operand* op){
-    if(op->type == OPERAND_SIGNED){
+    if(op->type == OPERAND_SIMM64){
         switch (immediate_size) {
+            case OPERAND_SIMM8:
             case OPERAND_IMM8:
                 if(!is_int8(op->imm64)) return false;
                 op->imm64 = (int8_t)op->imm64;
                 op->type = OPERAND_IMM8;
                 return true;
+            case OPERAND_SIMM16:
             case OPERAND_IMM16:
                 if(!is_int16(op->imm64)) return false;
                 op->imm64 = (int16_t)op->imm16;
                 op->type = OPERAND_IMM16;
                 return true;
+            case OPERAND_SIMM32:
             case OPERAND_IMM32:
                 if(!is_int32(op->imm64)) return false;
                 op->imm64 = (int32_t)op->imm32;
                 op->type = OPERAND_IMM32;
                 return true;
+            case OPERAND_SIMM64:
             case OPERAND_IMM64:
                 return true;
             default:
@@ -832,18 +836,29 @@ static bool fit_immediate(OperandType immediate_size, Operand* op){
         }
     } else if(op->type == OPERAND_IMM64){
         switch (immediate_size) {
-            case OPERAND_IMM8:
-                if(op->imm64 > INT8_MAX) return false;
+            case OPERAND_SIMM8:
+                if(op->imm64 > (uint64_t)INT8_MAX) return false;
                 op->type = OPERAND_IMM8;
                 return true;
+            case OPERAND_IMM8:
+                if(op->imm64 > UINT8_MAX) return false;
+                op->type = OPERAND_IMM8;
+                return true;
+            case OPERAND_SIMM16:
+                if(op->imm64 > (uint64_t)INT16_MAX) return false;
+                op->type = OPERAND_IMM16;
             case OPERAND_IMM16:
-                if(op->imm64 > INT16_MAX) return false;
+                if(op->imm64 > UINT16_MAX) return false;
                 op->type = OPERAND_IMM16;
                 return true;
+            case OPERAND_SIMM32:
+                if(op->imm64 > (uint64_t)INT32_MAX) return false;
+                op->type = OPERAND_IMM32;
             case OPERAND_IMM32:
-                if(op->imm64 > INT32_MAX) return false;
+                if(op->imm64 > UINT32_MAX) return false;
                 op->type = OPERAND_IMM32;
                 return true;
+            case OPERAND_SIMM64:
             case OPERAND_IMM64:
                 return true;
             default:
@@ -978,7 +993,7 @@ static const Instruction* find_instruction_two_operands(uint64_t instr_index, Op
                 op2->type = OPERAND_M8 + (instruct_var.op2 - OPERAND_XMMM8); 
                 return &INSTRUCTION_TABLE[i];
             }
-        } else if ((op2->type == OPERAND_IMM64 || op2->type == OPERAND_SIGNED) && 
+        } else if ((op2->type == OPERAND_IMM64 || op2->type == OPERAND_SIMM64) && 
                     fit_immediate(instruct_var.op2, op2)) {
             return &INSTRUCTION_TABLE[i];
         }
@@ -1067,7 +1082,7 @@ static const Instruction* find_instruction_three_operands(uint64_t instr_index, 
                 op3->type = OPERAND_M128 + (instruct_var.op3 - OPERAND_XMMM128);
                 return &INSTRUCTION_TABLE[i];
             }
-        } else if (op3->type == OPERAND_SIGNED || op3->type == OPERAND_IMM64) {
+        } else if (op3->type == OPERAND_SIMM64|| op3->type == OPERAND_IMM64) {
             if(fit_immediate(instruct_var.op3, op3)) return &INSTRUCTION_TABLE[i]; 
         } else if (instruct_var.op3 == OPERAND_CL && op3->type == OPERAND_R8 && op3->reg.registerIndex == 1) {
             return &INSTRUCTION_TABLE[i]; 

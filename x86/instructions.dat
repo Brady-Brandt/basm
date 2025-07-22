@@ -2,15 +2,15 @@ ADC—Add
 I    |14 ib                                  |ADC AL, imm8
 I    |15 iw                                  |ADC AX, imm16
 I    |15 id                                  |ADC EAX, imm32
-I    |REX.W + 15 id                          |ADC RAX, imm32
+I    |REX.W + 15 id                          |ADC RAX, simm32
 MI   |80 /2 ib                               |ADC r/m8, imm8
 MI   |REX + 80 /2 ib                         |ADC r/m8 , imm8
 MI   |81 /2 iw                               |ADC r/m16, imm16
 MI   |81 /2 id                               |ADC r/m32, imm32
-MI   |REX.W + 81 /2 id                       |ADC r/m64, imm32
-MI   |83 /2 ib                               |ADC r/m16, imm8
-MI   |83 /2 ib                               |ADC r/m32, imm8
-MI   |REX.W + 83 /2 ib                       |ADC r/m64, imm8
+MI   |REX.W + 81 /2 id                       |ADC r/m64, simm32
+MI   |83 /2 ib                               |ADC r/m16, simm8
+MI   |83 /2 ib                               |ADC r/m32, simm8
+MI   |REX.W + 83 /2 ib                       |ADC r/m64, simm8
 MR   |10 /r                                  |ADC r/m8, r8
 MR   |REX + 10 /r                            |ADC r/m8 , r8
 MR   |11 /r                                  |ADC r/m16, r16
@@ -28,15 +28,15 @@ ADD—Add
 I    |04 ib                                  |ADD AL, imm8
 I    |05 iw                                  |ADD AX, imm16
 I    |05 id                                  |ADD EAX, imm32
-I    |REX.W + 05 id                          |ADD RAX, imm32
+I    |REX.W + 05 id                          |ADD RAX, simm32
 MI   |80 /0 ib                               |ADD r/m8, imm8
-MI   |REX + 80 /0 ib                         |ADD r/m8 , imm8
+MI   |REX + 80 /0 ib                         |ADD r/m8 , simm8
 MI   |81 /0 iw                               |ADD r/m16, imm16
 MI   |81 /0 id                               |ADD r/m32, imm32
-MI   |REX.W + 81 /0 id                       |ADD r/m64, imm32
-MI   |83 /0 ib                               |ADD r/m16, imm8
-MI   |83 /0 ib                               |ADD r/m32, imm8
-MI   |REX.W + 83 /0 ib                       |ADD r/m64, imm8
+MI   |REX.W + 81 /0 id                       |ADD r/m64, simm32
+MI   |83 /0 ib                               |ADD r/m16, simm8
+MI   |83 /0 ib                               |ADD r/m32, simm8
+MI   |REX.W + 83 /0 ib                       |ADD r/m64, simm8
 MR   |00 /r                                  |ADD r/m8, r8
 MR   |REX + 00 /r                            |ADD r/m8 , r8
 MR   |01 /r                                  |ADD r/m16, r16
@@ -111,15 +111,15 @@ AND—Logical
 I    |24 ib                                  |AND AL, imm8
 I    |25 iw                                  |AND AX, imm16
 I    |25 id                                  |AND EAX, imm32
-I    |REX.W + 25 id                          |AND RAX, imm32
+I    |REX.W + 25 id                          |AND RAX, simm32
 MI   |80 /4 ib                               |AND r/m8, imm8
 MI   |REX + 80 /4 ib                         |AND r/m8 , imm8
 MI   |81 /4 iw                               |AND r/m16, imm16
 MI   |81 /4 id                               |AND r/m32, imm32
-MI   |REX.W + 81 /4 id                       |AND r/m64, imm32
-MI   |83 /4 ib                               |AND r/m16, imm8
-MI   |83 /4 ib                               |AND r/m32, imm8
-MI   |REX.W + 83 /4 ib                       |AND r/m64, imm8
+MI   |REX.W + 81 /4 id                       |AND r/m64, simm32
+MI   |83 /4 ib                               |AND r/m16, simm8
+MI   |83 /4 ib                               |AND r/m32, simm8
+MI   |REX.W + 83 /4 ib                       |AND r/m64, simm8
 MR   |20 /r                                  |AND r/m8, r8
 MR   |REX + 20 /r                            |AND r/m8 , r8
 MR   |21 /r                                  |AND r/m16, r16
@@ -364,12 +364,12 @@ CMP—Compare
 I    |3C ib                                  |CMP AL, imm8
 I    |3D iw                                  |CMP AX, imm16
 I    |3D id                                  |CMP EAX, imm32
-I    |REX.W + 3D id                          |CMP RAX, imm32
+I    |REX.W + 3D id                          |CMP RAX, simm32
 MI   |80 /7 ib                               |CMP r/m8, imm8
 MI   |REX + 80 /7 ib                         |CMP r/m8 , imm8
 MI   |81 /7 iw                               |CMP r/m16, imm16
 MI   |81 /7 id                               |CMP r/m32, imm32
-MI   |REX.W + 81 /7 id                       |CMP r/m64, imm32
+MI   |REX.W + 81 /7 id                       |CMP r/m64, simm32
 MI   |83 /7 ib                               |CMP r/m16, imm8
 MI   |83 /7 ib                               |CMP r/m32, imm8
 MI   |REX.W + 83 /7 ib                       |CMP r/m64, imm8
@@ -808,9 +808,9 @@ M    |REX.W + F7 /5                          |IMUL r/m64
 RM   |0F AF /r                               |IMUL r16, r/m16
 RM   |0F AF /r                               |IMUL r32, r/m32
 RM   |REX.W + 0F AF /r                       |IMUL r64, r/m64
-RMI  |6B /r ib                               |IMUL r16, r/m16, imm8
+RMI  |6B /r ib                               |IMUL r16, r/m16, simm8
 RMI  |6B /r ib                               |IMUL r32, r/m32, imm8
-RMI  |REX.W + 6B /r ib                       |IMUL r64, r/m64, imm8
+RMI  |REX.W + 6B /r ib                       |IMUL r64, r/m64, simm8
 RMI  |69 /r iw                               |IMUL r16, r/m16, imm16
 RMI  |69 /r id                               |IMUL r32, r/m32, imm32
 RMI  |REX.W + 69 /r id                       |IMUL r64, r/m64, imm32
@@ -1060,7 +1060,7 @@ MI   |C6 /0 ib                               |MOV r/m8, imm8
 MI   |REX + C6 /0 ib                         |MOV r/m8, imm8
 MI   |C7 /0 iw                               |MOV r/m16, imm16
 MI   |C7 /0 id                               |MOV r/m32, imm32
-MI   |REX.W + C7 /0 id                       |MOV r/m64, imm32
+MI   |REX.W + C7 /0 id                       |MOV r/m64, simm32
 MOV—Move
 MR   |0F 20/r                                |MOV r64, CR0–CR7
 MR   |REX.R + 0F 20 /0                       |MOV r64, CR8
@@ -1303,15 +1303,15 @@ OR—Logical
 I    |0C ib                                  |OR AL, imm8
 I    |0D iw                                  |OR AX, imm16
 I    |0D id                                  |OR EAX, imm32
-I    |REX.W + 0D id                          |OR RAX, imm32
+I    |REX.W + 0D id                          |OR RAX, simm32
 MI   |80 /1 ib                               |OR r/m8, imm8
 MI   |REX + 80 /1 ib                         |OR r/m8, imm8
 MI   |81 /1 iw                               |OR r/m16, imm16
 MI   |81 /1 id                               |OR r/m32, imm32
-MI   |REX.W + 81 /1 id                       |OR r/m64, imm32
-MI   |83 /1 ib                               |OR r/m16, imm8
-MI   |83 /1 ib                               |OR r/m32, imm8
-MI   |REX.W + 83 /1 ib                       |OR r/m64, imm8
+MI   |REX.W + 81 /1 id                       |OR r/m64, simm32
+MI   |83 /1 ib                               |OR r/m16, simm8
+MI   |83 /1 ib                               |OR r/m32, simm8
+MI   |REX.W + 83 /1 ib                       |OR r/m64, simm8
 MR   |08 /r                                  |OR r/m8, r8
 MR   |REX + 08 /r                            |OR r/m8, r8
 MR   |09 /r                                  |OR r/m16, r16
@@ -2175,15 +2175,15 @@ SBB—Integer
 I    |1C ib                                  |SBB AL, imm8
 I    |1D iw                                  |SBB AX, imm16
 I    |1D id                                  |SBB EAX, imm32
-I    |REX.W + 1D id                          |SBB RAX, imm32
+I    |REX.W + 1D id                          |SBB RAX, simm32
 MI   |80 /3 ib                               |SBB r/m8, imm8
 MI   |REX + 80 /3 ib                         |SBB r/m8, imm8
 MI   |81 /3 iw                               |SBB r/m16, imm16
 MI   |81 /3 id                               |SBB r/m32, imm32
-MI   |REX.W + 81 /3 id                       |SBB r/m64, imm32
-MI   |83 /3 ib                               |SBB r/m16, imm8
-MI   |83 /3 ib                               |SBB r/m32, imm8
-MI   |REX.W + 83 /3 ib                       |SBB r/m64, imm8
+MI   |REX.W + 81 /3 id                       |SBB r/m64, simm32
+MI   |83 /3 ib                               |SBB r/m16, simm8
+MI   |83 /3 ib                               |SBB r/m32, simm8
+MI   |REX.W + 83 /3 ib                       |SBB r/m64, simm8
 MR   |18 /r                                  |SBB r/m8, r8
 MR   |REX + 18 /r                            |SBB r/m8, r8
 MR   |19 /r                                  |SBB r/m16, r16
@@ -2363,15 +2363,15 @@ SUB—Subtract
 I    |2C ib                                  |SUB AL, imm8
 I    |2D iw                                  |SUB AX, imm16
 I    |2D id                                  |SUB EAX, imm32
-I    |REX.W + 2D id                          |SUB RAX, imm32
+I    |REX.W + 2D id                          |SUB RAX, simm32
 MI   |80 /5 ib                               |SUB r/m8, imm8
 MI   |REX + 80 /5 ib                         |SUB r/m8, imm8
 MI   |81 /5 iw                               |SUB r/m16, imm16
 MI   |81 /5 id                               |SUB r/m32, imm32
-MI   |REX.W + 81 /5 id                       |SUB r/m64, imm32
-MI   |83 /5 ib                               |SUB r/m16, imm8
-MI   |83 /5 ib                               |SUB r/m32, imm8
-MI   |REX.W + 83 /5 ib                       |SUB r/m64, imm8
+MI   |REX.W + 81 /5 id                       |SUB r/m64, simm32
+MI   |83 /5 ib                               |SUB r/m16, simm8
+MI   |83 /5 ib                               |SUB r/m32, simm8
+MI   |REX.W + 83 /5 ib                       |SUB r/m64, simm8
 MR   |28 /r                                  |SUB r/m8, r8
 MR   |REX + 28 /r                            |SUB r/m8, r8
 MR   |29 /r                                  |SUB r/m16, r16
@@ -2419,12 +2419,12 @@ TEST—Logical
 I    |A8 ib                                  |TEST AL, imm8
 I    |A9 iw                                  |TEST AX, imm16
 I    |A9 id                                  |TEST EAX, imm32
-I    |REX.W + A9 id                          |TEST RAX, imm32
+I    |REX.W + A9 id                          |TEST RAX, simm32
 MI   |F6 /0 ib                               |TEST r/m8, imm8
 MI   |REX + F6 /0 ib                         |TEST r/m8, imm8
 MI   |F7 /0 iw                               |TEST r/m16, imm16
 MI   |F7 /0 id                               |TEST r/m32, imm32
-MI   |REX.W + F7 /0 id                       |TEST r/m64, imm32
+MI   |REX.W + F7 /0 id                       |TEST r/m64, simm32
 MR   |84 /r                                  |TEST r/m8, r8
 MR   |REX + 84 /r                            |TEST r/m8, r8
 MR   |85 /r                                  |TEST r/m16, r16
@@ -2790,15 +2790,15 @@ XOR—Logical
 I    |34 ib                                  |XOR AL, imm8
 I    |35 iw                                  |XOR AX, imm16
 I    |35 id                                  |XOR EAX, imm32
-I    |REX.W + 35 id                          |XOR RAX, imm32
+I    |REX.W + 35 id                          |XOR RAX, simm32
 MI   |80 /6 ib                               |XOR r/m8, imm8
 MI   |REX + 80 /6 ib                         |XOR r/m8, imm8
 MI   |81 /6 iw                               |XOR r/m16, imm16
 MI   |81 /6 id                               |XOR r/m32, imm32
-MI   |REX.W + 81 /6 id                       |XOR r/m64, imm32
-MI   |83 /6 ib                               |XOR r/m16, imm8
-MI   |83 /6 ib                               |XOR r/m32, imm8
-MI   |REX.W + 83 /6 ib                       |XOR r/m64, imm8
+MI   |REX.W + 81 /6 id                       |XOR r/m64, simm32
+MI   |83 /6 ib                               |XOR r/m16, simm8
+MI   |83 /6 ib                               |XOR r/m32, simm8
+MI   |REX.W + 83 /6 ib                       |XOR r/m64, simm8
 MR   |30 /r                                  |XOR r/m8, r8
 MR   |REX + 30 /r                            |XOR r/m8, r8
 MR   |31 /r                                  |XOR r/m16, r16

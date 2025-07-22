@@ -554,8 +554,10 @@ operand_types["imm8" ] =  iota()
 operand_types["imm16" ] =  iota()
 operand_types["imm32" ] =  iota()
 operand_types["imm64" ] =  iota()
-
-operand_types["signed"] = iota()
+operand_types["simm8" ] =  iota()
+operand_types["simm16" ] =  iota()
+operand_types["simm32" ] =  iota()
+operand_types["simm64" ] =  iota()
 
 #represent labels
 operand_types["l8" ] =  iota()
@@ -606,7 +608,7 @@ def check_operand(nmemonic, op):
     # for the registers xmm, mm, ymm,zmm
     # there doesn't need to be a number at the end
     # these instructions can take in any register of that type
-    if op[0] != 'i':
+    if op[0] != 'i' and op[0] != 's':
         op = op.replace("mm1", "mm")
         op = op.replace("mm2", "mm")
         op = op.replace("mm3", "mm")
