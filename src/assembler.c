@@ -263,7 +263,12 @@ static void parse_bss_section(Parser* p){
                 continue;
         }
         parser_next_token(p);
-        program.bss.size += num * parse_and_eval_expression(p); 
+        int64_t amount = 0;
+        if(!parse_and_eval_expression(p, &amount)){
+            parser_next_token(p);
+            continue;
+        }
+        program.bss.size += num * (uint64_t)amount; 
         parser_next_token(p);
         parser_expect_consume_token(p, TOK_NEW_LINE);
     } 
@@ -297,7 +302,10 @@ static void parse_data_section(Parser* p){
                     }
                     is_floating_point = true;
                 } 
-                int64_t num = parse_and_eval_expression(p);
+                int64_t num = 0;
+                if(!parse_and_eval_expression(p, &num)){
+                    goto next_iteration;
+                }
                 switch (psuedo_instr) {
                     case TOK_DB: {
                         uint8_t temp = 0;
@@ -342,7 +350,10 @@ static void parse_data_section(Parser* p){
                             //TODO: CHECK FOR ERRORS
                             section_add_data(&program.data,&num, 8);
                         } else{
-                            uint64_t num = string_to_int(p->currentToken.literal);
+                            uint64_t num = 0;
+                            if(!string_to_int(p->currentToken.literal, &num)){
+                                goto next_iteration;
+                            }
                             section_add_data(&program.data,&num, 8);
                         }
                         break;
@@ -517,7 +528,10 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                         parser_next_token(p);
                         parser_next_token(p);
                         if(!parser_expect_token(p, TOK_INT)) return false;
-                        int scale = string_to_int(p->currentToken.literal);
+                        uint64_t scale = 0;
+                        if(!string_to_int(p->currentToken.literal, &scale)){
+                            return false;
+                        }
                         op->mem.index = reg;
                         if(!check_scale_factor(p, scale, op)) return false; 
                         index_size = size;
@@ -542,7 +556,11 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                 }
                 break;
             case TOK_INT:{
-                int temp = (int)string_to_int(p->currentToken.literal);   
+                uint64_t t = 0;
+                if(!string_to_int(p->currentToken.literal, &t)) return false;
+                
+                int32_t temp = (int32_t)t;
+
                 if(parser_peek_token(p).type == TOK_MULTIPLY){
                     if(op->mem.index != REG_MAX){
                         parser_error(p, "Invalid address\n");
@@ -592,7 +610,9 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
             case TOK_SUB: {
                 parser_next_token(p);
                 if(!parser_expect_token(p, TOK_INT)) return false;
-                op->mem.offset -= (int32_t)string_to_int(p->currentToken.literal);    
+                uint64_t temp = 0;
+                if(!string_to_int(p->currentToken.literal, &temp)) return false;
+                op->mem.offset -= (int32_t)temp;   
             }
             break;
 
@@ -690,8 +710,10 @@ static bool parse_operand(Parser* p, Operand* op){
         case TOK_NEG:
         case TOK_SUB:
         case TOK_INT:
-            op->imm64 = parse_and_eval_expression(p);
-            op->type = (op->imm64 > INT64_MAX) ? OPERAND_SIGNED : OPERAND_IMM64;
+            if(!parse_and_eval_expression(p, (int64_t*)&op->imm64)){
+               return false; 
+            }
+            op->type = ((uint64_t)1 << 63 & op->imm64) ? OPERAND_SIGNED : OPERAND_IMM64;
             return true; 
 
         case TOK_IDENTIFIER: 
@@ -804,15 +826,15 @@ static bool fit_immediate(OperandType immediate_size, Operand* op){
     } else if(op->type == OPERAND_IMM64){
         switch (immediate_size) {
             case OPERAND_IMM8:
-                if(op->imm64 > UINT8_MAX) return false;
+                if(op->imm64 > INT8_MAX) return false;
                 op->type = OPERAND_IMM8;
                 return true;
             case OPERAND_IMM16:
-                if(op->imm64 > UINT16_MAX) return false;
+                if(op->imm64 > INT16_MAX) return false;
                 op->type = OPERAND_IMM16;
                 return true;
             case OPERAND_IMM32:
-                if(op->imm64 > UINT32_MAX) return false;
+                if(op->imm64 > INT32_MAX) return false;
                 op->type = OPERAND_IMM32;
                 return true;
             case OPERAND_IMM64:
@@ -1704,7 +1726,6 @@ static void parse_tokens(ArrayList* tokens){
  
     while(p.tokenIndex < (uint32_t)p.tokens->size){
         if(setjmp(p.jmp) == 1){
-            //print_text_section();        
             break;
         }
 

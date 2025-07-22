@@ -1,9 +1,9 @@
 #pragma once 
 #include "parser.h"
+#include <stdbool.h>
 #include <stdint.h>
 
 
+bool parse_and_eval_expression(Parser* assembler, int64_t* result);
 
-uint64_t parse_and_eval_expression(Parser* assembler);
-
-uint64_t string_to_int(char* string);
+bool string_to_int(char* string, uint64_t* result);
