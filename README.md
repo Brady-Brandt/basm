@@ -56,13 +56,12 @@ It should only be used for simple, hobby projects right now.
 ### Known Issues
 - Moving a label as in (mov rax, label) does not move the address of the label into rax
 - Currently assume all jump addresses are rel32
-- Sign extended instructions are being used for unsigned immediates 
 
 ### Planned Features (Not in a Particular Order) 
 - [ ] Mach File Support (Macos Support)
 - [x] SSE/AVX instructions (Most have been added, not going to support AVX512 instructions)
 - [ ] Preprocessor
-- [ ] Support for instruction prefixes
+- [x] Support for instruction prefixes
 - [ ] Implementing Hashmaps for the Symbol Tables
 - [ ] Allow multiple assembler passes
  
