@@ -166,6 +166,12 @@ typedef enum {
     TOK_TWORD,
     TOK_DQWORD,
     TOK_YWORD,
+    TOK_LOCK,
+    TOK_REP,
+    TOK_REPE,
+    TOK_REPZ,
+    TOK_REPNE,
+    TOK_REPNZ,
     TOK_END_KEYWORDS,
     TOK_DEFINE,
     TOK_IF,
@@ -305,3 +311,17 @@ uint64_t keyword_get_index(const struct Keyword* kw);
 extern void print_instruction(const Instruction* instr);
 extern const Instruction INSTRUCTION_TABLE[];
 extern const int KEYWORD_TABLE_SIZE;
+#define LOCK_PREFIX_TABLE_SIZE 145
+#define REP_PREFIX_TABLE_SIZE 21
+#define REPE_PREFIX_TABLE_SIZE 9
+
+    typedef enum {
+        PREFIX_NONE,
+        PREFIX_LOCK = 0xf0,
+        PREFIX_REP = 0xf3,
+        PREFIX_REPE = 0xf3,
+        PREFIX_REPNE = 0xf2,
+    } InstructionPrefix;
+extern const uint16_t LOCK_PREFIX_INDICES[LOCK_PREFIX_TABLE_SIZE];
+extern const uint16_t REP_PREFIX_INDICES[REP_PREFIX_TABLE_SIZE];
+extern const uint16_t REPE_PREFIX_INDICES[REPE_PREFIX_TABLE_SIZE];

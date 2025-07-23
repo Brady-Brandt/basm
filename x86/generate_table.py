@@ -10,6 +10,8 @@ registers = [
 "AL","CL","DL","BL","AH","CH","DH","BH","R8B","R9B","R10B","R11B","R12B","R13B","R14B","R15B",
 "ES", "CS", "SS", "DS", "FS","GS"]
 
+
+
 tokens = """
 typedef enum {
     TOK_NEW_LINE = '\\n',
@@ -62,6 +64,12 @@ typedef enum {
     TOK_TWORD,
     TOK_DQWORD,
     TOK_YWORD,
+    TOK_LOCK,
+    TOK_REP,
+    TOK_REPE,
+    TOK_REPZ,
+    TOK_REPNE,
+    TOK_REPNZ,
     TOK_END_KEYWORDS,
     TOK_DEFINE,
     TOK_IF,
@@ -240,10 +248,10 @@ class Instruction:
 
     def to_c_struct(self): 
         # hreset has an opcode length of 5
-        # since we only have a length of 4 in out struct
+        # since we only have a length of 4 in our struct
         # we are just going to pretend the last byte is an operand extension
         if len(self.opcode) > 4:
-            assert self.digit == -1, f"Error: Opcode has length >4 and has an operand extension: {self.opcode}"
+            assert self.digit == -1, f"Error: Opcode has length >4 and has an opcode extension: {self.opcode}"
             self.digit = self.opcode[-1] >> 3
 
         begin = "{" 
@@ -287,7 +295,6 @@ class Instruction:
             size += 3
 
         return size
-
 
 def parse_opcode(op):
     new_op = ""
@@ -597,6 +604,41 @@ operand_types["unsupported"] = 255
 
 
 
+def instruction_allows_lock(instruction: Instruction, nmemonic: str) -> bool:
+    lock_prefix_instructions =  ["ADC", "ADD", "AND", "BTC", "BTR", "BTS", "CMPXCHG", 
+    "CMPXCHG8B", "CMPXCHG16B", "DEC", "INC", "NEG", "NOT", "OR", "SBB", "SUB", "XADD", "XCHG","XOR"]
+
+    if nmemonic not in lock_prefix_instructions:
+        return False
+
+    # destination operand has to be a memory location
+    if (instruction.op1 >= operand_types["r/m8"] and instruction.op1 <= operand_types["r/m64"]):
+        return True
+
+    if (instruction.op1 >= operand_types["m8"] and instruction.op1 <= operand_types["m64"]):
+        return True
+
+    return False
+
+def instruction_allows_rep(nmemonic: str) -> bool:
+    rep_instructions = ['INS','MOVS','OUTS','LODS','STOS']
+    suffices = ['B','W', 'D', 'Q']
+
+    for instr in rep_instructions:
+       for suffix in suffices:
+           if nmemonic == instr + suffix:
+               return True
+    return False
+
+def instruction_allows_repe(nmemonic: str) -> bool:
+    repe_instructions = ['CMPS', 'SCAS']
+    suffices = ['B','W', 'D', 'Q']
+
+    for instr in repe_instructions:
+       for suffix in suffices:
+           if nmemonic == instr + suffix:
+               return True
+    return False
 
 
 def check_operand(nmemonic, op):
@@ -684,10 +726,11 @@ def parse_operands(desc):
 
     if op_format_list[-1].isdigit():
         op_format_list = op_format_list[:-1]
-    # remove repeat prefix
+
+    # skip over rep prefix
     for x in op_format_list:
         if "REP" in x:
-            op_format_list.remove(x)
+            return None
  
     if len(op_format_list) == 1:
         return ParsedOperands(nmemonic, 0,0,0,0)
@@ -791,9 +834,28 @@ with open("instructions.dat", "r") as f:
                 except KeyError:
                     instructions[parsed_operands.nmemonic] = [parsed_instruction]
 
+    instructions.pop('LOCK') 
+    #rep,repe,repne
+    # these instructions take have zero operands but have different encodings
+    # depending on the the size. All these have alternative nmemonics that 
+    # contain information about the size (ins -> insb,insw,insd,insq)
+    instructions.pop('INS')
+    instructions.pop('MOVS')
+    instructions.pop('OUTS')
+    instructions.pop('LODS')
+    instructions.pop('STOS')
+    instructions.pop('CMPS')
+    instructions.pop('SCAS')
+
+    keys_to_remove = []
+    for nm in instructions:
+        if len(instructions[nm]) == 0:
+            keys_to_remove.append(nm)
+
+    for key in keys_to_remove:
+        instructions.pop(key)
 
     sorted_instructions = sorted(instructions)
-
                                 
     operand_enum = []
     
@@ -837,7 +899,9 @@ with open("instructions.dat", "r") as f:
     types_h_file.write("extern const int KEYWORD_TABLE_SIZE;\n")
     gperf_input_file.write("const Instruction INSTRUCTION_TABLE[] = {\n")
 
-
+    lock_prefix_indices: list[int] = []
+    rep_prefix_indices: list[int] = []
+    repe_prefix_indices: list[int] = []
     instr_variant_lookup = []
     current_index = 0
     instruction_table_size = 0
@@ -850,10 +914,55 @@ with open("instructions.dat", "r") as f:
         current_index += 1
         instructions[instr].sort(key=lambda var: var.get_size())
         for instr_variant in instructions[instr]: 
+
+            if instruction_allows_lock(instr_variant, instr):
+                lock_prefix_indices.append(current_index)
+
+            if instruction_allows_rep(instr):
+                rep_prefix_indices.append(current_index)
+
+            if instruction_allows_repe(instr):
+                repe_prefix_indices.append(current_index)
+
             gperf_input_file.write(instr_variant.to_c_struct() + '\n')
             current_index += 1
             instruction_table_size += 1 
     gperf_input_file.write("};\n")
+
+    types_h_file.write(f"#define LOCK_PREFIX_TABLE_SIZE {len(lock_prefix_indices)}\n")
+    types_h_file.write(f"#define REP_PREFIX_TABLE_SIZE {len(rep_prefix_indices)}\n")
+    types_h_file.write(f"#define REPE_PREFIX_TABLE_SIZE {len(repe_prefix_indices)}\n")
+
+    types_h_file.write("""
+    typedef enum {
+        PREFIX_NONE,
+        PREFIX_LOCK = 0xf0,
+        PREFIX_REP = 0xf3,
+        PREFIX_REPE = 0xf3,
+        PREFIX_REPNE = 0xf2,
+    } InstructionPrefix;
+""")
+
+    types_h_file.write(f"extern const uint16_t LOCK_PREFIX_INDICES[LOCK_PREFIX_TABLE_SIZE];\n")
+    types_h_file.write(f"extern const uint16_t REP_PREFIX_INDICES[REP_PREFIX_TABLE_SIZE];\n")
+    types_h_file.write(f"extern const uint16_t REPE_PREFIX_INDICES[REPE_PREFIX_TABLE_SIZE];\n")
+    
+    gperf_input_file.write("const uint16_t LOCK_PREFIX_INDICES[] = {\n")
+    for index in lock_prefix_indices:
+        gperf_input_file.write(f"{index},")
+    gperf_input_file.write("};\n")
+
+    gperf_input_file.write("const uint16_t REP_PREFIX_INDICES[] = {\n")
+    for index in rep_prefix_indices:
+        gperf_input_file.write(f"{index},")
+    gperf_input_file.write("};\n")
+
+    gperf_input_file.write("const uint16_t REPE_PREFIX_INDICES[] = {\n")
+    for index in repe_prefix_indices:
+        gperf_input_file.write(f"{index},")
+    gperf_input_file.write("};\n")
+
+
     gperf_input_file.write("%}\n")
 
     # write the gperf output
@@ -943,6 +1052,7 @@ p_result = subprocess.run(["gperf",INPUT_FILE_NAME,f"--output-file={OUTPUT_FILE_
 try:
     p_result.check_returncode()
 except subprocess.CalledProcessError:
-    print("Failed to execute gperf: {p_result.returncode}")
+    print(f"Failed to execute gperf: {p_result.returncode}")
 finally:
+    pass
     os.remove(INPUT_FILE_NAME)

@@ -850,6 +850,7 @@ static bool fit_immediate(OperandType immediate_size, Operand* op){
             case OPERAND_SIMM16:
                 if(op->imm64 > (uint64_t)INT16_MAX) return false;
                 op->type = OPERAND_IMM16;
+                return true;
             case OPERAND_IMM16:
                 if(op->imm64 > UINT16_MAX) return false;
                 op->type = OPERAND_IMM16;
@@ -857,6 +858,7 @@ static bool fit_immediate(OperandType immediate_size, Operand* op){
             case OPERAND_SIMM32:
                 if(op->imm64 > (uint64_t)INT32_MAX) return false;
                 op->type = OPERAND_IMM32;
+                return true;
             case OPERAND_IMM32:
                 if(op->imm64 > UINT32_MAX) return false;
                 op->type = OPERAND_IMM32;
@@ -1645,15 +1647,114 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
 }
 
 
+static inline bool check_prefix(const Instruction* instruction, const uint16_t* prefix_array, int prefix_array_size){
+    bool is_lock_instr = false;
+    uint16_t instr_var_index = (instruction - INSTRUCTION_TABLE);
+    for(int i = 0; i < prefix_array_size; i++){
+        if(prefix_array[i] == instr_var_index){
+            return true;
+        }
+    }
+    return false;
+}
+
+// is_rep stores if if the prefix is the rep prefix
+// rep uses the same encoding (0xf3) as repe so we use this bool 
+static bool parse_instruction(Parser* p, InstructionPrefix prefix, bool is_rep){
+    Operand operands[4] = {0};
+    int operand_count = 0;
+    uint64_t instr = p->currentToken.instruction; 
+    int instr_line = p->currentToken.line_number;
+    int instr_col = p->currentToken.col;
+    while(p->currentToken.type != TOK_NEW_LINE){
+        Token op = parser_next_token(p);
+        if(op.type == TOK_NEW_LINE) break;
+
+        if(operand_count == 4){
+            parser_error(p, "Instructions have a maximum of four operands\n");
+            parser_expect_consume_token(p, TOK_NEW_LINE);
+            return false;
+        }
+
+        if(!parse_operand(p, &operands[operand_count++])){
+            parser_expect_consume_token(p, TOK_NEW_LINE);
+            return false;
+        }
+
+        parser_next_token(p);
+
+        if(!match(p, TOK_COMMA, TOK_NEW_LINE)){
+            parser_error(p, "Expected comma or new line after operand got %s\n", 
+                    token_to_string(p->currentToken.type));
+
+            parser_expect_consume_token(p, TOK_NEW_LINE);
+            return false;
+        }
+
+    }
+
+    const Instruction* instruction = NULL;
+    if(operand_count == 0){
+        instruction = find_instruction_nop(instr);
+    } else if (operand_count == 1) { 
+        instruction = find_instruction_one_operand(instr, &operands[0]);
+    } else if (operand_count == 2) { 
+        instruction = find_instruction_two_operands(instr, &operands[0], &operands[1]);
+    } else if (operand_count == 3) {
+        instruction = find_instruction_three_operands(instr, &operands[0], &operands[1], &operands[2]);
+    } else{
+        instruction = find_instruction_four_operands(instr,&operands[0],&operands[1], &operands[2], &operands[3]);
+    }
+
+    if(instruction == NULL){
+        for(int i = 0; i < operand_count; i++){
+            scratch_buffer_fmt("%s ", operand_to_string(operands[i].type));
+        }
+        char* temp = scratch_buffer_as_str();
+        parser_error_loc(p,instr_line, instr_col, "Couldn't find instruction for nmemonic: %s %s\n", 
+                get_keyword(instr)->name, temp); 
+        scratch_buffer_clear();
+        parser_expect_consume_token(p, TOK_NEW_LINE);
+        return false;
+    } 
+    
+    if(prefix == PREFIX_LOCK){
+        if(!check_prefix(instruction, LOCK_PREFIX_INDICES, LOCK_PREFIX_TABLE_SIZE) || !is_mem(operands[0].type)){
+            parser_error_loc(p,instr_line, instr_col, "Cannot use Lock with this instruction\n"); 
+            parser_expect_consume_token(p, TOK_NEW_LINE);
+            return false;
+        }
+        section_add_data(&program.text, &prefix, 1);
+    } else if (prefix == PREFIX_REP && is_rep) {
+        if(!check_prefix(instruction, REP_PREFIX_INDICES, REPE_PREFIX_TABLE_SIZE)){
+            parser_error_loc(p,instr_line, instr_col, "Cannot use Rep prefix with this instruction\n"); 
+            parser_expect_consume_token(p, TOK_NEW_LINE);
+            return false;
+        } 
+        section_add_data(&program.text, &prefix, 1);
+    } else if (prefix == PREFIX_REPE || prefix == PREFIX_REPNE) {
+        if(!check_prefix(instruction, REPE_PREFIX_INDICES, REPE_PREFIX_TABLE_SIZE)){
+            parser_error_loc(p,instr_line, instr_col, "Cannot use Repe/Repne prefix with this instruction\n"); 
+            parser_expect_consume_token(p, TOK_NEW_LINE);
+            return false;
+        } 
+        section_add_data(&program.text, &prefix, 1); 
+    }
+
+    emit_instruction(p, instruction, operands);
+    parser_expect_consume_token(p, TOK_NEW_LINE);
+    return true;
+}
+
+
 static void parse_text_section(Parser* p){
     while(p->currentToken.type != TOK_SECTION){
-        if(p->currentToken.type == TOK_SECTION) break;
-
         if(p->currentToken.type == TOK_GLOBAL || p->currentToken.type == TOK_EXTERN){
             int section = (p->currentToken.type == TOK_GLOBAL) ? SECTION_TEXT : SECTION_EXTERN;
             parser_next_token(p);
             if(!parser_expect_token(p, TOK_IDENTIFIER)){
-                goto next_iteration;
+                parser_expect_consume_token(p, TOK_NEW_LINE);
+                continue;
             }
 
             Token id = p->currentToken;
@@ -1661,90 +1762,50 @@ static void parse_text_section(Parser* p){
             symbol_table_add(p, id.literal, 0, section, VISIBILITY_GLOBAL);
             parser_next_token(p);
             if(!parser_expect_consume_token(p, TOK_NEW_LINE)){
-                goto next_iteration;
+                parser_expect_consume_token(p, TOK_NEW_LINE);
+                continue;
             }
         }
         else if(p->currentToken.type == TOK_IDENTIFIER){
             Token id = p->currentToken;
             parser_next_token(p);
             if(!parser_expect_consume_token(p, TOK_COLON)){
-                goto next_iteration;
+                parser_expect_consume_token(p, TOK_NEW_LINE);
+                continue;
             } 
             parser_next_token(p);
             symbol_table_add(p, id.literal, program.text.size, SECTION_TEXT, VISIBILITY_LOCAL);
-        } else if (p->currentToken.type == TOK_INSTRUCTION) {
-                Operand operands[4] = {0};
-                int operand_count = 0;
-                uint64_t instr = p->currentToken.instruction; 
-                int instr_line = p->currentToken.line_number;
-                int instr_col = p->currentToken.col;
-                while(p->currentToken.type != TOK_NEW_LINE){
-                    Token op = parser_next_token(p);
-                    if(op.type == TOK_NEW_LINE) break;
-
-                    if(operand_count == 4){
-                        parser_error(p, "Instructions have a maximum of four operands\n");
-                        goto next_iteration;
-                    }
-
-                    if(!parse_operand(p, &operands[operand_count++])){
-                       goto next_iteration; 
-                    }
-
-                    parser_next_token(p);
-
-                    if(!match(p, TOK_COMMA, TOK_NEW_LINE)){
-                        parser_error(p, "Expected comma or new line after operand got %s\n", 
-                                token_to_string(p->currentToken.type));
-                        goto next_iteration;
-                    }
-
-                }
-
-                const Instruction* found_instruction = NULL;
-                
-                switch (operand_count) {
-                    case 0:
-                        found_instruction = find_instruction_nop(instr);
-                        break;
-                    case 1:
-                        found_instruction = find_instruction_one_operand(instr, &operands[0]);
-                        if(found_instruction == NULL) break;
-                        break;
-                    case 2:
-                        found_instruction = find_instruction_two_operands(instr, &operands[0], &operands[1]);
-                        if(found_instruction == NULL) break;
-                        break;
-                    case 3:
-                        found_instruction = find_instruction_three_operands(instr, &operands[0],
-                                &operands[1], &operands[2]);
-
-                        if(found_instruction == NULL) break;
-                        break;
-                    case 4:
-                        found_instruction = find_instruction_four_operands(instr,
-                                &operands[0],&operands[1], &operands[2], &operands[3]);
-                        break;
-
-                    default:
-                        break;
-                
-                }
-                  
-                if(found_instruction == NULL){
-                    for(int i = 0; i < operand_count; i++){
-                        scratch_buffer_fmt("%s ", operand_to_string(operands[i].type));
-                    }
-                    char* temp = scratch_buffer_as_str();
-                    parser_error_loc(p,instr_line, instr_col, "Couldn't find instruction for nmemonic: %s %s\n", 
-                            get_keyword(instr)->name, temp); 
-                } else{
-                    emit_instruction(p, found_instruction, operands);
-                }
-
-            next_iteration:
+        } else if (p->currentToken.type == TOK_LOCK) { 
+            parser_next_token(p);
+            if(!parser_expect_token(p, TOK_INSTRUCTION)){
                 parser_expect_consume_token(p, TOK_NEW_LINE);
-
+                continue;
+            }
+            parse_instruction(p, PREFIX_LOCK, false); 
+        } else if (p->currentToken.type == TOK_REP) {
+            parser_next_token(p);
+            if(!parser_expect_token(p, TOK_INSTRUCTION)){
+                parser_expect_consume_token(p, TOK_NEW_LINE);
+                continue;
+            }
+            parse_instruction(p, PREFIX_REP, true);  
+        } else if (p->currentToken.type == TOK_REPE || p->currentToken.type == TOK_REPZ) {
+            parser_next_token(p);
+            if(!parser_expect_token(p, TOK_INSTRUCTION)){
+                parser_expect_consume_token(p, TOK_NEW_LINE);
+                continue;
+            }
+            parse_instruction(p, PREFIX_REPE, false);  
+        } else if (p->currentToken.type == TOK_REPNE || p->currentToken.type == TOK_REPNZ) {
+            parser_next_token(p);
+            if(!parser_expect_token(p, TOK_INSTRUCTION)){
+                parser_expect_consume_token(p, TOK_NEW_LINE);
+                continue;
+            }
+            parse_instruction(p, PREFIX_REPNE, false);  
+        } 
+        else if (p->currentToken.type == TOK_INSTRUCTION) {
+            parse_instruction(p, PREFIX_NONE, false); 
         } else{
             parser_error(p, "Invalid token found in text section\n");
             parser_next_token(p);
