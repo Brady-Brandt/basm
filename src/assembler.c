@@ -372,12 +372,14 @@ static void parse_data_section(Parser* p){
                                 "Invalid Data Section Instruction\n"); 
                         goto next_iteration;
                 }
-            } else if(p->currentToken.type == TOK_STRING){
+            } else if(p->currentToken.type == TOK_NSTRING || p->currentToken.type == TOK_STRING){
                 if(psuedo_instr != TOK_DB){
                     parser_error(p, "Only strings with one byte characters are allowed\n");
                     goto next_iteration;
                 } 
-                section_add_data(&program.data, p->currentToken.literal, strlen(p->currentToken.literal) + 1);
+                size_t str_size = strlen(p->currentToken.literal);
+                str_size += (p->currentToken.type == TOK_NSTRING) ? 1 : 0;
+                section_add_data(&program.data, p->currentToken.literal, str_size);
             } else{
                 parser_error(p, "Invalid Type in data section\n");
                 goto next_iteration;
@@ -725,6 +727,12 @@ static bool parse_operand(Parser* p, Operand* op){
             op->type = OPERAND_BND;
             op->reg.registerIndex = p->currentToken.reg;
             op->reg.rex = REX_PREFIX(0, 0, 0, 0);
+            return true;
+
+        case TOK_NSTRING:
+        case TOK_STRING:
+            op->type = OPERAND_IMM64;
+            memccpy(&op->imm64, p->currentToken.literal,0, 8);
             return true;
         case TOK_OPENING_PAREN:
         case TOK_ADD:

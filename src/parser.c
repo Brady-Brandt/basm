@@ -71,10 +71,10 @@ static Token id_or_kw(int* col){
 
 
 
-static void get_string(uint32_t line, int col){
+static void get_string(uint32_t line, int col, char close){
     while(true){
         char next = file_buffer_peek_char(current_fb);
-        if(next == '\"'){
+        if(next == close){
             file_buffer_get_char(current_fb);
             scratch_buffer_append_char(0);
             return;
@@ -178,7 +178,12 @@ ArrayList tokenize_file(){
                 token.type = TOK_COMMA;
                 break;
             case '\"':
-                get_string(line_number, col);
+                get_string(line_number, col, '\"');
+                token.type = TOK_NSTRING;
+                col++;
+                break; 
+            case '\'':
+                get_string(line_number, col, '\'');
                 token.type = TOK_STRING;
                 col++;
                 break; 
@@ -268,7 +273,6 @@ ArrayList tokenize_file(){
                 }else{
                     //unkown token
                     col++;
-                    printf("%c\n", c);
                     token.type = TOK_MAX;
                 }
             } 

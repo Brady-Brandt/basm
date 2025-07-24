@@ -86,6 +86,7 @@ typedef enum {
     TOK_END_PREPROCESSOR,
     TOK_INT,
     TOK_IDENTIFIER,
+    TOK_NSTRING,
     TOK_STRING,
     TOK_MAX,
 } TokenType;
