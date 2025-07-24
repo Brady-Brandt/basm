@@ -928,6 +928,12 @@ with open("instructions.dat", "r") as f:
         current_index += 1
         instructions[instr].sort(key=lambda var: var.get_size())
         for instr_variant in instructions[instr]: 
+            # these variants of cmp should be sign extended even though
+            # there is no mention of that in the manual
+            if instr == 'CMP' and instr_variant.op2 == operand_types['imm8']:
+                op1 = instr_variant.op1
+                if op1 == operand_types['r/m16'] or op1 == operand_types['r/m32'] or op1 == operand_types['r/m64']:
+                    instr_variant.op2 = operand_types['simm8']
 
             if instruction_allows_lock(instr_variant, instr):
                 lock_prefix_indices.append(current_index)
