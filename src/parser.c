@@ -45,8 +45,8 @@ static Token id_or_kw(int* col){
 
     const struct Keyword* kw = find_keyword(str, str_size); 
     if(kw != NULL){
-        if(kw->type == TOK_REG){
-            return (Token){TOK_REG, .reg = kw->value, 0, 0};
+        if(kw->type == TOK_REG || kw->type == TOK_SREG || kw->type == TOK_TREG || kw->type == TOK_BNDREG){
+            return (Token){kw->type, .reg = kw->value, 0, 0};
         } else if (kw->type == TOK_INSTRUCTION) {
             // in order to not lose information about the 
             // instruction we are going to store the index 

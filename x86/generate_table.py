@@ -7,10 +7,11 @@ registers = [
 "RAX","RCX","RDX","RBX","RSP","RBP","RSI","RDI","R8","R9","R10","R11","R12","R13","R14","R15",
 "EAX","ECX","EDX","EBX","ESP","EBP","ESI","EDI","R8D","R9D","R10D","R11D","R12D","R13D","R14D","R15D",
 "AX","CX","DX","BX","SP","BP","SI","DI","R8W","R9W","R10W","R11W","R12W","R13W","R14W","R15W",
-"AL","CL","DL","BL","AH","CH","DH","BH","R8B","R9B","R10B","R11B","R12B","R13B","R14B","R15B",
-"ES", "CS", "SS", "DS", "FS","GS"]
+"AL","CL","DL","BL","AH","CH","DH","BH","R8B","R9B","R10B","R11B","R12B","R13B","R14B","R15B"]
 
-
+sregs = ["ES", "CS", "SS", "DS", "FS","GS"]
+tregs = ["TMM0","TMM1", "TMM2", "TMM3", "TMM4", "TMM5", "TMM6", "TMM7"]
+bndregs = ["BND0", "BND1","BND2","BND3"]
 
 tokens = """
 typedef enum {
@@ -30,7 +31,10 @@ typedef enum {
     TOK_OPENING_BRACKET = '[',
     TOK_CLOSING_BRACKET = ']',
     TOK_INSTRUCTION = 256,
-    TOK_REG = 257, 
+    TOK_SREG,
+    TOK_TREG,
+    TOK_BNDREG,
+    TOK_REG = 260, 
     TOK_GLOBAL,
     TOK_EXTERN,
     TOK_SECTION,
@@ -569,7 +573,7 @@ operand_types["l32" ] =  iota()
 operand_types["l64" ] =  iota()
 operand_types["m" ] =  iota()
 operand_types["ST(i)"] = iota()
-operand_types["DR0–DR7"] =  iota()
+#operand_types["DR0–DR7"] =  iota()
 
 
 
@@ -591,7 +595,9 @@ operand_types["xmm/m128"] = iota()
 operand_types["ymm/m256"] = iota()
 
 
+operand_types["tmm"] = iota()
 operand_types["bnd"] = iota()
+operand_types["bnd/m128"] = iota()
 
 operand_types["AL"] = 248
 operand_types["CL"] = 249
@@ -661,10 +667,18 @@ def check_operand(nmemonic, op):
     if op.startswith("m80"):
         op = op[:3]
 
+    if op.startswith("bnd1"):
+        op = op.replace("bnd1", "bnd")
+    
+    if op.startswith("bnd2"):
+        op = op.replace("bnd2", "bnd")
+
     if op == "r64/m64":
         return operand_types["r/m64"]
     if op == "r32/m32":
         return operand_types["r/m32"]
+    if op == "r16/m16":
+        return operand_types["r/m16"]
     if op == "m384" or op == 'm14/28byte' or op == 'm94/108byte' or op == 'm512byte':
         return operand_types["mem_any"]
     # implicit defined in instruction encoding so we 
@@ -981,9 +995,18 @@ with open("instructions.dat", "r") as f:
 struct Keyword {const char* name; TokenType type; uint16_t value;};
 %%
 """)
-
-    for index, reg in enumerate(registers):
+    
+    for index, reg in enumerate(registers): 
         gperf_input_file.write(f"{reg}, TOK_REG, {index}\n")
+
+    for index, reg in enumerate(sregs):
+        gperf_input_file.write(f"{reg}, TOK_SREG, {index}\n")
+
+    for index, reg in enumerate(tregs):
+        gperf_input_file.write(f"{reg}, TOK_TREG, {index}\n")
+
+    for index, reg in enumerate(bndregs):
+        gperf_input_file.write(f"{reg}, TOK_BNDREG, {index}\n")
 
 
     # write the regular keywords
@@ -994,7 +1017,7 @@ struct Keyword {const char* name; TokenType type; uint16_t value;};
             index += 1
             break
         index += 1
-    start_value = 258
+    start_value = 261
 
     current_token = tok_enum[index].strip()
     current_token = current_token.replace(',', '')

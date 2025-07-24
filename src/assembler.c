@@ -704,17 +704,28 @@ static bool parse_operand(Parser* p, Operand* op){
             } else if(is_r16(p->currentToken.reg)){
                 op->type = OPERAND_R16;
                 op->reg.registerIndex = p->currentToken.reg - REG_AX;
-            } else if(is_r8(p->currentToken.reg)){
+            } else {
                 op->type = OPERAND_R8;
                 op->reg.registerIndex = p->currentToken.reg - REG_AL;
-            } else{
-                op->type = OPERAND_SREG;
-                op->reg.registerIndex = p->currentToken.reg - REG_ES;
-            }
+            }             
             op->reg.rex = REX_PREFIX(w, 0, 0, 0);
             return true;
         }
-
+        case TOK_SREG:
+            op->type = OPERAND_SREG;
+            op->reg.registerIndex = p->currentToken.reg;
+            op->reg.rex = REX_PREFIX(0, 0, 0, 0);
+            return true;
+        case TOK_TREG:
+            op->type = OPERAND_TMM;
+            op->reg.registerIndex = p->currentToken.reg;
+            op->reg.rex = REX_PREFIX(0, 0, 0, 0);
+            return true;
+        case TOK_BNDREG:
+            op->type = OPERAND_BND;
+            op->reg.registerIndex = p->currentToken.reg;
+            op->reg.rex = REX_PREFIX(0, 0, 0, 0);
+            return true;
         case TOK_OPENING_PAREN:
         case TOK_ADD:
         case TOK_NEG:
@@ -896,6 +907,8 @@ static bool check_operand_type(OperandType table_instr, OperandType input_instr,
         return input_instr == OPERAND_MM || table_instr == input_instr + (OPERAND_MMM32 - OPERAND_M32);
     }
 
+    if(table_instr == OPERAND_BNDM128 && (input_instr == OPERAND_M128 || input_instr == OPERAND_BND)) return true;
+
     return check_operand_certain_register(table_instr, input_instr, reg_index); 
 }
 
@@ -963,8 +976,10 @@ static const Instruction* find_instruction_one_operand(uint64_t instr_index, Ope
 static const Instruction* find_instruction_two_operands(uint64_t instr_index, Operand* op1, Operand* op2){ 
 
     //infer size of memory location if operand 2 is a register 
-    if(op1->type == OPERAND_MEM_ANY && is_general_reg(op2->type)){
-        op1->type = op2->type + (OPERAND_M8 - OPERAND_R8); 
+    if(op1->type == OPERAND_MEM_ANY){
+        if(is_general_reg(op2->type)) op1->type = op2->type + (OPERAND_M8 - OPERAND_R8); 
+        else if (op2->type == OPERAND_BND) op1->type = OPERAND_M128;
+         ;
     }
 
     uint64_t op_table_index = get_keyword(instr_index)->value;    
@@ -997,6 +1012,9 @@ static const Instruction* find_instruction_two_operands(uint64_t instr_index, Op
             } else if(instruct_var.op2 >= OPERAND_XMMM8 && instruct_var.op2 <= OPERAND_YMMM256){ 
                 op2->type = OPERAND_M8 + (instruct_var.op2 - OPERAND_XMMM8); 
                 return &INSTRUCTION_TABLE[i];
+            } else if (instruct_var.op2 == OPERAND_BNDM128) {
+                op2->type = OPERAND_M128;
+                return &INSTRUCTION_TABLE[i]; 
             }
         } else if ((op2->type == OPERAND_IMM64 || op2->type == OPERAND_SIMM64) && 
                     fit_immediate(instruct_var.op2, op2)) {
@@ -1394,7 +1412,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
         case OP_ENC_MR:
             set_r(&operand[1], &vex, &rex);
             vex |= VEX_UNUSED_REG;
-            if(is_advanced_reg(operand[0].type) || is_general_reg(operand[0].type)){
+            if(!is_mem(operand[0].type)){
                 set_b(&operand[0], &vex, &rex);
                 modrm_sib[MODRM_INDEX] |= 192;
                 modrm_sib[MODRM_INDEX] |=(operand[1].reg.registerIndex << 3);
@@ -1416,7 +1434,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             set_r(&operand[0], &vex, &rex);
             vex |= VEX_UNUSED_REG;
             modrm_sib[MODRM_INDEX] |= operand[0].reg.registerIndex << 3; 
-            if(is_general_reg(operand[1].type) || is_advanced_reg(operand[1].type)){
+            if(!is_mem(operand[1].type)){
                 set_b(&operand[1], &vex, &rex);
                 modrm_size = 1;
                 rex |= operand[1].reg.rex;
@@ -1454,7 +1472,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             set_r(&operand[0], &vex, &rex);
             vex |= VEX_REGISTER(operand[2].reg.registerIndex);
             modrm_sib[MODRM_INDEX] |= (operand[0].reg.registerIndex << 3);
-            if(is_advanced_reg(operand[1].type) || is_reg32_or_64(operand[1].type)){
+            if(is_advanced_reg(operand[1].type) || is_reg32_or_64(operand[1].type) || operand[1].type == OPERAND_TMM){
                 set_b(&operand[1], &vex, &rex);
                 modrm_sib[MODRM_INDEX] |= 192;
                 modrm_sib[MODRM_INDEX] |= operand[1].reg.registerIndex; 
