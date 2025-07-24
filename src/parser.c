@@ -223,6 +223,10 @@ ArrayList tokenize_file(){
                 col++;
                 token.type = TOK_XOR;
                 break;
+            case '%':
+                col++;
+                token.type = TOK_MOD;
+                break;
             case '|':
                 col++;
                 token.type = TOK_OR;
@@ -234,6 +238,28 @@ ArrayList tokenize_file(){
             case '*':
                 col++;
                 token.type = TOK_MULTIPLY;
+                break;
+            case '<':
+                if(file_buffer_peek_char(current_fb) != '<'){
+                    //unkown token
+                    col++;
+                    token.type = TOK_MAX;
+                    break;
+                }
+                file_buffer_get_char(current_fb);
+                col++;
+                token.type = TOK_LSHIFT;
+                break;
+            case '>':
+                if(file_buffer_peek_char(current_fb) != '>'){
+                    //unkown token
+                    col++;
+                    token.type = TOK_MAX;
+                    break;
+                }
+                file_buffer_get_char(current_fb);
+                col++;
+                token.type = TOK_RSHIFT;
                 break;
             case ';':
                 while(true){

@@ -21,6 +21,7 @@ typedef enum {
     TOK_MULTIPLY = '*',
     TOK_DIVIDE = '/',
     TOK_OR = '|',
+    TOK_MOD = '%',
     TOK_XOR = '^',
     TOK_AND = '&',
     TOK_NEG = '~',
@@ -88,6 +89,8 @@ typedef enum {
     TOK_IDENTIFIER,
     TOK_NSTRING,
     TOK_STRING,
+    TOK_LSHIFT,
+    TOK_RSHIFT,
     TOK_MAX,
 } TokenType;
 """

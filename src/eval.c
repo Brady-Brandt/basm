@@ -13,7 +13,8 @@
 
 static inline bool is_operator(TokenType type){
     return type == '+' || type == '*' || type =='/' || type == '-' || \
-                 type == '~' || type == '^' || type == '&' || type == '|';
+                 type == '~' || type == '^' || type == '&' || type == '|' \
+                 || type == TOK_LSHIFT || type == TOK_RSHIFT || type == TOK_MOD;
 }
 
 static inline bool is_start_expr(TokenType type){
@@ -32,12 +33,16 @@ static inline int get_precendence(TokenType type){
             return 2;
         case TOK_AND:
             return 3;
+        case TOK_LSHIFT:
+        case TOK_RSHIFT:
+            return 4;
         case TOK_ADD:
         case TOK_SUB:
-            return 4;
-        case TOK_MULTIPLY:
-        case '/':
             return 5;
+        case TOK_MULTIPLY:
+        case TOK_DIVIDE:
+        case TOK_MOD:
+            return 6;
         default:
             return 0; 
     }
@@ -171,6 +176,15 @@ static int64_t evaluate_expression(Parser* p, jmp_buf* start, Expression* expr){
                 break;
             case '-':
                 result = lhs - rhs;
+                break;
+            case TOK_LSHIFT:
+                result = (uint64_t)lhs << (uint64_t) rhs; 
+                break;
+            case TOK_RSHIFT:
+                result = (uint64_t)lhs >> (uint64_t)rhs; 
+                break;
+            case '%':
+                result = lhs % rhs; 
                 break;
             case '^':
                 result = lhs ^ rhs;
