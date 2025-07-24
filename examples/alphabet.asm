@@ -7,11 +7,11 @@ extern printf
 extern exit
 
 _start:  
-    mov r15, 65
+    mov r15, 'A'
     
 begin_upper:
-    cmp r15, 91
-    jge finish_upper 
+    cmp r15, 'Z'
+    jg finish_upper 
 
     lea rdi, [fmt]
     mov esi, r15d
@@ -20,9 +20,12 @@ begin_upper:
     inc r15 
     jmp begin_upper 
 finish_upper:    
-    mov r13, 122
+    lea rdi, [fmt]
+    mov esi, '\n'
+    call printf
+    mov r13, 'z'  
 begin_lower:
-    cmp r13, 97
+    cmp r13, 'a'
 
     jl finish_lower
 
@@ -34,8 +37,11 @@ begin_lower:
     jmp begin_lower
 
 finish_lower: 
+    lea rdi, [fmt]
+    mov esi, '\n'
+    call printf
     xor rdi, rdi
     call exit
 
 section .data
-    fmt: db "%c\n"
+    fmt: db "%c"
