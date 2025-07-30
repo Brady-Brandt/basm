@@ -17,25 +17,8 @@
 #include <errno.h>
 
 
-/*
-digit — A digit between 0 and 7 indicates that the ModR/M byte of the instruction uses only the r/m (register
-or memory) operand. The reg field contains the digit that provides an extension to the instruction's opcode.
-• /r — Indicates that the ModR/M byte of the instruction contains a register operand and an r/m operand.
-• cb, cw, cd, cp, co, ct — A 1-byte (cb), 2-byte (cw), 4-byte (cd), 6-byte (cp), 8-byte (co) or 10-byte (ct) value
-following the opcode. This value is used to specify a code offset and possibly a new value for the code segment
-register.
-• ib, iw, id, io — A 1-byte (ib), 2-byte (iw), 4-byte (id) or 8-byte (io) immediate operand to the instruction that
-follows the opcode, ModR/M bytes or scale-indexing bytes. The opcode determines if the operand is a signed
-value. All words, doublewords, and quadwords are given with the low-order byte first.
-• +rb, +rw, +rd, +ro — Indicated the lower 3 bits of the opcode byte is used to encode the register operand
-without a modR/M byte. The instruction lists the corresponding hexadecimal value of the opcode byte with low
-3 bits as 000b. In non-64-bit mode, a register code, from 0 through 7, is added to the hexadecimal value of the
-opcode byte. In 64-bit mode, indicates the four bit field of REX.b and opcode[2:0] field encodes the register
-operand of the instruction. “+ro” is applicable only in 64-bit mode. See Table 3-1 for the codes.
-*/
 
 /*
- * REX Page 529
 - 7:4  0100
 W   3   0 = Operand size determined by CS.D
         1 = 64 Bit Operand Size
@@ -82,7 +65,6 @@ B   0   Extension of the ModR/M r/m field, SIB base field, or Opcode reg field
 
 #define is_ah_to_bh(index) (index >= (REG_AH - REG_AL) && index <= (REG_BH - REG_AL))
 #define is_xy_reg(r) (r == OPERAND_XMM || r == OPERAND_YMM)
-//potentially remove mm and make rename this to is_sse_reg
 #define is_advanced_reg(r) (r >= OPERAND_MM && r <= OPERAND_YMM)
 #define is_reg32_or_64(type) (type == OPERAND_R32 || type == OPERAND_R64)
 #define is_immediate(i) (i >= OPERAND_IMM8 && i <= OPERAND_IMM64)
@@ -220,11 +202,6 @@ static inline void section_mov_data(Section* section, void* data, size_t size){
     memmove(section->data + section->size,data,size);
     section->size += size;
 }
-
-
-
-
-
 
 
 //TODO: ALLOW PSUEDOINSTRUCTIONS WITHOUT LABELS 
@@ -1902,6 +1879,7 @@ static PrefixResult instruction_handle_prefix(Parser* p){
 
 static void parse_text_section(Parser* p){
     while(p->currentToken.type != TOK_SECTION){
+
         if(instruction_handle_prefix(p) != PREFIX_RESULT_NONE){
             continue; 
         }
@@ -1988,49 +1966,47 @@ static void parse_tokens(ArrayList* tokens){
     p.tokens = tokens;
     p.currentToken.type = TOK_MAX;
     array_list_create_cap(program.symTable.symbols, SymbolTableEntry, 16);
- 
+
+    if(p.tokens->size == 0) return;
+
+    parser_next_token(&p);
+
     while(p.tokenIndex < (uint32_t)p.tokens->size){
         if(setjmp(p.jmp) == 1){
             break;
         }
 
-        if(p.currentToken.type != TOK_SECTION){
+        if(p.currentToken.type == TOK_SECTION){
             parser_next_token(&p);
+            switch (p.currentToken.type) {
+                case TOK_TEXT:
+                    init_section(&program.text, 256);
+                    parser_next_token(&p);
+                    parser_expect_consume_token(&p, TOK_NEW_LINE);
+                    parse_text_section(&p);
+                    break;
 
-            if(p.currentToken.type != TOK_SECTION){
-                //TODO: DON'T MAKE THIS A FATAL ERROR
-                fatal_error("Expected Section got %s\n", token_to_string(p.currentToken.type));     
+                case TOK_BSS:
+                    parser_next_token(&p);
+                    parser_expect_consume_token(&p, TOK_NEW_LINE);
+                    parse_bss_section(&p);
+                    break;
+
+                case TOK_DATA:
+                    init_section(&program.data, 64);
+                    parser_next_token(&p);
+                    parser_expect_consume_token(&p, TOK_NEW_LINE);
+                    parse_data_section(&p);
+                    break;
+
+                default:
+                    parser_error(&p, "Expected Section name\n");
+                    return;
             }
-        }
-        
-
-
-        parser_next_token(&p); 
-
-        switch (p.currentToken.type) {
-            case TOK_TEXT:
-                init_section(&program.text, 256);
-                parser_next_token(&p);
-                parser_expect_consume_token(&p, TOK_NEW_LINE);      
-                parse_text_section(&p); 
-                break;
-
-            case TOK_BSS:
-                parser_next_token(&p);
-                parser_expect_consume_token(&p, TOK_NEW_LINE);      
-                parse_bss_section(&p);
-                break;
-
-            case TOK_DATA:
-                init_section(&program.data, 64);
-                parser_next_token(&p);
-                parser_expect_consume_token(&p, TOK_NEW_LINE);       
-                parse_data_section(&p);
-                break;
-
-            default:
-                fatal_error("Expected Section Name got %s\n", token_to_string(p.currentToken.type));     
-                        
+        } else{
+            //just assume we are in the text section
+            init_section(&program.text, 256);
+            parse_text_section(&p);
         }
     }
 
