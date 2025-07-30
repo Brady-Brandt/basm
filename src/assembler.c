@@ -14,6 +14,7 @@
 #include <stdnoreturn.h>
 #include <stdarg.h>
 #include <setjmp.h>
+#include <errno.h>
 
 
 /*
@@ -208,9 +209,21 @@ static void section_realloc(Section* section){
 
 static inline void section_add_data(Section* section, void* data, size_t size){
     check_section_size(section, size);
-    memcpy(section->data + section->size,data,size);  
+    memcpy(section->data + section->size,data,size);
     section->size += size;
 }
+
+
+//uses memmove instead of copy
+static inline void section_mov_data(Section* section, void* data, size_t size){
+    check_section_size(section, size);
+    memmove(section->data + section->size,data,size);
+    section->size += size;
+}
+
+
+
+
 
 
 
@@ -275,117 +288,196 @@ static void parse_bss_section(Parser* p){
 }
 
 
+static bool handle_data_psuedoinstr(Parser* p, Token psuedo_instr_token){
+    Token next = p->currentToken;
 
-static void parse_data_section(Parser* p){ 
-    while(p->currentToken.type != TOK_SECTION){
- 
-        if(!parser_expect_token(p, TOK_IDENTIFIER)) goto next_iteration;
-        Token id = p->currentToken;
-        parser_next_token(p);
+    int64_t num = 0;
+    bool is_floating_point = false;
+    if(next.type == TOK_INT){
+        if(is_float(p->currentToken.literal)){
+            if(!(psuedo_instr_token.type >= TOK_DD && psuedo_instr_token.type <= TOK_DT)){
+                parser_error_loc(p,psuedo_instr_token.col,
+                        psuedo_instr_token.line_number, "Invalid floating point Psuedoinstruction\n");
+                return false;
+            }
+            is_floating_point = true;
+        } else{
+            if(!parse_and_eval_expression(p, &num)) return false;
+        }
 
-        if(!parser_expect_consume_token(p, TOK_COLON)) goto next_iteration;
+    } else if (next.type == TOK_NSTRING) {
+        if(psuedo_instr_token.type != TOK_DB){
+            parser_error(p, "Only strings with one byte characters are allowed\n");
+            return false;
+        }
+        size_t str_size = strlen(p->currentToken.literal) + 1;
+        section_add_data(&program.data, p->currentToken.literal, str_size);
+        return true;
+    } else if (next.type == TOK_STRING) {
+        if(psuedo_instr_token.type != TOK_DB){
+            parser_error(p, "Only strings with one byte characters are allowed\n");
+            return false;
+        }
+        size_t str_size = strlen(p->currentToken.literal);
+        section_add_data(&program.data, p->currentToken.literal, str_size);
+        return true;
+    } else{
+        parser_error(p, "Invalid Type or Psuedoinstruction\n");
+        return false;
+    }
 
-        symbol_table_add(p, id.literal, program.data.size, SECTION_DATA, VISIBILITY_LOCAL);
-
-
-        Token psuedo_instr_token = p->currentToken;
-        TokenType psuedo_instr = psuedo_instr_token.type;
-        parser_next_token(p);
-
-        do{
-            if(p->currentToken.type == TOK_INT){
-                bool is_floating_point = false;
-                if(is_float(p->currentToken.literal)){
-                    if(!(psuedo_instr >= TOK_DD && psuedo_instr <= TOK_DT)){
-                        parser_error_loc(p,psuedo_instr_token.col, psuedo_instr_token.line_number, "Invalid floating point Psuedoinstruction\n");
-                        goto next_iteration;
-                    }
-                    is_floating_point = true;
-                } 
-                int64_t num = 0;
-                if(!parse_and_eval_expression(p, &num)){
-                    goto next_iteration;
+    switch (psuedo_instr_token.type) {
+        case TOK_DB: {
+            uint8_t temp = 0;
+            if(num > UINT8_MAX && !is_int8(num)){
+                parser_error(p, "Invalid Size\n");
+                return false;
+            }
+            temp = (uint8_t)num;
+            section_add_data(&program.data,&temp, 1);
+            break;
+        }
+        case TOK_DW: {
+            uint16_t temp = 0;
+            if(num > UINT16_MAX && !is_int16(num)){
+                parser_error(p, "Invalid Size\n");
+                return false;
+            }
+            temp = (uint16_t)num;
+            section_add_data(&program.data,&temp, 2);
+            break;
+        }
+        case TOK_DD: {
+            uint32_t temp = 0;
+            if(is_floating_point){
+                errno = 0;
+                char* endptr = NULL;
+                float num = strtof(p->currentToken.literal, &endptr);
+                if(*endptr != 0 || errno == ERANGE){
+                    parser_error(p,"Invalid float\n");
+                    return false;
                 }
-                switch (psuedo_instr) {
-                    case TOK_DB: {
-                        uint8_t temp = 0;
-                        if(num > UINT8_MAX && !is_int8(num)){
-                            parser_error(p, "Invalid Size\n");
-                            goto next_iteration;
-                        } 
-                        temp = (uint8_t)num; 
-                        section_add_data(&program.data,&temp, 1);
-                        break;
-                    }
-                    case TOK_DW: {
-                        uint16_t temp = 0;
-                        if(num > UINT16_MAX && !is_int16(num)){
-                            parser_error(p, "Invalid Size\n");
-                            goto next_iteration;
-                        } 
-                        temp = (uint16_t)num;  
-                        section_add_data(&program.data,&temp, 2);
-                        break;
-                    }
-                    case TOK_DD: {
-                        uint32_t temp = 0;
-                        if(is_floating_point){
-                            float num = strtof(p->currentToken.literal, NULL); 
-                            //TODO: CHECK FOR ERRORS
-                            section_add_data(&program.data,&num, 4);
-                            break;
-                        } else{
-                            if(num > UINT32_MAX && !is_int32(num)){
-                                parser_error(p, "Invalid Size\n", num);
-                                goto next_iteration;
-                            } 
-                            temp = (uint32_t)num;
-                        } 
-                        section_add_data(&program.data,&temp, 4);
-                        break;
-                    }
-                    case TOK_DQ: {
-                        if(is_floating_point){
-                            double num = strtod(p->currentToken.literal, NULL); 
-                            //TODO: CHECK FOR ERRORS
-                            section_add_data(&program.data,&num, 8);
-                        } else{
-                            uint64_t num = 0;
-                            if(!string_to_int(p->currentToken.literal, &num)){
-                                goto next_iteration;
-                            }
-                            section_add_data(&program.data,&num, 8);
-                        }
-                        break;
-                    }
-                    case TOK_DT: {
-                        if(sizeof(long double) < 10){
-                            parser_error(p, "Error: Don't support machines that don't have 128 bit floats yet");
-                            goto next_iteration;
-                        }
-                        long double num = strtold(p->currentToken.literal, NULL);
-                        section_add_data(&program.data,&num, 10);
-                        break;
-                    }
-                    default:
-                        parser_error_loc(p,psuedo_instr_token.line_number, psuedo_instr_token.col,
-                                "Invalid Data Section Instruction\n"); 
-                        goto next_iteration;
-                }
-            } else if(p->currentToken.type == TOK_NSTRING || p->currentToken.type == TOK_STRING){
-                if(psuedo_instr != TOK_DB){
-                    parser_error(p, "Only strings with one byte characters are allowed\n");
-                    goto next_iteration;
-                } 
-                size_t str_size = strlen(p->currentToken.literal);
-                str_size += (p->currentToken.type == TOK_NSTRING) ? 1 : 0;
-                section_add_data(&program.data, p->currentToken.literal, str_size);
+                section_add_data(&program.data,&num, 4);
+                break;
             } else{
-                parser_error(p, "Invalid Type in data section\n");
-                goto next_iteration;
-            } 
+                if(num > UINT32_MAX && !is_int32(num)){
+                    parser_error(p, "Invalid Size\n", num);
+                    return false;
+                }
+                temp = (uint32_t)num;
+            }
+            section_add_data(&program.data,&temp, 4);
+            break;
+        }
+        case TOK_DQ: {
+            if(is_floating_point){
+
+                errno = 0;
+                char* endptr = NULL;
+                double num = strtod(p->currentToken.literal, &endptr);
+                if(*endptr != 0 || errno == ERANGE){
+                    parser_error(p,"Invalid double\n");
+                    return false;
+                }
+                section_add_data(&program.data,&num, 8);
+            } else{
+                section_add_data(&program.data,&num, 8);
+            }
+            break;
+        }
+        case TOK_DT: {
+            //there is no way to guarentee that floats are a certain size
+            //so we have to implement our own string to float functions
+            //for now I am just going to assume floats are 32 bits and doubles are 64
+            //because this should be the most common format but in the future I need to
+            //implement my own format handler
+            parser_error(p, "80 bit floats are not supported yet\n");
+            return false;
+            break;
+        }
+        default:
+            parser_error_loc(p,psuedo_instr_token.line_number, psuedo_instr_token.col,
+                    "Invalid Data Section Instruction\n");
+            return false;
+    }
+    return true;
+}
+
+
+static void parse_data_section(Parser* p){
+    while(p->currentToken.type != TOK_SECTION){
+
+        if(p->currentToken.type == TOK_IDENTIFIER){
+            Token id = p->currentToken;
             parser_next_token(p);
-        } while(parser_match_consume_token(p, TOK_COMMA));
+
+            if(!parser_expect_consume_token(p, TOK_COLON)) goto next_iteration;
+
+            symbol_table_add(p, id.literal, program.data.size, SECTION_DATA, VISIBILITY_LOCAL);
+
+            Token next = p->currentToken;
+
+            int start = program.data.size;
+            uint64_t num = 0;
+
+            if(next.type == TOK_TIMES){
+                parser_next_token(p);
+                if(!parser_expect_token(p, TOK_INT)) goto next_iteration;
+
+                if(!string_to_int(p->currentToken.literal, &num)){
+                    parser_error(p, "Invalid Number\n");
+                    goto next_iteration;
+                }
+
+                next = parser_next_token(p);
+                num -= 1;
+
+            }
+            parser_next_token(p);
+            do{
+                if(!handle_data_psuedoinstr(p, next)) goto next_iteration;
+                parser_next_token(p);
+            } while(parser_match_consume_token(p, TOK_COMMA));
+
+            int end = program.data.size;
+            for(uint64_t i = 0; i < num; i++){
+                section_mov_data(&program.data, &program.data.data[start], end - start);
+            }
+
+        } else if (p->currentToken.type == TOK_TIMES) {
+            uint64_t num = 0;
+            parser_next_token(p);
+            if(!parser_expect_token(p, TOK_INT)) goto next_iteration;
+
+            if(!string_to_int(p->currentToken.literal, &num)){
+                parser_error(p, "Invalid Number\n");
+                goto next_iteration;
+            }
+
+            int start = program.data.size;
+
+            Token psuedo_instr_token = parser_next_token(p);
+            num -= 1;
+
+            parser_next_token(p);
+            do{
+                if(!handle_data_psuedoinstr(p, psuedo_instr_token)) goto next_iteration;
+                parser_next_token(p);
+            } while(parser_match_consume_token(p, TOK_COMMA));
+
+            int end = program.data.size;
+            for(uint64_t i = 0; i < num; i++){
+                section_mov_data(&program.data, &program.data.data[start], end - start);
+            }
+        } else{
+            Token psuedo_instr_token = p->currentToken;
+            parser_next_token(p);
+            do{
+                if(!handle_data_psuedoinstr(p, psuedo_instr_token)) goto next_iteration;
+                parser_next_token(p);
+            } while(parser_match_consume_token(p, TOK_COMMA));
+        }
+
 
         next_iteration:
         parser_expect_consume_token(p, TOK_NEW_LINE);
