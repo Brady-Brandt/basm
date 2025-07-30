@@ -170,6 +170,7 @@ typedef enum {
     TOK_REPZ,
     TOK_REPNE,
     TOK_REPNZ,
+    TOK_TIMES,
     TOK_END_KEYWORDS,
     TOK_DEFINE,
     TOK_IF,

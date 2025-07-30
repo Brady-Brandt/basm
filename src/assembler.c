@@ -1773,9 +1773,47 @@ static bool parse_instruction(Parser* p, InstructionPrefix prefix, bool is_rep){
 }
 
 
+typedef enum {
+    PREFIX_RESULT_NONE,
+    PREFIX_RESULT_ERROR,
+    PREFIX_RESULT_HANDLED,
+} PrefixResult;
+
+static PrefixResult instruction_handle_prefix(Parser* p){
+    InstructionPrefix prefix = PREFIX_NONE;
+    //need this to distinguish between rep/repe since they have the same opcode
+    bool is_rep = false;
+    if(p->currentToken.type == TOK_LOCK){
+        prefix = PREFIX_LOCK;
+    } else if (p->currentToken.type == TOK_REP) { 
+        is_rep = true;
+        prefix = PREFIX_REP;
+    }else if (p->currentToken.type == TOK_REPE) { 
+        prefix = PREFIX_REPE;
+    } else if (p->currentToken.type == TOK_REPNE) {
+        prefix = PREFIX_REPNE; 
+    } else{
+        return PREFIX_RESULT_NONE;
+    }
+
+    parser_next_token(p);
+    if(!parser_expect_token(p, TOK_INSTRUCTION)){
+        parser_expect_consume_token(p, TOK_NEW_LINE);
+        return PREFIX_RESULT_ERROR;
+    }
+
+    if(parse_instruction(p, prefix, is_rep)){
+        return PREFIX_RESULT_HANDLED;
+    } 
+    return PREFIX_RESULT_ERROR;
+}
+
 static void parse_text_section(Parser* p){
     while(p->currentToken.type != TOK_SECTION){
-        if(p->currentToken.type == TOK_GLOBAL || p->currentToken.type == TOK_EXTERN){
+        if(instruction_handle_prefix(p) != PREFIX_RESULT_NONE){
+            continue; 
+        }
+        else if(p->currentToken.type == TOK_GLOBAL || p->currentToken.type == TOK_EXTERN){
             int section = (p->currentToken.type == TOK_GLOBAL) ? SECTION_TEXT : SECTION_EXTERN;
             parser_next_token(p);
             if(!parser_expect_token(p, TOK_IDENTIFIER)){
@@ -1801,38 +1839,50 @@ static void parse_text_section(Parser* p){
             } 
             parser_next_token(p);
             symbol_table_add(p, id.literal, program.text.size, SECTION_TEXT, VISIBILITY_LOCAL);
-        } else if (p->currentToken.type == TOK_LOCK) { 
-            parser_next_token(p);
-            if(!parser_expect_token(p, TOK_INSTRUCTION)){
-                parser_expect_consume_token(p, TOK_NEW_LINE);
-                continue;
-            }
-            parse_instruction(p, PREFIX_LOCK, false); 
-        } else if (p->currentToken.type == TOK_REP) {
-            parser_next_token(p);
-            if(!parser_expect_token(p, TOK_INSTRUCTION)){
-                parser_expect_consume_token(p, TOK_NEW_LINE);
-                continue;
-            }
-            parse_instruction(p, PREFIX_REP, true);  
-        } else if (p->currentToken.type == TOK_REPE || p->currentToken.type == TOK_REPZ) {
-            parser_next_token(p);
-            if(!parser_expect_token(p, TOK_INSTRUCTION)){
-                parser_expect_consume_token(p, TOK_NEW_LINE);
-                continue;
-            }
-            parse_instruction(p, PREFIX_REPE, false);  
-        } else if (p->currentToken.type == TOK_REPNE || p->currentToken.type == TOK_REPNZ) {
-            parser_next_token(p);
-            if(!parser_expect_token(p, TOK_INSTRUCTION)){
-                parser_expect_consume_token(p, TOK_NEW_LINE);
-                continue;
-            }
-            parse_instruction(p, PREFIX_REPNE, false);  
         } 
         else if (p->currentToken.type == TOK_INSTRUCTION) {
             parse_instruction(p, PREFIX_NONE, false); 
-        } else{
+        } else if (p->currentToken.type == TOK_TIMES) {
+            Token tamount = parser_next_token(p);
+            if(!parser_expect_consume_token(p, TOK_INT)){
+                parser_expect_consume_token(p, TOK_NEW_LINE);
+                continue;
+            }
+
+
+            uint64_t amount = 0;
+            if(!string_to_int(tamount.literal, &amount)){
+                parser_error_loc(p, tamount.line_number, tamount.col, "Invalid Number\n");
+                parser_expect_consume_token(p, TOK_NEW_LINE);
+                continue;
+            }
+
+
+            int start = program.text.size;
+            switch (instruction_handle_prefix(p)) {
+                case PREFIX_RESULT_NONE:
+                    if(!parser_expect_token(p, TOK_INSTRUCTION) || !parse_instruction(p, PREFIX_NONE, false)){
+                        parser_expect_consume_token(p, TOK_NEW_LINE);
+                        continue;
+                    }
+                    break;
+                case PREFIX_RESULT_HANDLED:
+                    break;
+                case PREFIX_RESULT_ERROR:
+                    continue; 
+            }
+ 
+            //since section_add_data uses memcpy we have to 
+            //copy to a temp buffer
+            uint8_t instr_opcode[15] = {0};
+            int end = program.text.size;
+            memcpy(instr_opcode, &program.text.data[start], end - start);
+
+            for(uint32_t i = 0; i < amount - 1; i++){
+                section_add_data(&program.text,instr_opcode, end-start);
+            }
+        } 
+        else{
             parser_error(p, "Invalid token found in text section\n");
             parser_next_token(p);
         }
