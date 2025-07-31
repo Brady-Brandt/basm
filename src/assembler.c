@@ -831,6 +831,15 @@ static bool parse_operand(Parser* p, Operand* op){
             op->fpu_stack_index = p->currentToken.type - TOK_ST0;
             return true;
 
+        case TOK_MOFFSET:
+            op->type = OPERAND_MOFFSET;
+            parser_next_token(p);
+            if(!parser_expect_token(p, TOK_INT)) return false;
+
+            if(!string_to_int(p->currentToken.literal, &op->imm64)){
+                return false;
+            }
+            return true;
         case TOK_BYTE:
             parser_next_token(p);
             if(!parser_expect_token(p, TOK_OPENING_BRACKET)) return false;
@@ -1646,9 +1655,22 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             section_add_data(&program.text, &operand[0].imm16, 2);
             section_add_data(&program.text, &operand[1].imm8, 1);
             return; 
-        case OP_ENC_RVSV:
+
+        //moffsets
+        case OP_ENC_FD:
+            //fallthrough expected
+            imm_index++;
         case OP_ENC_TD: 
-        case OP_ENC_FD: 
+            imm_index++;
+            if(instruction->rex > 0x40){
+                section_add_data(&program.text, (uint8_t*)&instruction->rex, 1);
+            }
+            section_add_data(&program.text, opcode, instruction_size); 
+
+            section_add_data(&program.text, &operand[imm_index].imm64, 8);
+            return;
+
+        case OP_ENC_RVSV:
             //should be Unreachable 
             print_instruction(instruction);
             fatal_error("These encodings are not supported yet\n");

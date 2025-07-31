@@ -76,6 +76,7 @@ typedef enum {
     TOK_REPNE,
     TOK_REPNZ,
     TOK_TIMES,
+    TOK_MOFFSET,
     TOK_END_KEYWORDS,
     TOK_DEFINE,
     TOK_IF,
@@ -603,6 +604,7 @@ operand_types["ymm/m256"] = iota()
 operand_types["tmm"] = iota()
 operand_types["bnd"] = iota()
 operand_types["bnd/m128"] = iota()
+operand_types["moffset"] = iota()
 
 operand_types["AL"] = 248
 operand_types["CL"] = 249
@@ -685,6 +687,9 @@ def check_operand(nmemonic, op):
         else:
             # XSTOR,XSAVE instructions 
             return operand_types["mem_any"]
+
+    if 'moff' in op:
+        return operand_types["moffset"]
 
     if op == "r64/m64":
         return operand_types["r/m64"]
