@@ -653,7 +653,7 @@ def instruction_allows_repe(nmemonic: str) -> bool:
 
 
 def check_operand(nmemonic, op):
-
+ 
     if op == 'm2byte':
         return operand_types['m16']
 
@@ -677,6 +677,14 @@ def check_operand(nmemonic, op):
     
     if op.startswith("bnd2"):
         op = op.replace("bnd2", "bnd")
+
+
+    if op == 'mem':
+        if nmemonic == 'LDDQU':
+            return operand_types["m128"]
+        else:
+            # XSTOR,XSAVE instructions 
+            return operand_types["mem_any"]
 
     if op == "r64/m64":
         return operand_types["r/m64"]
