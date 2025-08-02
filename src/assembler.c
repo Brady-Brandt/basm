@@ -467,6 +467,8 @@ static void parse_data_section(Parser* p){
 #define mem_set_prefix(mem) (mem.scale |= 64)
 #define mem_get_scale(mem) ((mem.scale & 63))
 
+#define mem_set_rel(mem) (mem.scale |= 128)
+#define mem_is_rel(mem) (mem.scale & 128)
 
 typedef struct {
     OperandType type;
@@ -557,7 +559,16 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
     int l = t.line_number;
     int c = t.col;
     op->line = l; 
-    op->col = c; 
+    op->col = c;
+
+    bool is_rel = false;
+
+    if(t.type == TOK_REL){
+        is_rel = true;
+        mem_set_rel(op->mem);
+        t = parser_next_token(p);
+    } 
+    
 
     while(t.type != TOK_CLOSING_BRACKET){
         t = parser_next_token(p);
@@ -570,6 +581,10 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                 op->mem.label = p->currentToken.literal;
                 break;
             case TOK_REG: {
+                    if(is_rel){
+                        parser_error(p, "Cannot have a register in a relative address\n");
+                        return false;
+                    }
                     OperandType size = OPERAND_NOP;
                     uint8_t reg = REG_MAX; 
                     if(is_r64(p->currentToken.reg)){
@@ -637,6 +652,11 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                 int32_t temp = (int32_t)t;
 
                 if(parser_peek_token(p).type == TOK_MULTIPLY){
+                    if(is_rel){
+                        Token mul = parser_peek_token(p);
+                        parser_error_loc(p, mul.line_number, mul.col, "Invalid Relative Address\n");
+                        return false;
+                    }
                     if(op->mem.index != REG_MAX){
                         parser_error(p, "Invalid address\n");
                         return false;
@@ -701,9 +721,12 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
             case TOK_CLOSING_BRACKET:
                 break;
             default:
-                parser_error(p, "Invalid Token in address\n");
-                return false;
-        
+                if(t.type == TOK_REL){
+                    parser_error(p, "Rel must come at the beginning of an address\n");
+                } else{
+                    parser_error(p, "Invalid Token in address\n");
+                } 
+                return false; 
         }  
     }
 
@@ -1288,13 +1311,18 @@ static int modrm_sib_fields(Operand* op, uint8_t *data, char** label){
 
     if(mem_op_prefix(op->mem)) section_add_data(&program.text, &ADDRESS_OVERRIDE_PREFIX, 1);
         
-    //TODO: Add relative addressing
     if(op->mem.base == REG_MAX && op->mem.index == REG_MAX){
-        data[MODRM_INDEX] |= 0x4;
-        data[SIB_INDEX] = 0x25;
-        size++;
-        size += DISPLACEMENT_SIZE;  
-        memcpy(data + 2, &offset, DISPLACEMENT_SIZE);
+        if(mem_is_rel(op->mem)){
+            data[MODRM_INDEX] |= 0x5;
+            size += DISPLACEMENT_SIZE;  
+            memcpy(data + 1, &offset, DISPLACEMENT_SIZE);
+        } else{
+            data[MODRM_INDEX] |= 0x4;
+            data[SIB_INDEX] = 0x25;
+            size++;
+            size += DISPLACEMENT_SIZE;  
+            memcpy(data + 2, &offset, DISPLACEMENT_SIZE);
+        } 
     } else if (op->mem.base != REG_MAX && op->mem.index == REG_MAX) {
         data[MODRM_INDEX] |= op->mem.base; 
 
@@ -1439,6 +1467,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
     memcpy(opcode, instruction->bytes, instruction->size);
 
     int32_t addend = 0;
+    bool is_rel = false;
 
     //indicate opcode extension in the reg portion of modrm
     if(instruction->digit != -1){
@@ -1483,6 +1512,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 vex ^= REX_MEM_TO_VEX(operand[0].mem.rex);
                 rex |= operand[0].mem.rex;
                 addend = operand[0].mem.offset;
+                is_rel = mem_is_rel(operand[0].mem);
                 modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
             } else{
                 set_b(&operand[0], &vex, &rex);
@@ -1508,6 +1538,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 vex ^= REX_MEM_TO_VEX(operand[0].mem.rex);
                 rex |= operand[0].mem.rex;
                 addend = operand[0].mem.offset;
+                is_rel = mem_is_rel(operand[0].mem);
                 modrm_sib[MODRM_INDEX] |= (operand[1].reg.registerIndex << 3);
                 modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
             }
@@ -1530,6 +1561,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 vex ^= REX_MEM_TO_VEX(operand[1].mem.rex);
                 rex |= operand[1].mem.rex;
                 addend = operand[1].mem.offset;
+                is_rel = mem_is_rel(operand[1].mem);
                 modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl); 
             }
             break;  
@@ -1550,6 +1582,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             } else{ 
                 vex ^= REX_MEM_TO_VEX(operand[2].mem.rex);
                 addend = operand[2].mem.offset; 
+                is_rel = mem_is_rel(operand[2].mem);
                 modrm_sib[MODRM_INDEX] |= (operand[0].reg.registerIndex << 3);
                 modrm_size = modrm_sib_fields(&operand[2], modrm_sib, &lbl);
             }
@@ -1566,6 +1599,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             } else{ 
                 vex ^= REX_MEM_TO_VEX(operand[1].mem.rex);
                 addend = operand[1].mem.offset; 
+                is_rel = mem_is_rel(operand[1].mem);
                 modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl);
             }
             break;
@@ -1583,6 +1617,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             } else{ 
                 vex ^= REX_MEM_TO_VEX(operand[1].mem.rex);
                 addend = operand[1].mem.offset;
+                is_rel = mem_is_rel(operand[1].mem);
                 modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl);
             } 
             break;
@@ -1598,6 +1633,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             } else{ 
                 vex ^= REX_MEM_TO_VEX(operand[0].mem.rex);
                 addend = operand[0].mem.offset; 
+                is_rel = mem_is_rel(operand[0].mem);
                 modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
             } 
             break;
@@ -1646,6 +1682,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 }
                 rex |= operand[0].mem.rex;
                 addend = operand[0].mem.offset;
+                is_rel = mem_is_rel(operand[0].mem);
                 modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl); 
             }
             break;
@@ -1732,7 +1769,9 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
     if(modrm_size != 0) section_add_data(&program.text, modrm_sib, modrm_size);
 
     if(lbl != NULL){
-        symbol_table_add_instance(lbl, program.text.size - DISPLACEMENT_SIZE, addend, false);
+        int displace = DISPLACEMENT_SIZE;
+        if(is_rel) displace = 0;
+        symbol_table_add_instance(lbl, program.text.size - displace, addend, is_rel);
     }
 
     if(imm_index != -1){
@@ -2066,9 +2105,8 @@ bool basm_assemble_program(){
              //NOTE WE ONLY ALLOW USING SYMBOLS 
              //IN THE TEXT SECTION FOR NOW 
              if(instance->is_relative){
-                 //want the linker to handle relocation
-                 if(e->section == SECTION_EXTERN){
-                     instance->is_relative = false;
+                 //want the linker to handle relocation outside of text section
+                 if(e->section != SECTION_TEXT){
                      continue;
                  } 
                  //assume size of 4   

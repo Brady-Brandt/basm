@@ -77,6 +77,7 @@ typedef enum {
     TOK_REPNZ,
     TOK_TIMES,
     TOK_MOFFSET,
+    TOK_REL,
     TOK_END_KEYWORDS,
     TOK_DEFINE,
     TOK_IF,

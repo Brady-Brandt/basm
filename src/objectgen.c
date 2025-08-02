@@ -151,8 +151,8 @@ static uint32_t get_reloc_count(Program* p){
         SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
         for(int j = 0; j < e.instances.size; j++){
             SymbolInstance instance = array_list_get(e.instances, SymbolInstance, j);
-            //skip over the relative instances
-            if(!instance.is_relative){
+            //skip over the relative instances in the text section
+            if(!instance.is_relative || (e.section != SECTION_TEXT && instance.is_relative)){
                 count++;
             }
         }
@@ -503,15 +503,16 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
             for(int j = 0; j < e.instances.size; j++){
                 SymbolInstance instance = array_list_get(e.instances, SymbolInstance, j);
 
-                if(instance.is_relative) continue;
+                //relative addresses in the text section can be resolved by the assembler
+                if(instance.is_relative && e.section == SECTION_TEXT) continue;
 
                 ElfRelocatableEntry reloc_e = {0};
 
-                if(e.section == SECTION_EXTERN){
+                if(instance.is_relative){
                     //still not sure exactly why i need to do -4
                     //but addend of 0 doesn't work
                     reloc_e.offset = instance.offset - 4;
-                    reloc_e.addend = -4;
+                    reloc_e.addend = -4 + instance.addend;
                     reloc_e.info = ((uint64_t)(pc_sym_index + i) << 32)| RELOC_PC32;
                 } else{
                     //assume 32 for now 
@@ -713,13 +714,14 @@ bool write_pe(const char* input_file, const char* output_file, Program* p){
             for(int j = 0; j < e.instances.size; j++){
                 SymbolInstance instance = array_list_get(e.instances, SymbolInstance, j);
 
-                if(instance.is_relative) continue;
+                //relative addresses in the text section can be resolved by the assembler
+                if(instance.is_relative && e.section == SECTION_TEXT) continue;
 
                 PERelocatableEntry reloc_e = {0};
                 reloc_e.virtual_addr = instance.offset;
 
                 
-                if(e.section == SECTION_EXTERN){
+                if(instance.is_relative){
                     //get the index of this symbol in the symbol table
                     reloc_e.symbol_table_index = sym_table_text_offset + head.section_count * 2 + 1 + i;
                     reloc_e.type = PE_RELOC_AMD64_REL32; 
