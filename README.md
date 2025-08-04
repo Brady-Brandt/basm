@@ -58,7 +58,7 @@ It should only be used for simple, hobby projects right now.
 - Currently assume all jump addresses are rel32
 
 ### Planned Features (Not in a Particular Order) 
-- [ ] Mach File Support (Macos Support)
+- [x] Macho File Support (Macos Support)
 - [x] SSE/AVX instructions (Most have been added, not going to support AVX512 instructions)
 - [ ] Preprocessor
 - [x] Support for instruction prefixes
