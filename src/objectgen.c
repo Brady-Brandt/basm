@@ -509,10 +509,8 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
                 ElfRelocatableEntry reloc_e = {0};
 
                 if(instance.is_relative){
-                    //still not sure exactly why i need to do -4
-                    //but addend of 0 doesn't work
-                    reloc_e.offset = instance.offset - 4;
-                    reloc_e.addend = -4 + instance.addend;
+                    reloc_e.offset = instance.offset;
+                    reloc_e.addend = instance.addend;
                     reloc_e.info = ((uint64_t)(pc_sym_index + i) << 32)| RELOC_PC32;
                 } else{
                     //assume 32 for now 
@@ -725,7 +723,6 @@ bool write_pe(const char* input_file, const char* output_file, Program* p){
                     //get the index of this symbol in the symbol table
                     reloc_e.symbol_table_index = sym_table_text_offset + head.section_count * 2 + 1 + i;
                     reloc_e.type = PE_RELOC_AMD64_REL32; 
-                    reloc_e.virtual_addr -= 4;
                 } else{
                     //each section in the symbol table has an auxiliary section 
                     //thats why we multiply by 2
@@ -1034,7 +1031,7 @@ bool write_macho(const char* input_file, const char* output_file, Program* p){
                 if(instance.is_relative && e.section == SECTION_TEXT) continue;
 
                 MachoRelocationInfo info = {0};
-                info.addr = instance.offset - 4;
+                info.addr = instance.offset;
                 info.is_pc_rel = 1;
                 info.length = 2;
                 info.external = 1; 

@@ -1670,11 +1670,10 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
         case OP_ENC_D:
           if(operand[0].type == OPERAND_L64){
                 section_add_data(&program.text, opcode, instruction->size); 
-                //assume its a relative address
-                uint32_t zero = 0;
+                uint32_t zero = 0; 
                 //add some temp zeros
+                symbol_table_add_instance(operand[0].label, program.text.size, -DISPLACEMENT_SIZE,true); 
                 section_add_data(&program.text, &zero, 4);
-                symbol_table_add_instance(operand[0].label, program.text.size, 0,true); 
                 return;
             } 
             break;
@@ -1780,11 +1779,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
 
     if(modrm_size != 0) section_add_data(&program.text, modrm_sib, modrm_size);
 
-    if(lbl != NULL){
-        int displace = DISPLACEMENT_SIZE;
-        if(is_rel) displace = 0;
-        symbol_table_add_instance(lbl, program.text.size - displace, addend, is_rel);
-    }
+    uint64_t lbl_displacement = program.text.size - DISPLACEMENT_SIZE;
 
     if(imm_index != -1){
         switch (operand[imm_index].type) {
@@ -1812,6 +1807,23 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 fatal_error("Unreachable: %d\n", imm_index); 
         }
     }
+
+    if(lbl != NULL){ 
+        if(is_rel){
+            //addend is the distance from the next instruction for rel addreses
+            addend -= (program.text.size - lbl_displacement);
+
+            //for windows/macos we need to store the distance between end of lbl and next instruction inside the instruction
+            //TODO: make this cleaner
+            if(lbl_displacement != program.text.size - DISPLACEMENT_SIZE && asm_flags.ftype != BASM_FILE_ELF){
+                int32_t temp = -(program.text.size - (lbl_displacement + DISPLACEMENT_SIZE));
+                memcpy(&program.text.data[lbl_displacement], &temp, 4);
+            }
+        }
+        symbol_table_add_instance(lbl, lbl_displacement, addend, is_rel);
+    }
+
+
 }
 
 
@@ -2122,11 +2134,11 @@ bool basm_assemble_program(){
                      continue;
                  } 
                  //assume size of 4   
-                 uint64_t next_instruction = instance->offset;
+                 uint64_t next_instruction = instance->offset - instance->addend;
                  uint64_t rip_addr = e->section_offset;
                  //not sure if this is supposed to be signed or unsigned
                  int32_t rel_addr = (int32_t)(rip_addr - next_instruction);
-                 memcpy(&program.text.data[instance->offset - 4], &rel_addr, 4);
+                 memcpy(&program.text.data[instance->offset], &rel_addr, 4);
              }
 
          }
