@@ -808,3 +808,276 @@ bool write_pe(const char* input_file, const char* output_file, Program* p){
 
     return true; 
 }
+
+
+typedef struct {
+     uint32_t magic; 
+     uint32_t cpu_type;
+     uint32_t cpu_sub_type;
+     uint32_t file_type;
+     uint32_t num_cmds;
+     uint32_t cmd_size;
+     uint32_t flags;
+     uint32_t reserved;
+} MachoHeader;
+
+
+
+typedef struct{
+    uint32_t type;
+    uint32_t size; 
+    char name[16];
+    uint64_t addr;
+    uint64_t seg_size;
+    uint64_t offset;
+    uint64_t file_size;
+    uint32_t max_virtual_mem_protections;
+    uint32_t initial_virtual_mem_protections;
+    uint32_t num_sections;
+    uint32_t flags;
+}MachoSegmentCmd;
+
+
+typedef struct{
+    char section_name[16];
+    char segment_name[16];
+    uint64_t addr;
+    uint64_t size;
+    uint32_t offset;
+    uint32_t align;
+    uint32_t reloc_offset;
+    uint32_t reloc_count;
+    uint32_t flags;
+    uint32_t reserved1;
+    uint32_t reserved2;
+    uint32_t reserved3;
+}MachoSection;
+
+
+typedef enum {
+    MACHO_FLAG_ZERO = 0x1,
+    MACHO_FLAG_LOCAL_RELOC = 0x100,
+    MACHO_FLAG_EXTERNAL_RELOC = 0x200,
+    MACHO_FLAG_SOME_INSTRUCTIONS = 0x400,
+    MACHO_FLAG_PURE_INSTRUCTIONS = 1 << 31,
+} MachoSectionFlag;
+
+
+typedef struct {
+  uint32_t cmd;
+  uint32_t cmdsize;
+  uint32_t offset;
+  uint32_t symbol_count;
+  uint32_t string_table_offset;
+  uint32_t string_table_size;
+} MachoSymbolCmd;
+
+
+typedef struct {
+    uint32_t index;
+    uint8_t type;
+    uint8_t section;
+    uint16_t desc;
+    uint64_t value;
+} MachoSymbolTableEntry;
+
+typedef struct {
+    int32_t addr;
+    uint32_t sym_num: 24,
+             is_pc_rel: 1,
+             length: 2,
+             external: 1,
+             type: 4;
+} MachoRelocationInfo;
+
+bool write_macho(const char* input_file, const char* output_file, Program* p){
+    FILE* output_stream = fopen(output_file, "wb");
+
+    if(output_stream == NULL){
+        fatal_error("Failed to create file %s\n", input_file);
+        return false;
+    }
+
+
+    MachoHeader header = {0};
+    header.magic = 0xfeedfacf;
+    header.cpu_type = 0x1000007;
+    header.cpu_sub_type = 0x03; //all x86 processors
+    header.file_type = 0x01; // obj file
+    header.num_cmds = 1;
+
+
+    int symbol_count = p->symTable.symbols.size;
+    if(symbol_count > 0) header.num_cmds++;
+
+    int section_count = 1;
+
+    if(p->bss.size != 0) section_count++;
+    if(p->data.size != 0) section_count++;
+
+    header.cmd_size = section_count * sizeof(MachoSection) + sizeof(MachoSegmentCmd);
+    header.cmd_size += sizeof(MachoSymbolCmd); 
+
+    fwrite(&header, sizeof(MachoHeader), 1, output_stream);
+
+    uint64_t offset = sizeof(MachoHeader) + header.cmd_size;
+
+
+    MachoSegmentCmd seg_cmd = {0};
+    seg_cmd.type = 0x19; //64 bit segment load cmd
+    seg_cmd.size = sizeof(MachoSegmentCmd) + sizeof(MachoSection) * section_count; 
+
+    seg_cmd.offset = offset;
+    seg_cmd.seg_size = p->text.size + p->bss.size + p->data.size; 
+
+    //this is what nasm uses not sure what it does
+    seg_cmd.max_virtual_mem_protections = 0x07;
+    seg_cmd.initial_virtual_mem_protections = 0x07;
+
+    seg_cmd.file_size = p->data.size + p->text.size; 
+    seg_cmd.num_sections = section_count;
+
+    fwrite(&seg_cmd, sizeof(MachoSegmentCmd), 1, output_stream);
+
+
+    MachoSection text = {0};
+    strcpy(text.section_name, "__text");
+    strcpy(text.segment_name, "__TEXT");
+    text.addr = 0;
+    text.size = p->text.size;
+    text.offset = offset; 
+
+    offset += text.size;
+    text.reloc_offset = offset + p->data.size;
+
+    int padding = 0;
+    while(text.reloc_offset % 8 != 0){
+        padding++;
+        text.reloc_offset++;
+    }
+
+    text.reloc_count = get_reloc_count(p);
+    text.flags = MACHO_FLAG_LOCAL_RELOC | MACHO_FLAG_EXTERNAL_RELOC | MACHO_FLAG_SOME_INSTRUCTIONS | MACHO_FLAG_PURE_INSTRUCTIONS; 
+
+    fwrite(&text, sizeof(MachoSection), 1, output_stream);
+
+    int data_addr = 0;
+    int bss_addr= 0;
+
+    if(p->data.size != 0){
+        MachoSection data = {0};
+        strcpy(data.section_name, "__data");
+        strcpy(data.segment_name, "__DATA");
+        data.addr = p->text.size;
+        data.size = p->data.size;
+        data.offset = offset; 
+        data_addr = data.addr;
+        offset += data.size;
+        fwrite(&data, sizeof(MachoSection), 1, output_stream);
+    }
+
+    if(p->bss.size != 0){
+        MachoSection bss = {0};
+        strcpy(bss.section_name, "__bss");
+        strcpy(bss.segment_name, "__BSS");
+        bss.addr = p->text.size + p->data.size;
+        bss.size = p->bss.size;
+        bss_addr = bss.addr;
+        bss.flags = MACHO_FLAG_ZERO;
+        fwrite(&bss, sizeof(MachoSection), 1, output_stream);
+    }
+
+    offset += padding;
+
+
+    ArrayList reloc_info ={0};
+    ArrayList sym_table_entries = {0};
+
+    if(symbol_count != 0){
+        scratch_buffer_clear();
+        array_list_create_cap(reloc_info, MachoRelocationInfo, 16);
+        array_list_create_cap(sym_table_entries, MachoSymbolTableEntry, 8);
+
+        int symbol_index = 0;
+        for(int i = 0; i < p->symTable.symbols.size; i++){
+            SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
+
+            //add symbol to symbol table
+            MachoSymbolTableEntry sym_entry = {0};
+            sym_entry.index = scratch_buffer_offset() + 1;
+            if(e.section == SECTION_EXTERN || e.visibility == VISIBILITY_GLOBAL){
+                sym_entry.type |= 1;
+            }
+
+            if(e.section != SECTION_EXTERN){
+                sym_entry.type |= 0xe;
+                sym_entry.section = e.section;
+                if(e.section == SECTION_BSS && section_count == 2){
+                    sym_entry.section--;
+                }
+                if(e.section == SECTION_TEXT){
+                    sym_entry.value = text.addr;
+                } else if (e.section == SECTION_DATA) { 
+                    sym_entry.value = data_addr;
+                } else{
+                    sym_entry.value = bss_addr;
+                }
+                sym_entry.value += e.section_offset;
+            }
+            
+            array_list_append(sym_table_entries, MachoSymbolTableEntry, sym_entry);
+            scratch_buffer_append_str(e.name);
+
+            for(int j = 0; j < e.instances.size; j++){
+                SymbolInstance instance = array_list_get(e.instances, SymbolInstance, j);
+                //relative addresses in the text section can be resolved by the assembler
+                if(instance.is_relative && e.section == SECTION_TEXT) continue;
+
+                MachoRelocationInfo info = {0};
+                info.addr = instance.offset - 4;
+                info.is_pc_rel = 1;
+                info.length = 2;
+                info.external = 1; 
+                info.sym_num = symbol_index;
+
+                if(e.section == SECTION_EXTERN){
+                    info.type = 2;
+                } else{
+                    info.type = 1;
+                }
+                array_list_append(reloc_info, MachoRelocationInfo, info); 
+            }
+            symbol_index++;
+        }
+
+        MachoSymbolCmd sym_cmd = {0};
+        sym_cmd.cmd = 0x2;
+        sym_cmd.cmdsize = sizeof(MachoSymbolCmd);
+        sym_cmd.offset = offset + reloc_info.size * sizeof(MachoRelocationInfo); 
+        sym_cmd.symbol_count = sym_table_entries.size;
+        sym_cmd.string_table_offset = sym_cmd.offset + sym_table_entries.size * sizeof(MachoSymbolTableEntry);
+        sym_cmd.string_table_size = scratch_buffer_offset() + 1;
+
+        fwrite(&sym_cmd, sizeof(MachoSymbolCmd),1, output_stream);
+    }
+
+
+    fwrite(program.text.data, 1, program.text.size, output_stream); 
+    fwrite(program.data.data, 1, program.data.size, output_stream); 
+
+    if(padding != 0){
+        for(int i = padding; i > 0; i--){
+            fputc(0, output_stream);
+        }
+    }
+
+    fwrite(reloc_info.data, sizeof(MachoRelocationInfo), reloc_info.size, output_stream); 
+    fwrite(sym_table_entries.data, sizeof(MachoSymbolTableEntry), sym_table_entries.size, output_stream); 
+
+    if(scratch_buffer_offset() != 0){
+        fputc(0, output_stream);
+        fwrite(scratch_buffer_get_data(0), 1,scratch_buffer_offset(), output_stream);
+    }
+
+    return true;
+}

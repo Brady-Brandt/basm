@@ -63,3 +63,6 @@ extern Program program;
 bool write_elf(const char* input_file, const char* output_file, Program *p);
 
 bool write_pe(const char* input_file, const char* output_file, Program* p);
+
+
+bool write_macho(const char* input_file, const char* output_file, Program* p);

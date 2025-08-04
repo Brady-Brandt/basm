@@ -5,6 +5,7 @@
 typedef enum {
     BASM_FILE_ELF = 0,
     BASM_FILE_PE = 1,
+    BASM_FILE_MACHO = 2,
 } BasmFileType;
 
 

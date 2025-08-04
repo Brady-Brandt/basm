@@ -761,6 +761,18 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
         op->mem.index -= 8;
     }
 
+    if(asm_flags.ftype == BASM_FILE_MACHO){
+        if(op->mem.label != NULL && !is_rel){
+            parser_error_loc(p, l, c, "Invalid Address: Macho addresses with labels must be rip relative\n");
+            return false;
+        }
+
+        if(op->mem.offset != 0){
+            parser_error_loc(p, l, c, "Invalid Macho Address: Offsets are not supported\n");
+            return false;
+        }
+    }
+
     
     return true;
 }
@@ -2130,9 +2142,12 @@ bool basm_assemble_program(){
         return write_elf(asm_flags.input_file, asm_flags.output_file, &program);
      } else if(asm_flags.ftype == BASM_FILE_PE){
         return write_pe(asm_flags.input_file, asm_flags.output_file, &program);
-     } else{
-        fprintf(stderr, "Unknown output file type\n");
-        return false;
+     } else if(asm_flags.ftype == BASM_FILE_MACHO){
+        return write_macho(asm_flags.input_file, asm_flags.output_file, &program);
+     }
+     else{
+         fprintf(stderr, "Unknown output file type\n");
+         return false;
      }
 }
 
@@ -2157,6 +2172,8 @@ bool basm_parse_flags(int argc, char** argv){
                 asm_flags.ftype = BASM_FILE_PE;
             } else if (strcmp("elf", argv[i]) == 0) { 
                 asm_flags.ftype = BASM_FILE_ELF;
+            } else if (strcmp("macho", argv[i]) == 0) {
+                asm_flags.ftype = BASM_FILE_MACHO;
             } else{
                 fatal_error("Invalid File Type: %s\n", argv[i]);
                 return false;
@@ -2185,6 +2202,6 @@ bool basm_parse_flags(int argc, char** argv){
 void basm_help(){
     printf("Usage: basm options file\n");
     printf("Flags: \n");
-    printf("-f (file type)        -> win | elf\n");
+    printf("-f (file type)        -> win | elf | macho\n");
     printf("-o (output file name) -> output file\n");
 }
