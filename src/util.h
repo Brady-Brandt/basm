@@ -95,7 +95,7 @@ noreturn void fatal_error(const char* fmt, ...);
 
 #if defined(_WIN64) 
    void PRINT_COLORED_ERROR(); 
-#elif defined (__linux__)
+#elif defined (__linux__) || defined(__APPLE__) && defined(__MACH__)
     #define PRINT_COLORED_ERROR()  fprintf(stderr, "\e[31mError: \e[0m")
 #else 
     #define PRINT_COLORED_ERROR()  fprintf(stderr, "Error: ")
