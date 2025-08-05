@@ -24,7 +24,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(INSTR_OUTPUT): $(INSTR_INPUT) x86/types.h 
-	$(CC) $(CFLAGS) -Wno-old-style-definition -c $(INSTR_INPUT) -o $(INSTR_OUTPUT)
+	$(CC) $(CFLAGS) -Wno-deprecated-non-prototype -Wno-missing-field-initializers -Wno-old-style-definition -c $(INSTR_INPUT) -o $(INSTR_OUTPUT)
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
