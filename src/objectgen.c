@@ -764,7 +764,7 @@ bool write_pe(const char* input_file, const char* output_file, Program* p){
     memset(&temp_entry, 0,sizeof(temp_entry));
 
     //write Absolut entry (I don't know what its for)
-    strcpy(temp_entry.name, ".absolut");
+    memcpy(temp_entry.name, ".absolut", 8);
     temp_entry.section = -1;
     temp_entry.storage_class = PE_SC_STATIC;
     fwrite(&temp_entry, sizeof(temp_entry), 1, output_stream);
