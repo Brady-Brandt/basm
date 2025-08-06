@@ -1,6 +1,5 @@
 ; prints out some cpu flags
-; only work on linux right now
-#ifdef __LINUX__
+#ifdef __ELF__
     #define first_arg rdi
     #define second_arg rsi
     #define third_arg rdx
