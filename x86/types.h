@@ -179,6 +179,7 @@ typedef enum {
     TOK_IFNDEF,
     TOK_IFDEF,
     TOK_ELSE,
+    TOK_ELIF,
     TOK_ENDIF,
     TOK_MACRO,
     TOK_ENDMACRO,

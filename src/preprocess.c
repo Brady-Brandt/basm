@@ -298,6 +298,24 @@ static bool eval_if_expr(){
     }
 }
 
+
+static void consume_block(Token block_start){
+    int if_count = 0;
+    int endif_count = 0;
+    while(true){
+        if(preprocessor_peek_token().type == TOK_ELIF) break;
+        if(preprocessor_peek_token().type == TOK_ENDIF && if_count == endif_count) break;
+        if(parser_is_last_token(preprocessor.p)){
+            parser_error_loc(preprocessor.p, block_start.line_number, block_start.col,
+                    "if statement missing closing #endif\n");
+            return;
+        }
+        Token tmp = preprocessor_next_token();
+        if(tmp.type == TOK_IFDEF || tmp.type == TOK_IFNDEF || tmp.type == TOK_IF) if_count++;
+        else if (tmp.type == TOK_ENDIF) endif_count++;
+    }
+}
+
 static void eval_if_statement(Token if_token, bool condition, ArrayList* new_tokens){
     int l = if_token.line_number;
     int c = if_token.col;
@@ -310,21 +328,56 @@ static void eval_if_statement(Token if_token, bool condition, ArrayList* new_tok
             if(parser_is_last_token(preprocessor.p)){
                 parser_error_loc(preprocessor.p, l, c, "if statement missing closing #endif\n");
             }
+
+            if(preprocessor_peek_token().type == TOK_ELIF) {
+                //skip over all elif blocks that have the same depth as the if statement
+                int if_count = 0;
+                int endif_count = 0;
+                while(true){ 
+                    if(preprocessor_peek_token().type == TOK_ENDIF && if_count == endif_count) break;
+                    if(parser_is_last_token(preprocessor.p)){
+                        parser_error_loc(preprocessor.p, l, c,
+                                "if statement missing closing #endif\n");
+                        return;
+                    }
+                    Token tmp = preprocessor_next_token();
+                    if(tmp.type == TOK_IFDEF || tmp.type == TOK_IFNDEF || tmp.type == TOK_IF) if_count++;
+                    else if (tmp.type == TOK_ENDIF) endif_count++;
+                }
+                break;
+            }
+
             evaluate_preprocessor_statement(new_tokens);
         }
     } else{
-        //if macro is not defined skip over all these tokens
         int if_count = 0;
         int endif_count = 0;
         while(true){
-            if(preprocessor_peek_token().type == TOK_ENDIF && if_count == endif_count) break;
+            TokenType next_type = preprocessor_peek_token().type;
+            if(next_type == TOK_ELIF && if_count == endif_count){
+                Token elif = preprocessor_next_token();
+
+                bool expr = eval_if_expr();
+                if(expr){
+                    eval_if_statement(elif, expr, new_tokens);
+                    return;
+                }
+            } else if(next_type == TOK_ELSE && if_count == endif_count){
+                    Token els = preprocessor_next_token();
+                    eval_if_statement(els, true, new_tokens);
+                    return;
+            }
+
+            if(next_type == TOK_ENDIF && if_count == endif_count) break;
             if(parser_is_last_token(preprocessor.p)){
-                parser_error_loc(preprocessor.p, l, c, "if statement missing closing #endif\n");
+                parser_error_loc(preprocessor.p, l, c,
+                        "if statement missing closing #endif\n");
+                return;
             }
             Token tmp = preprocessor_next_token();
             if(tmp.type == TOK_IFDEF || tmp.type == TOK_IFNDEF || tmp.type == TOK_IF) if_count++;
             else if (tmp.type == TOK_ENDIF) endif_count++;
-        }
+        } 
     }
     preprocessor_next_token();
     preprocessor_expect_consume_token(TOK_ENDIF);
@@ -421,14 +474,14 @@ static void evaluate_preprocessor_statement(ArrayList* new_tokens){
             eval_if_statement(if_token, eval_if_expr(), new_tokens);
            break;
         }
-        case TOK_ENDIF: {
+        case TOK_ELIF:
+        case TOK_ELSE:
+        case TOK_ENDIF: 
             parser_error(preprocessor.p, "Missing if statement\n");
             return;
-        }
-        case TOK_ENDMACRO: {
+        case TOK_ENDMACRO: 
             parser_error(preprocessor.p, "Missing macro statement\n");
             return;
-        } 
         default:
             array_list_append((*new_tokens), Token, t);
     } 
