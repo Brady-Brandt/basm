@@ -24,28 +24,23 @@ make
     #define p1 rdi
     #define __puts__ puts
     #define __exit__ exit
-    extern puts 
-    extern exit
-    global _start
     #define entry _start
 #elif __WIN__
     #define p1 rcx
     #define __puts__ puts
     #define __exit__ exit
-    extern puts 
-    extern exit
-    global main
     #define entry main
 #elif __MACHO__
     #define p1 rdi
     #define __puts__ _puts
     #define __exit__ _exit
-    extern _puts 
-    extern _exit
-    global _start
     #define entry _start
 #endif
- 
+
+extern __puts__ 
+extern __exit__
+global entry
+
 entry:
     ; use relative addressing because macos
     ; won't allow 64 bit absolute addresses
