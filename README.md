@@ -20,29 +20,47 @@ make
 ### Hello World
 ```asm
 ; file hello.asm
-section .data 
-    hello: db "Hello, World!\n" ; Strings are automatically null terminated
-section .text
-; every statement must be inside section block 
+#if __ELF__
+    #define p1 rdi
+    #define __puts__ puts
+    #define __exit__ exit
+    extern puts 
+    extern exit
+#elif __WIN__
+    #define p1 rcx
+    #define __puts__ puts
+    #define __exit__ exit
+    extern puts 
+    extern exit
+#elif __MACHO__
+    #define p1 rdi
+    #define __puts__ _puts
+    #define __exit__ _exit
+    extern _puts 
+    extern _exit
+#endif
+ 
 global _start
-extern printf 
-extern exit
-_start:
-    ; Uses System V ABI (Linux)
-    lea rdi, [hello]  
-    call printf
 
-    xor rdi,rdi
-    call exit
+_start:
+    ; use relative addressing because macos
+    ; won't allow 64 bit absolute addresses
+    lea p1, [rel hello]
+    call __puts__ 
+
+    xor p1,p1
+    call __exit__
+
+section .data 
+    hello: db "Hello, World!" ; Double quoted strings are null terminated
 ```
 ### Assemble
 The -f flag specifies the output file. 
-Right now we only support elf and windows object files. 
+Right now we only support elf,windows, and macos object files. 
 ```sh
  bin/basm -f elf hello.asm -o hello.o
 ```
 ### Linking
-Linking can be done with any linker. 
 To link the above program with libc on Linux
 We can use the following command (Tested on Arch Only): 
 ```sh
