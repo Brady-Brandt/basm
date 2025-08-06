@@ -1,19 +1,67 @@
 #include "preprocess.h"
 #include "entry.h"
 #include "parser.h"
+#include "src/eval.h"
 #include "util.h"
 #include "x86/types.h"
+#include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 extern AssemblerFlags asm_flags;
+
+
+//forward declare
+static void evaluate_preprocessor_statement(ArrayList* new_tokens);
+
+
+typedef struct {
+    const char* name;
+    Token (*symbol_function)();
+} BuiltinSymbol;
+
+
+
+static Token define_elf(){
+    Token res = {0};
+    res.type = TOK_INT;
+    res.literal = (asm_flags.ftype == BASM_FILE_ELF) ? "1" : "0";
+    return res;
+}
+
+
+static Token define_win(){
+    Token res = {0};
+    res.type = TOK_INT;
+    res.literal = (asm_flags.ftype == BASM_FILE_PE) ? "1" : "0";
+    return res;
+}
+
+
+static Token define_macho(){
+    Token res = {0};
+    res.type = TOK_INT;
+    res.literal = (asm_flags.ftype == BASM_FILE_MACHO) ? "1" : "0";
+    return res;
+}
+
+
+static BuiltinSymbol BUILTIN_SYMBOLS[] = {
+    {"__ELF__",define_elf},
+    {"__WIN__", define_win},
+    {"__MACHO__", define_macho},
+};
+
+
+#define BUILTIN_SYMBOLS_SIZE (sizeof(BUILTIN_SYMBOLS) / sizeof(BUILTIN_SYMBOLS[0]))
 
 typedef struct {
     Parser* p;
     ArrayList macros;
     ArrayList symbols;
-    ArrayList builtin_symbols;
     PreprocessorCtx* stack;
     Token currentToken;
     int index;
@@ -22,6 +70,7 @@ typedef struct {
 
 
 static Preprocessor preprocessor = {0};
+
 
 
 
@@ -83,17 +132,20 @@ static Token preprocessor_next_token(){
 
 
 
-static void preprocessor_expect_token(TokenType expected){
+static bool preprocessor_expect_token(TokenType expected){
     if(preprocessor.currentToken.type != expected){
         parser_error(preprocessor.p, "Expected %s found %s in macro\n", token_to_string(expected), 
                 token_to_string(preprocessor.currentToken.type));
+        return false;
     }
+    return true;
 }
 
 
-static void preprocessor_expect_consume_token( TokenType expected){
-   preprocessor_expect_token(expected); 
+static bool preprocessor_expect_consume_token( TokenType expected){
+   bool res = preprocessor_expect_token(expected);
    preprocessor_next_token(); 
+   return res;
 }
 
 
@@ -126,6 +178,14 @@ static void preprocessor_add_symbol(){
 }
 
 
+static BuiltinSymbol* get_builtin_symbol(char* name){
+    for(size_t i = 0; i < BUILTIN_SYMBOLS_SIZE; i++){
+        if(strcmp(name, BUILTIN_SYMBOLS[i].name) == 0){
+            return &BUILTIN_SYMBOLS[i];
+        }
+    }
+    return NULL;
+}
 
 static int64_t get_macro(char* name){
     for(int i = 0; i < preprocessor.macros.size; i++){
@@ -194,6 +254,84 @@ static PreprocessorSymbol* get_symbol(char* name){
 }
 
 
+static bool is_symbol_defined(char* name){
+    if(strncmp(name, "__", 2) == 0){
+        if(get_builtin_symbol(name) != NULL) return true;
+    }
+    return get_symbol(name) != NULL || get_macro(name) != -1;
+}
+
+
+static bool eval_if_expr(){
+    //right now only support int true/false
+
+    Token expr = preprocessor_next_token();
+
+    if(expr.type == TOK_IDENTIFIER){
+        BuiltinSymbol* symbol = get_builtin_symbol(expr.literal);
+        if(symbol != NULL){
+            uint64_t integer = 0;
+            bool result = string_to_int(symbol->symbol_function().literal, &integer);
+
+            if(!result){
+                parser_error(preprocessor.p, "Invalid if condition: Conditions can only be integers right now\n");
+                return false;
+            }
+            return integer;
+        }
+
+        parser_error(preprocessor.p, "Invalid if condition: Conditions can only be integers right now\n");
+        return false;
+    } else{
+        if(expr.type != TOK_INT){
+            parser_error(preprocessor.p, "Invalid if condition: Conditions can only be integers right now\n");
+            return false;
+        }
+
+        uint64_t integer = 0;
+        bool result = string_to_int(expr.literal, &integer);
+        if(!result){
+            parser_error(preprocessor.p, "Invalid if condition: Conditions can only be integers right now\n");
+            return false;
+        }
+        return integer;
+    }
+}
+
+static void eval_if_statement(Token if_token, bool condition, ArrayList* new_tokens){
+    int l = if_token.line_number;
+    int c = if_token.col;
+
+    if(condition){
+        preprocessor_next_token();
+        preprocessor_expect_token(TOK_NEW_LINE);
+
+        while(preprocessor_peek_token().type != TOK_ENDIF){
+            if(parser_is_last_token(preprocessor.p)){
+                parser_error_loc(preprocessor.p, l, c, "if statement missing closing #endif\n");
+            }
+            evaluate_preprocessor_statement(new_tokens);
+        }
+    } else{
+        //if macro is not defined skip over all these tokens
+        int if_count = 0;
+        int endif_count = 0;
+        while(true){
+            if(preprocessor_peek_token().type == TOK_ENDIF && if_count == endif_count) break;
+            if(parser_is_last_token(preprocessor.p)){
+                parser_error_loc(preprocessor.p, l, c, "if statement missing closing #endif\n");
+            }
+            Token tmp = preprocessor_next_token();
+            if(tmp.type == TOK_IFDEF || tmp.type == TOK_IFNDEF || tmp.type == TOK_IF) if_count++;
+            else if (tmp.type == TOK_ENDIF) endif_count++;
+        }
+    }
+    preprocessor_next_token();
+    preprocessor_expect_consume_token(TOK_ENDIF);
+    preprocessor_expect_token(TOK_NEW_LINE);
+}
+
+
 
 static void evaluate_preprocessor_statement(ArrayList* new_tokens){
     Token t = preprocessor_next_token();
@@ -256,60 +394,32 @@ static void evaluate_preprocessor_statement(ArrayList* new_tokens){
             } 
             break;
         }
-        case TOK_IFDEF: 
-        case TOK_IFNDEF: {
-            bool ifndef = preprocessor.currentToken.type == TOK_IFNDEF;
-            int l = preprocessor.currentToken.line_number;
-            int c = preprocessor.currentToken.col;
+        case TOK_IFDEF: {
+            Token if_token = t;
             preprocessor_next_token();
-            preprocessor_expect_token(TOK_IDENTIFIER);
-            char* m_name = preprocessor.currentToken.literal;
-            bool is_defined = false;
-            if(strncmp("__", m_name, 2) == 0){
-                    if(asm_flags.ftype == BASM_FILE_ELF && strcmp(m_name, "__LINUX__") == 0){
-                        is_defined = true;
-                        goto add_body;
-                    } else if(asm_flags.ftype == BASM_FILE_PE && strcmp(m_name, "__WINDOWS__") == 0){ 
-                        is_defined = true;
-                        goto add_body;
-                    }
-            } 
-            for(int i = 0; i < preprocessor.symbols.size; i++){
-                PreprocessorSymbol s = array_list_get((preprocessor.symbols), PreprocessorSymbol, i);
-                if(strcmp(m_name,s.name) == 0){ 
-                    is_defined = true;
-                    break;
-                }
-            }
-        add_body:
-            preprocessor_next_token();
-            preprocessor_expect_token(TOK_NEW_LINE);
-            if((is_defined && !ifndef) || (!is_defined && ifndef)){
-                while(preprocessor_peek_token().type != TOK_ENDIF){
-                    if(parser_is_last_token(preprocessor.p)){
-                        parser_error_loc(preprocessor.p, l, c, "if statement missing closing #endif\n");
-                    }
-                    evaluate_preprocessor_statement(new_tokens);
-                }
+            if(preprocessor_expect_token(TOK_IDENTIFIER)){
+                char* m_name = preprocessor.currentToken.literal;
+                eval_if_statement(if_token, is_symbol_defined(m_name), new_tokens);
             } else{
-                //if macro is not defined skip over all these tokens
-                int if_count = 0;
-                int endif_count = 0;
-                while(true){
-                    if(preprocessor_peek_token().type == TOK_ENDIF && if_count == endif_count) break;
-                    if(parser_is_last_token(preprocessor.p)){
-                        parser_error_loc(preprocessor.p, l, c, "if statement missing closing #endif\n");
-                    }
-                    Token tmp = preprocessor_next_token();
-                    if(tmp.type == TOK_IFDEF) if_count++; 
-                    else if (tmp.type == TOK_ENDIF) endif_count++;
-                }
+                eval_if_statement(if_token, false, new_tokens);
             }
-            
+           break;
+        }
+        case TOK_IFNDEF: {
+            Token if_token = t;
             preprocessor_next_token();
-            preprocessor_expect_consume_token(TOK_ENDIF);
-            preprocessor_expect_token(TOK_NEW_LINE);
-            break;
+            if(preprocessor_expect_token(TOK_IDENTIFIER)){
+                char* m_name = preprocessor.currentToken.literal;
+                eval_if_statement(if_token, !is_symbol_defined(m_name), new_tokens);
+            } else{
+                eval_if_statement(if_token, false, new_tokens);
+            }
+           break;
+        }
+        case TOK_IF: {
+            Token if_token = t;
+            eval_if_statement(if_token, eval_if_expr(), new_tokens);
+           break;
         }
         case TOK_ENDIF: {
             parser_error(preprocessor.p, "Missing if statement\n");
