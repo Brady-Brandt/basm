@@ -350,6 +350,11 @@ void parser_error_loc(Parser* p, int line_num, int col, const char* fmt, ...){
     scratch_buffer_clear();
     while(p->currentToken.type != TOK_NEW_LINE) parser_next_token(p);
     program.ret_code = 1;
+    program.error_count++;
+
+    if(program.error_count >= 20){
+        fatal_error("Too many errors terminating assembly\n");
+    }
 }
 
 

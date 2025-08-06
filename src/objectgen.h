@@ -1,6 +1,7 @@
 #pragma once
 #include "util.h"
 #include "entry.h"
+#include <stdint.h>
 
 #define SECTION_EXTERN 0
 #define SECTION_TEXT 1 
@@ -55,6 +56,7 @@ typedef struct {
     Section bss;
     AssemblerFlags flags;
     int ret_code;
+    int error_count;
 } Program;
 
 
