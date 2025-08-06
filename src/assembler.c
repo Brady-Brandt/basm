@@ -80,8 +80,6 @@ B   0   Extension of the ModR/M r/m field, SIB base field, or Opcode reg field
 
 
 FileBuffer* current_fb = NULL;
-AssemblerFlags asm_flags = {};
-
 
 Program program = {0};
 
@@ -761,7 +759,7 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
         op->mem.index -= 8;
     }
 
-    if(asm_flags.ftype == BASM_FILE_MACHO){
+    if(program.flags.ftype == BASM_FILE_MACHO){
         if(op->mem.label != NULL && !is_rel){
             parser_error_loc(p, l, c, "Invalid Address: Macho addresses with labels must be rip relative\n");
             return false;
@@ -1316,7 +1314,7 @@ static int modrm_sib_fields(Operand* op, uint8_t *data, char** label){
         (*label) = op->mem.label;
         //this offset info is stored in the elf file format
         //but for windows we need to keep it in the instruction output
-        if(asm_flags.ftype != BASM_FILE_PE){
+        if(program.flags.ftype != BASM_FILE_PE){
             offset = 0;
         }
     }
@@ -1815,7 +1813,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
 
             //for windows/macos we need to store the distance between end of lbl and next instruction inside the instruction
             //TODO: make this cleaner
-            if(lbl_displacement != program.text.size - DISPLACEMENT_SIZE && asm_flags.ftype != BASM_FILE_ELF){
+            if(lbl_displacement != program.text.size - DISPLACEMENT_SIZE && program.flags.ftype != BASM_FILE_ELF){
                 int32_t temp = -(program.text.size - (lbl_displacement + DISPLACEMENT_SIZE));
                 memcpy(&program.text.data[lbl_displacement], &temp, 4);
             }
@@ -2103,7 +2101,7 @@ static void parse_tokens(ArrayList* tokens){
 
 bool basm_assemble_program(){
      program.ret_code = 0;
-     current_fb = file_buffer_create(asm_flags.input_file);
+     current_fb = file_buffer_create(program.flags.input_file);
 
      if(current_fb == NULL) return false;
    
@@ -2150,12 +2148,12 @@ bool basm_assemble_program(){
         return false;
      }
 
-     if(asm_flags.ftype == BASM_FILE_ELF){
-        return write_elf(asm_flags.input_file, asm_flags.output_file, &program);
-     } else if(asm_flags.ftype == BASM_FILE_PE){
-        return write_pe(asm_flags.input_file, asm_flags.output_file, &program);
-     } else if(asm_flags.ftype == BASM_FILE_MACHO){
-        return write_macho(asm_flags.input_file, asm_flags.output_file, &program);
+     if(program.flags.ftype == BASM_FILE_ELF){
+        return write_elf(program.flags.input_file, program.flags.output_file, &program);
+     } else if(program.flags.ftype == BASM_FILE_PE){
+        return write_pe(program.flags.input_file, program.flags.output_file, &program);
+     } else if(program.flags.ftype == BASM_FILE_MACHO){
+        return write_macho(program.flags.input_file, program.flags.output_file, &program);
      }
      else{
          fprintf(stderr, "Unknown output file type\n");
@@ -2171,7 +2169,7 @@ bool basm_parse_flags(int argc, char** argv){
         fatal_error("No input file specified\nType basm --help for more info\n");
         return false;
     }
-    asm_flags.output_file = "a.out";
+    program.flags.output_file = "a.out";
 
     for(int i = 1; i < argc; i++){
         if(strcmp("-f", argv[i]) == 0){
@@ -2181,11 +2179,11 @@ bool basm_parse_flags(int argc, char** argv){
                 return false;
             }
             if(strcmp("win", argv[i]) == 0){
-                asm_flags.ftype = BASM_FILE_PE;
+                program.flags.ftype = BASM_FILE_PE;
             } else if (strcmp("elf", argv[i]) == 0) { 
-                asm_flags.ftype = BASM_FILE_ELF;
+                program.flags.ftype = BASM_FILE_ELF;
             } else if (strcmp("macho", argv[i]) == 0) {
-                asm_flags.ftype = BASM_FILE_MACHO;
+                program.flags.ftype = BASM_FILE_MACHO;
             } else{
                 fatal_error("Invalid File Type: %s\n", argv[i]);
                 return false;
@@ -2196,17 +2194,17 @@ bool basm_parse_flags(int argc, char** argv){
                 fatal_error("Output file not specified\n");
                 return false;
             }
-            asm_flags.output_file = argv[i];
+            program.flags.output_file = argv[i];
              
         } else if(string_cmp_lower("--help", argv[i]) == 0){
             basm_help();
             return false;
         }else{
-            asm_flags.input_file = argv[i];
+            program.flags.input_file = argv[i];
         }
     }
     
-    if(asm_flags.input_file == NULL) fatal_error("No input file\n");
+    if(program.flags.input_file == NULL) fatal_error("No input file\n");
 
     return true;
 }

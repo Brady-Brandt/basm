@@ -1,7 +1,8 @@
 #include "preprocess.h"
 #include "entry.h"
 #include "parser.h"
-#include "src/eval.h"
+#include "eval.h"
+#include "objectgen.h"
 #include "util.h"
 #include "x86/types.h"
 #include <stddef.h>
@@ -10,8 +11,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
-extern AssemblerFlags asm_flags;
 
 
 //forward declare
@@ -28,7 +27,7 @@ typedef struct {
 static Token define_elf(){
     Token res = {0};
     res.type = TOK_INT;
-    res.literal = (asm_flags.ftype == BASM_FILE_ELF) ? "1" : "0";
+    res.literal = (program.flags.ftype == BASM_FILE_ELF) ? "1" : "0";
     return res;
 }
 
@@ -36,7 +35,7 @@ static Token define_elf(){
 static Token define_win(){
     Token res = {0};
     res.type = TOK_INT;
-    res.literal = (asm_flags.ftype == BASM_FILE_PE) ? "1" : "0";
+    res.literal = (program.flags.ftype == BASM_FILE_PE) ? "1" : "0";
     return res;
 }
 
@@ -44,7 +43,7 @@ static Token define_win(){
 static Token define_macho(){
     Token res = {0};
     res.type = TOK_INT;
-    res.literal = (asm_flags.ftype == BASM_FILE_MACHO) ? "1" : "0";
+    res.literal = (program.flags.ftype == BASM_FILE_MACHO) ? "1" : "0";
     return res;
 }
 
