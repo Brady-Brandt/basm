@@ -26,29 +26,36 @@ make
     #define __exit__ exit
     extern puts 
     extern exit
+    global _start
+    #define entry _start
 #elif __WIN__
     #define p1 rcx
     #define __puts__ puts
     #define __exit__ exit
     extern puts 
     extern exit
+    global main
+    #define entry main
 #elif __MACHO__
     #define p1 rdi
     #define __puts__ _puts
     #define __exit__ _exit
     extern _puts 
     extern _exit
+    global _start
+    #define entry _start
 #endif
  
-global _start
-
-_start:
+entry:
     ; use relative addressing because macos
     ; won't allow 64 bit absolute addresses
     lea p1, [rel hello]
     call __puts__ 
 
     xor p1,p1
+    #if __WIN__
+        push p1
+    #endif
     call __exit__
 
 section .data 
@@ -56,7 +63,7 @@ section .data
 ```
 ### Assemble
 The -f flag specifies the output file. 
-Right now we only support elf,windows, and macos object files. 
+Right now we only support elf, windows, and macos object files. 
 ```sh
  bin/basm -f elf hello.asm -o hello.o
 ```
@@ -75,7 +82,7 @@ It should only be used for simple, hobby projects right now.
 - Moving a label as in (mov rax, label) does not move the address of the label into rax
 - Currently assume all jump addresses are rel32
 
-### Planned Features (Not in a Particular Order) 
+### Planned Features
 - [x] Macho File Support (Macos Support)
 - [x] SSE/AVX instructions (Most have been added, not going to support AVX512 instructions)
 - [ ] Preprocessor
