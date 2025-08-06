@@ -31,14 +31,5 @@ typedef struct{
 } PreprocessorCtx;
 
 
-typedef struct {
-    Parser* p;
-    ArrayList* macros;
-    ArrayList* symbols;
-    PreprocessorCtx* stack;
-    Token currentToken;
-    int index;;
-} Preprocessor;
-
 
 ArrayList preprocess_tokens(ArrayList* tokens);
