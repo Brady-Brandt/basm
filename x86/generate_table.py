@@ -393,7 +393,7 @@ def parse_opcode(op):
  
         elif "REX" in chunk:
             rex = 0x40
-            if chunk[-1] == "W":
+            if chunk[-1].lower() == "w":
                 rex |= 0x8
 
         elif "VEX" in chunk:
@@ -888,6 +888,27 @@ with open("instructions.dat", "r") as f:
 
     for key in keys_to_remove:
         instructions.pop(key)
+
+
+    # remove duplicate instructions for xchg
+    # xchg rax,r64 == xchg r64, rax
+    variants_to_remove = []
+    for variant in instructions["XCHG"]:
+        if variant.op1 == operand_types["AX"] or variant.op1 == operand_types["EAX"] or variant.op1 == operand_types["RAX"]:
+            variants_to_remove.append(variant)
+
+    for variant in variants_to_remove:
+        instructions["XCHG"].remove(variant)
+
+
+    # remove redundant enter encodings
+    variants_to_remove = []
+    for variant in instructions["ENTER"]:
+        if variant.op2 ==operand_types["NOP"]:
+            variants_to_remove.append(variant)
+
+    for variant in variants_to_remove:
+        instructions["ENTER"].remove(variant)
 
     sorted_instructions = sorted(instructions)
                                 
