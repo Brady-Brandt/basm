@@ -784,9 +784,7 @@ static bool parse_operand(Parser* p, Operand* op){
     op->col = p->currentToken.col;
 
     switch (p->currentToken.type) {
-        case TOK_REG: {
-            uint8_t w = 0;
-            
+        case TOK_REG: { 
             if(is_r256(p->currentToken.reg)){
                 op->type = OPERAND_YMM;
                 op->reg.registerIndex = p->currentToken.reg - REG_YMM0;
@@ -799,7 +797,6 @@ static bool parse_operand(Parser* p, Operand* op){
                 op->reg.registerIndex = p->currentToken.reg - REG_MM0;
             }
             else if(is_r64(p->currentToken.reg)){
-                w = 1;
                 op->type = OPERAND_R64;
                 op->reg.registerIndex = p->currentToken.reg - REG_RAX;
             } else if(is_r32(p->currentToken.reg)){
@@ -812,7 +809,7 @@ static bool parse_operand(Parser* p, Operand* op){
                 op->type = OPERAND_R8;
                 op->reg.registerIndex = p->currentToken.reg - REG_AL;
             }             
-            op->reg.rex = REX_PREFIX(w, 0, 0, 0);
+            op->reg.rex = REX_PREFIX(0, 0, 0, 0);
             return true;
         }
         case TOK_SREG:
@@ -891,7 +888,6 @@ static bool parse_operand(Parser* p, Operand* op){
         case TOK_QWORD:
             parser_next_token(p);
             if(!parser_expect_token(p, TOK_OPENING_BRACKET)) return false;
-            op->mem.rex |= REX_W;
             return parse_memory(p, OPERAND_M64, op); 
         case TOK_TWORD:
             parser_next_token(p);
@@ -1445,7 +1441,7 @@ static inline void set_r(Operand* op, uint16_t* vex, uint8_t* rex){
 
 static inline void emit_operand_overide_prefix(OperandType op1, OperandType instr_op2){
     uint8_t prefix = 0x66;
-    if(op1 == OPERAND_M16 || op1 == OPERAND_R16 || op1 == OPERAND_IMM16 || instr_op2 == OPERAND_AX){ 
+    if(op1 == OPERAND_M16 || op1 == OPERAND_R16 || op1 == OPERAND_IMM16 || instr_op2 == OPERAND_AX || instr_op2 == OPERAND_RM16){ 
         section_add_data(&program.text,&prefix, 1);
     }
 
