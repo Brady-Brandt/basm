@@ -1441,7 +1441,7 @@ static inline void set_r(Operand* op, uint16_t* vex, uint8_t* rex){
 
 static inline void emit_operand_overide_prefix(OperandType op1, OperandType instr_op2){
     uint8_t prefix = 0x66;
-    if(op1 == OPERAND_M16 || op1 == OPERAND_R16 || op1 == OPERAND_IMM16 || instr_op2 == OPERAND_AX || instr_op2 == OPERAND_RM16){ 
+    if(op1 == OPERAND_M16 || op1 == OPERAND_R16 || op1 == OPERAND_IMM16 || instr_op2 == OPERAND_AX){ 
         section_add_data(&program.text,&prefix, 1);
     }
 
@@ -1473,7 +1473,8 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
     memcpy(opcode, instruction->bytes, instruction->size);
 
     int32_t addend = 0;
-    bool is_rel = false;
+    bool is_rel = false; 
+
 
     //indicate opcode extension in the reg portion of modrm
     if(instruction->digit != -1){
@@ -1490,7 +1491,9 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
         op2_is_upper_reg = true;
     }
 
-    if(instruction->encoding != OP_ENC_FPU) emit_operand_overide_prefix(operand[0].type, instruction->op2);
+    if(instruction->encoding != OP_ENC_FPU && (instruction->rex & REX_W) == 0){ 
+        emit_operand_overide_prefix(operand[0].type, instruction->op2);
+    }
 
     switch (instruction->encoding) {
         case OP_ENC_ZO:
