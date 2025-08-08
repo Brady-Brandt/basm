@@ -910,6 +910,18 @@ with open("instructions.dat", "r") as f:
     for variant in variants_to_remove:
         instructions["ENTER"].remove(variant)
 
+
+    # these instructions really serve a purpose and are discourage from using
+    variants_to_remove = []
+    for variant in instructions["MOVSXD"]:
+        if variant.op1 == operand_types["r16"] or variant.op1 == operand_types["r32"]:
+            variants_to_remove.append(variant)
+
+    for variant in variants_to_remove:
+        instructions["MOVSXD"].remove(variant)
+
+
+
     sorted_instructions = sorted(instructions)
                                 
     operand_enum = []
@@ -976,6 +988,10 @@ with open("instructions.dat", "r") as f:
                 if op1 == operand_types['r/m16'] or op1 == operand_types['r/m32'] or op1 == operand_types['r/m64']:
                     instr_variant.op2 = operand_types['simm8']
 
+                # this should be sign extended I don't know why it doesn't get interpreted as such when parsing the pdf
+                if instr == 'IMUL' and instr_variant.op2 == operand_types['r/m32'] and instr_variant.op3 == operand_types['imm8']:
+                    instr_variant.op3 = operand_types['simm8']
+
             if instruction_allows_lock(instr_variant, instr):
                 lock_prefix_indices.append(current_index)
 
@@ -995,13 +1011,13 @@ with open("instructions.dat", "r") as f:
     types_h_file.write(f"#define REPE_PREFIX_TABLE_SIZE {len(repe_prefix_indices)}\n")
 
     types_h_file.write("""
-    typedef enum {
-        PREFIX_NONE,
-        PREFIX_LOCK = 0xf0,
-        PREFIX_REP = 0xf3,
-        PREFIX_REPE = 0xf3,
-        PREFIX_REPNE = 0xf2,
-    } InstructionPrefix;
+typedef enum {
+    PREFIX_NONE,
+    PREFIX_LOCK = 0xf0,
+    PREFIX_REP = 0xf3,
+    PREFIX_REPE = 0xf3,
+    PREFIX_REPNE = 0xf2,
+} InstructionPrefix;
 """)
 
     types_h_file.write(f"extern const uint16_t LOCK_PREFIX_INDICES[LOCK_PREFIX_TABLE_SIZE];\n")
