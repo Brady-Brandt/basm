@@ -710,7 +710,7 @@ FPU  |DB /7                                  |FSTP m80fp
 FPU  |DD D8+i                                |FSTP ST(i)
 FSTCW/FNSTCW—Store
 FPU  |9B D9 /7                               |FSTCW m2byte
-FPU  |D9 /7                                  |FNSTCW1 m2byte
+FPU  |D9 /7                                  |FNSTCW m2byte
 FSTENV/FNSTENV—Store
 FPU  |9B D9 /6                               |FSTENV m14/28byte
 FPU  |D9 /6                                  |FNSTENV m14/28byte

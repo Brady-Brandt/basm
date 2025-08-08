@@ -281,6 +281,7 @@ def write_opcode_table(instruction, file, op_table, tables, page_num):
 
             operands = operands.replace("UD01", "UD0")
             operands = operands.replace("FNSTSW1", "FNSTSW")
+            operands = operands.replace("FNSTCW1", "FNSTCW")
             operands = operands.replace("FNCLEX1", "FNCLEX")
             operands = operands.replace("FNINIT1", "FNINIT")
             operands = operands.replace("FNSAVE1", "FNSAVE")
@@ -308,8 +309,6 @@ def write_opcode_table(instruction, file, op_table, tables, page_num):
 
             encoding = encoding.replace('\n','')
 
-            if encoding in unknown_encodings:
-                pass
 
             if encoding not in encodings:
                 encodings.append(encoding)
