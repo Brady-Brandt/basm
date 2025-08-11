@@ -1065,7 +1065,7 @@ static const Instruction* find_instruction_one_operand(uint64_t instr_index, Ope
         }
 
         //these instructions either take a memory location or registers
-        if(instruct_var.op1 >= OPERAND_RM8 && instruct_var.op2 <= OPERAND_RM64){
+        if(instruct_var.op1 >= OPERAND_RM8 && instruct_var.op1 <= OPERAND_RM64){
             if(instruct_var.op1 == TO_RM(op->type, OPERAND_M8)|| instruct_var.op1 == TO_RM(op->type, OPERAND_R8)){
                 return (Instruction*)&INSTRUCTION_TABLE[i];
             }
@@ -1083,8 +1083,9 @@ static const Instruction* find_instruction_one_operand(uint64_t instr_index, Ope
             if(instruct_var.op1 == OPERAND_M512){
                 op->type = OPERAND_M512;
                 return &INSTRUCTION_TABLE[i];
-            }else if(instruction_variant_count == 1 && is_mem(instruct_var.op1)) return &INSTRUCTION_TABLE[i];
-            else continue;
+            }else if(instruction_variant_count == 1 && is_mem(instruct_var.op1)){
+                return &INSTRUCTION_TABLE[i];
+            }
         } 
 
     }
