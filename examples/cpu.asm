@@ -1,5 +1,5 @@
 ; prints out some cpu flags
-#ifdef __ELF__
+#if __ELF__
     #define first_arg rdi
     #define second_arg rsi
     #define third_arg rdx
