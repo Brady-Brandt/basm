@@ -84,7 +84,7 @@ FileBuffer* current_fb = NULL;
 Program program = {0};
 
 
-void symbol_table_add(Parser* p, char* name, uint64_t offset, uint8_t section, uint8_t visibility){
+void symbol_table_add(char* name, int l, int c, uint64_t offset, uint8_t section, uint8_t visibility){
     for(int i = 0; i < program.symTable.symbols.size; i++){
         SymbolTableEntry* e = &array_list_get(program.symTable.symbols, SymbolTableEntry, i);
         if(strcmp(e->name, name) == 0 && section != SECTION_UNDEFINED && visibility != VISIBILITY_UNDEFINED){
@@ -99,9 +99,12 @@ void symbol_table_add(Parser* p, char* name, uint64_t offset, uint8_t section, u
                 e->visibility = visibility;
                 e->section_offset= offset;
                 e->section = section;
+                e->line = l;
+                e->col = c;
                 return;
             } 
-           parser_error(p, "Many definitions of symbol: %s\n", name); 
+           error_loc(l, c, "Many definitions of symbol: %s\n", name); 
+           error_loc(e->line, e->col, "%s Previosuly Defined here\n", name);
         }
     }
     SymbolTableEntry e = {0};
@@ -109,6 +112,8 @@ void symbol_table_add(Parser* p, char* name, uint64_t offset, uint8_t section, u
     e.section_offset = offset;
     e.section = section;
     e.visibility = visibility;
+    e.line = l;
+    e.col = c;
 
     if(section == SECTION_TEXT){
         e.section_offset = program.text.size;
@@ -124,7 +129,7 @@ void symbol_table_add(Parser* p, char* name, uint64_t offset, uint8_t section, u
     array_list_append(program.symTable.symbols, SymbolTableEntry, e);
 }
 
-void symbol_table_add_instance(char* symbol_name, uint32_t offset, int32_t addend, bool is_relative){ 
+void symbol_table_add_instance(char* symbol_name, int line, int col, uint32_t offset, int32_t addend, bool is_relative){ 
     for(int i = 0; i < program.symTable.symbols.size; i++){
         SymbolTableEntry* e = &array_list_get(program.symTable.symbols, SymbolTableEntry, i);
 
@@ -133,7 +138,7 @@ void symbol_table_add_instance(char* symbol_name, uint32_t offset, int32_t adden
                 array_list_create_cap(e->instances, SymbolInstance, 2);
             }
 
-            SymbolInstance current_instance = {offset,addend, is_relative};
+            SymbolInstance current_instance = {offset,addend, is_relative, line, col};
             array_list_append(e->instances, SymbolInstance, current_instance); 
             return;
         }
@@ -147,7 +152,7 @@ void symbol_table_add_instance(char* symbol_name, uint32_t offset, int32_t adden
     e.section = SECTION_UNDEFINED;
     e.visibility = VISIBILITY_UNDEFINED;
     array_list_create_cap(e.instances, SymbolInstance, 2);
-    SymbolInstance c = {offset,addend, is_relative};
+    SymbolInstance c = {offset,addend, is_relative, line, col};
     array_list_append(e.instances, SymbolInstance, c); 
     array_list_append(program.symTable.symbols, SymbolTableEntry, e);
 }
@@ -220,7 +225,7 @@ static void parse_bss_section(Parser* p){
         }  
 
 
-        symbol_table_add(p, id.literal, program.bss.size, SECTION_BSS, VISIBILITY_LOCAL);
+        symbol_table_add(id.literal,id.line_number, id.col, program.bss.size, SECTION_BSS, VISIBILITY_LOCAL);
 
         int num = 1;
         switch (p->currentToken.type) {
@@ -388,7 +393,7 @@ static void parse_data_section(Parser* p){
 
             if(!parser_expect_consume_token(p, TOK_COLON)) goto next_iteration;
 
-            symbol_table_add(p, id.literal, program.data.size, SECTION_DATA, VISIBILITY_LOCAL);
+            symbol_table_add(id.literal,id.line_number, id.col, program.data.size, SECTION_DATA, VISIBILITY_LOCAL);
 
             Token next = p->currentToken;
 
@@ -1466,6 +1471,8 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
     uint8_t modrm_sib[6] = {0};
     uint8_t modrm_size = 0;
     char* lbl = NULL;
+    int lbl_l = 0;
+    int lbl_c = 0;
     int imm_index = -1;
 
     uint8_t opcode[4] = {0};
@@ -1523,6 +1530,8 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 addend = operand[0].mem.offset;
                 is_rel = mem_is_rel(operand[0].mem);
                 modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
+                lbl_l = operand[0].line;
+                lbl_c = operand[0].col;
             } else{
                 set_b(&operand[0], &vex, &rex);
                 modrm_sib[MODRM_INDEX] |= 192;
@@ -1550,6 +1559,8 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 is_rel = mem_is_rel(operand[0].mem);
                 modrm_sib[MODRM_INDEX] |= (operand[1].reg.registerIndex << 3);
                 modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
+                lbl_l = operand[0].line;
+                lbl_c = operand[0].col;
             }
             break;
         case OP_ENC_RMI:
@@ -1572,6 +1583,8 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 addend = operand[1].mem.offset;
                 is_rel = mem_is_rel(operand[1].mem);
                 modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl); 
+                lbl_l = operand[1].line;
+                lbl_c = operand[1].col;
             }
             break;  
         
@@ -1594,6 +1607,8 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 is_rel = mem_is_rel(operand[2].mem);
                 modrm_sib[MODRM_INDEX] |= (operand[0].reg.registerIndex << 3);
                 modrm_size = modrm_sib_fields(&operand[2], modrm_sib, &lbl);
+                lbl_l = operand[2].line;
+                lbl_c = operand[2].col;
             }
             break;
         case OP_ENC_RMV: 
@@ -1609,7 +1624,9 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 vex ^= REX_MEM_TO_VEX(operand[1].mem.rex);
                 addend = operand[1].mem.offset; 
                 is_rel = mem_is_rel(operand[1].mem);
-                modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl);
+                modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl); 
+                lbl_l = operand[1].line;
+                lbl_c = operand[1].col;
             }
             break;
         case OP_ENC_VMI: 
@@ -1628,6 +1645,8 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 addend = operand[1].mem.offset;
                 is_rel = mem_is_rel(operand[1].mem);
                 modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl);
+                lbl_l = operand[1].line;
+                lbl_c = operand[1].col;
             } 
             break;
         case OP_ENC_MVR:
@@ -1644,6 +1663,8 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 addend = operand[0].mem.offset; 
                 is_rel = mem_is_rel(operand[0].mem);
                 modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
+                lbl_l = operand[0].line;
+                lbl_c = operand[0].col;
             } 
             break;
         //add register to opcode
@@ -1669,7 +1690,9 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 section_add_data(&program.text, opcode, instruction->size); 
                 uint32_t zero = 0; 
                 //add some temp zeros
-                symbol_table_add_instance(operand[0].label, program.text.size, -DISPLACEMENT_SIZE,true); 
+                int l = operand[0].line;
+                int c = operand[0].col;
+                symbol_table_add_instance(operand[0].label,l,c, program.text.size, -DISPLACEMENT_SIZE,true); 
                 section_add_data(&program.text, &zero, 4);
                 return;
             } 
@@ -1692,6 +1715,8 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 addend = operand[0].mem.offset;
                 is_rel = mem_is_rel(operand[0].mem);
                 modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl); 
+                lbl_l = operand[0].line;
+                lbl_c = operand[0].col;
             }
             break;
         case OP_ENC_II:
@@ -1805,7 +1830,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
         }
     }
 
-    if(lbl != NULL){ 
+    if(lbl != NULL){
         if(is_rel){
             //addend is the distance from the next instruction for rel addreses
             addend -= (program.text.size - lbl_displacement);
@@ -1817,7 +1842,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 memcpy(&program.text.data[lbl_displacement], &temp, 4);
             }
         }
-        symbol_table_add_instance(lbl, lbl_displacement, addend, is_rel);
+        symbol_table_add_instance(lbl, lbl_l, lbl_c, lbl_displacement, addend, is_rel);
     }
 
 
@@ -1975,7 +2000,7 @@ static void parse_text_section(Parser* p){
 
             Token id = p->currentToken;
             //TODO: ALLOW MANY GLOBAL DECLARATIONS AT ONCE
-            symbol_table_add(p, id.literal, 0, section, VISIBILITY_GLOBAL);
+            symbol_table_add(id.literal,id.line_number, id.col, 0, section, VISIBILITY_GLOBAL);
             parser_next_token(p);
             if(!parser_expect_consume_token(p, TOK_NEW_LINE)){
                 parser_expect_consume_token(p, TOK_NEW_LINE);
@@ -1990,7 +2015,7 @@ static void parse_text_section(Parser* p){
                 continue;
             } 
             parser_next_token(p);
-            symbol_table_add(p, id.literal, program.text.size, SECTION_TEXT, VISIBILITY_LOCAL);
+            symbol_table_add(id.literal, id.line_number, id.col, program.text.size, SECTION_TEXT, VISIBILITY_LOCAL);
         } 
         else if (p->currentToken.type == TOK_INSTRUCTION) {
             parse_instruction(p, PREFIX_NONE, false); 
@@ -2117,7 +2142,11 @@ bool basm_assemble_program(){
      for(int i = 0; i < program.symTable.symbols.size; i++){
          SymbolTableEntry* e = &array_list_get(program.symTable.symbols, SymbolTableEntry, i);
          if(e->section == SECTION_UNDEFINED && e->visibility == VISIBILITY_UNDEFINED){
-             fatal_error("Symbol %s used but never defined\n", e->name);
+             for(int j = 0; j < e->instances.size; j++){
+                SymbolInstance* instance =  &array_list_get(e->instances, SymbolInstance, j);
+                error_loc(instance->line, instance->col, "%s used but never defined\n", e->name);
+             }
+             continue;
          }
 
          for(int j = 0; j < e->instances.size; j++){

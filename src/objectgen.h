@@ -24,6 +24,8 @@ typedef struct {
     uint64_t offset; 
     int32_t addend;
     bool is_relative;
+    int line;
+    int col;
 }SymbolInstance;
 
 
@@ -32,6 +34,8 @@ typedef struct {
     uint8_t section;
     uint8_t visibility;
     uint64_t section_offset;
+    int line;
+    int col;
     ArrayList instances; 
 } SymbolTableEntry;
 
