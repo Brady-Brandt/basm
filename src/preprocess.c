@@ -129,6 +129,29 @@ static Token preprocessor_next_token(){
 }
 
 
+static Token preprocessor_peek_token(){
+    while(preprocessor.stack != NULL){
+        if(preprocessor.stack->endi == preprocessor.stack->index){
+            preprocessor_ctx_stack_pop();
+        } else{
+            Token res = array_list_get((*preprocessor.p->tokens), Token, preprocessor.stack->index);
+            //if we have a function like macro and identifier
+            // check if the the current token is a Parameter name and return its value
+            if(res.type == TOK_IDENTIFIER && preprocessor.stack->macro_index != NO_MACRO_PARAMS){
+                PreprocessorMacro macro = array_list_get(preprocessor.macros, PreprocessorMacro, preprocessor.stack->macro_index);
+                for(int i = 0; i < macro.args.size; i++){
+                    char* arg = array_list_get(macro.args, char*, i);
+                    if(strcmp(arg, res.literal) == 0){
+                        res = array_list_get(preprocessor.stack->arg_values, Token, i);
+                        break;
+                    }
+                }
+            }
+            return res;
+        }
+    }
+    return parser_peek_token(preprocessor.p);
+}
 
 
 static bool preprocessor_expect_token(TokenType expected){
@@ -145,11 +168,6 @@ static bool preprocessor_expect_consume_token( TokenType expected){
    bool res = preprocessor_expect_token(expected);
    preprocessor_next_token(); 
    return res;
-}
-
-
-static Token preprocessor_peek_token(){
-    return array_list_get((*preprocessor.p->tokens),Token, preprocessor.index);
 }
 
 
@@ -345,7 +363,6 @@ static void eval_if_statement(Token if_token, bool condition, ArrayList* new_tok
                 }
                 break;
             }
-
             evaluate_preprocessor_statement(new_tokens);
         }
     } else{
