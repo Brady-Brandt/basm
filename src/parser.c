@@ -359,6 +359,26 @@ void parser_error_loc(Parser* p, int line_num, int col, const char* fmt, ...){
 
 
 
+void error_loc(int line_num, int col, const char* fmt, ...){
+    PRINT_COLORED_ERROR();
+    va_list list;
+    va_start(list, fmt);
+    vfprintf(stderr, fmt, list);
+    va_end(list);
+    char* line = file_get_line(current_fb, line_num);
+    fprintf(stderr, "%s: Line %d, Col %d\n", current_fb->name, line_num, col);
+    fprintf(stderr, "%s\n", line);
+    fprintf(stderr,"%*s\n",col, "^");
+    scratch_buffer_clear();
+    program.ret_code = 1;
+    program.error_count++;
+    if(program.error_count >= 20){
+        fatal_error("Too many errors terminating assembly\n");
+    }
+}
+
+
+
 
 Token parser_next_token(Parser* p){
     if(p->tokenIndex < p->tokens->size){

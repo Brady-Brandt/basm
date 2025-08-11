@@ -31,7 +31,7 @@ ArrayList tokenize_file();
 
 void parser_error_loc(Parser* p, int line_num, int col, const char* fmt, ...);
 
-
+void error_loc(int line_num, int col, const char* fmt, ...);
 
 #define parser_error(p, fmt, ...) parser_error_loc(p, (p)->currentToken.line_number, (p)->currentToken.col,fmt,##__VA_ARGS__)
 
