@@ -74,6 +74,7 @@ Basm is able to assemble some code but there are still a lot of incomplete featu
 It should only be used for simple, hobby projects right now. 
 
 ### Known Issues
+- Using the times psuedoinstruction with a multiline macro will only repeat the first instruction of the macro
 - Moving a label as in (mov rax, label) does not move the address of the label into rax
 - Currently assume all jump addresses are rel32
 
