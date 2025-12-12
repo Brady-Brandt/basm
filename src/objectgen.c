@@ -469,19 +469,20 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
 
     for(int i = 0; i < p->symTable.symbols.size; i++){
         memset(&temp, 0, sizeof(ElfSymbolEntry));
-        SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
+        SymbolTableEntry* e = &array_list_get(p->symTable.symbols, SymbolTableEntry, i);
         temp.name = scratch_buffer_offset();
         
-        temp.section_index = e.section;
-        //if there is no data section bss section will be at SECTION_BSS - 1
-        if(e.section == SECTION_BSS && data_offset == 0){
+        temp.section_index = e->section;
+        //if there is no data section the bss section will come right after the text
+        if(e->section == SECTION_BSS && data_offset == 0){
             temp.section_index = 2;    
+            e->section = 2;
         } 
 
-        temp.value = e.section_offset;
-        temp.info =  (e.visibility == VISIBILITY_GLOBAL) ? SB_GLOBAL : SB_LOCAL; 
+        temp.value = e->section_offset;
+        temp.info =  (e->visibility == VISIBILITY_GLOBAL) ? SB_GLOBAL : SB_LOCAL; 
         fwrite(&temp, sizeof(temp), 1,output_stream);
-        scratch_buffer_append_str(e.name);
+        scratch_buffer_append_str(e->name);
     }
 
     char* sym_strt_str = scratch_buffer_get_data(0);
