@@ -1,11 +1,9 @@
 #pragma once
-#include "parser.h"
+#include "util.h"
 
 typedef struct {
     char* name;
-    //indices into token arraylist
-    int starti; 
-    int endi;
+    ArrayList tokens;
 } PreprocessorSymbol;
 
 
@@ -13,8 +11,7 @@ typedef struct {
 typedef struct {
     char* name; 
     ArrayList args;
-    int starti;
-    int endi;
+    ArrayList body;
 } PreprocessorMacro;
 
 
@@ -23,11 +20,10 @@ typedef struct {
 
 typedef struct{
     struct PreprocessorCtx* next;
-    int macro_index;
-    ArrayList arg_values;
-    int starti;
-    int endi;
-    int index;
+    int macro_index; //index into macros list if a macro has parameters
+    ArrayList arg_values; //values of the parameters
+    ArrayList body;
+    int index; //index into body list
 } PreprocessorCtx;
 
 
