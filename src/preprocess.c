@@ -73,13 +73,13 @@ static Preprocessor preprocessor = {0};
 
 
 
-static void preprocessor_ctx_stack_push(ArrayList body){
+static void preprocessor_ctx_stack_push(PreprocessorCtxType type, ArrayList body){
     PreprocessorCtx* new_ctx = malloc(sizeof(PreprocessorCtx));
     if(new_ctx == NULL) fatal_error("Out of memory\n");
     memset(new_ctx, 0, sizeof(PreprocessorCtx));
 
     new_ctx->body = body;
-    new_ctx->macro_index = NO_MACRO_PARAMS; //only care about this value if the macro has params
+    new_ctx->type = type;
     new_ctx->index = 0;
     new_ctx->next = (struct PreprocessorCtx*)preprocessor.stack;
     preprocessor.stack = new_ctx;
@@ -90,13 +90,23 @@ static void preprocessor_ctx_stack_push(ArrayList body){
 static void preprocessor_ctx_stack_pop(){
     PreprocessorCtx* tmp = (PreprocessorCtx*)preprocessor.stack->next;
 
-    if(preprocessor.stack->macro_index != NO_MACRO_PARAMS){
+    if(preprocessor.stack->has_args){
         for (int i = 0; i < preprocessor.stack->arg_values.size; i++) {
             ArrayList param_value = array_list_get(preprocessor.stack->arg_values, ArrayList, i);
             array_list_delete(param_value);
         }
         array_list_delete(preprocessor.stack->arg_values);
     }
+
+    if(preprocessor.stack->type == CTX_MACRO){
+        PreprocessorMacro* m = &array_list_get(preprocessor.macros, PreprocessorMacro, preprocessor.stack->list_index);
+        m->is_active = false;
+    } else if (preprocessor.stack->type == CTX_SYMBOL) {
+        PreprocessorSymbol* m = &array_list_get(preprocessor.symbols, PreprocessorSymbol, preprocessor.stack->list_index);
+        m->is_active = false;
+    }
+
+
     free(preprocessor.stack);
     preprocessor.stack = tmp;
 }
@@ -108,7 +118,6 @@ static Token preprocessor_next_token(){
         } else{
             Token res = array_list_get(preprocessor.stack->body, Token, preprocessor.stack->index);
             preprocessor.stack->index++;
-            preprocessor.index = preprocessor.stack->index;
             preprocessor.currentToken = res;
             return res; 
         }
@@ -121,11 +130,12 @@ static Token preprocessor_next_token(){
 
 
 static Token preprocessor_peek_token(){
-    while(preprocessor.stack != NULL){
-        if(preprocessor.stack->index == preprocessor.stack->body.size){
-            preprocessor_ctx_stack_pop();
+    PreprocessorCtx* ctx  = preprocessor.stack;
+    while(ctx != NULL){
+        if(ctx->index == ctx->body.size){
+            ctx = (PreprocessorCtx*)ctx->next;
         } else{
-            Token res = array_list_get(preprocessor.stack->body, Token, preprocessor.stack->index);
+            Token res = array_list_get(ctx->body, Token, ctx->index);
             return res;
         }
     }
@@ -152,6 +162,8 @@ static bool preprocessor_expect_consume_token( TokenType expected){
 
 static void preprocessor_add_symbol(){
     Token name = preprocessor_next_token(); 
+    int name_line = name.line_number;
+    int name_col = name.col;
     preprocessor_expect_consume_token(TOK_IDENTIFIER);
 
 
@@ -175,6 +187,9 @@ static void preprocessor_add_symbol(){
     PreprocessorSymbol s;
     s.name = name.literal;
     s.tokens = symbol_body;
+    s.is_active = false;
+    s.line_number = name_line;
+    s.col = name_col;
     array_list_append((preprocessor.symbols), PreprocessorSymbol, s);
 }
 
@@ -199,7 +214,7 @@ static int64_t get_macro(char* name){
 }
 
 
-//TODO: FIX INFINITE MACRO Expansion
+
 static bool macro_call(Token name_tok){
     preprocessor_next_token();
     
@@ -210,7 +225,15 @@ static bool macro_call(Token name_tok){
         return false;
     }
 
-    PreprocessorMacro macro = array_list_get((preprocessor.macros), PreprocessorMacro, macro_index);
+    PreprocessorMacro* macro = &array_list_get((preprocessor.macros), PreprocessorMacro, macro_index);
+
+    if(macro->is_active){
+        parser_error_loc(preprocessor.p, name_tok.line_number, name_tok.col, "Cannot Expand Macro '%s'\n", macro->name);
+        parser_error_loc(preprocessor.p, macro->line_number, macro->col, "Macro Recursively Defined\n");
+        return false;
+    }
+
+    macro->is_active = true;
 
     ArrayList params = {0};
     if(preprocessor_peek_token().type != TOK_CLOSING_PAREN){
@@ -244,14 +267,15 @@ static bool macro_call(Token name_tok){
         preprocessor_expect_consume_token(TOK_CLOSING_PAREN);
     }
 
-    if(params.size != macro.args.size){
+    if(params.size != macro->args.size){
         parser_error_loc(preprocessor.p,name_tok.line_number,name_tok.col, "Expected %d got %d args\n",
-                macro.args.size, params.size);
+                macro->args.size, params.size);
         return false;
     }
 
-    preprocessor_ctx_stack_push(macro.body);
-    preprocessor.stack->macro_index = (params.size == 0) ? NO_MACRO_PARAMS : macro_index;
+    preprocessor_ctx_stack_push(CTX_MACRO, macro->body);
+    preprocessor.stack->has_args = (params.size != 0);
+    preprocessor.stack->list_index = macro_index;
     preprocessor.stack->arg_values = params;
     return true;
 }
@@ -409,6 +433,8 @@ static void evaluate_preprocessor_statement(ArrayList* new_tokens){
         } 
         case TOK_MACRO: {
             Token id = preprocessor_next_token();
+            int id_line = id.line_number;
+            int id_col = id.col;
             preprocessor_expect_consume_token( TOK_IDENTIFIER);
             preprocessor_expect_token(TOK_OPENING_PAREN);
             ArrayList params = {0};
@@ -447,6 +473,9 @@ static void evaluate_preprocessor_statement(ArrayList* new_tokens){
             m.name = id.literal;
             m.args = params;
             m.body = macro_body;
+            m.is_active = false;
+            m.line_number = id_line;
+            m.col = id_col;
             array_list_append((preprocessor.macros), PreprocessorMacro, m);
             break;
         }
@@ -457,13 +486,13 @@ static void evaluate_preprocessor_statement(ArrayList* new_tokens){
                   //local params get precedence over global #define
                   bool is_macro_arg = false;
                   //check if it is a macro arguement
-                  if(preprocessor.stack != NULL && preprocessor.stack->macro_index != NO_MACRO_PARAMS){
-                      PreprocessorMacro macro = array_list_get(preprocessor.macros, PreprocessorMacro, preprocessor.stack->macro_index);
+                  if(preprocessor.stack != NULL && preprocessor.stack->has_args){
+                      PreprocessorMacro macro = array_list_get(preprocessor.macros, PreprocessorMacro, preprocessor.stack->list_index);
                       for(int i = 0; i < macro.args.size; i++){
                           char* arg = array_list_get(macro.args, char*, i);
                           if(strcmp(arg, t.literal) == 0){
                               ArrayList arg_val = array_list_get(preprocessor.stack->arg_values, ArrayList, i);
-                              preprocessor_ctx_stack_push(arg_val);
+                              preprocessor_ctx_stack_push(CTX_ARG, arg_val);
                               is_macro_arg = true;
                               break;
                           }
@@ -474,7 +503,16 @@ static void evaluate_preprocessor_statement(ArrayList* new_tokens){
                     //check if it is #define macro
                     PreprocessorSymbol* symbol = get_symbol(preprocessor.currentToken.literal);
                     if(symbol != NULL){
-                        preprocessor_ctx_stack_push(symbol->tokens);
+                        if(symbol->is_active){
+
+                            parser_error(preprocessor.p, "Cannot expand Symbol '%s'\n", symbol->name);
+                            parser_error_loc(preprocessor.p, symbol->line_number, symbol->col, "Recursive Symbol Definition\n");
+                            break;
+                        }
+
+                        preprocessor_ctx_stack_push(CTX_SYMBOL, symbol->tokens);
+                        preprocessor.stack->list_index = ((uint64_t)symbol -(uint64_t)preprocessor.symbols.data) / sizeof(PreprocessorSymbol);
+                        symbol->is_active = true;
                     } else{
                         array_list_append((*new_tokens), Token, t); 
                     }

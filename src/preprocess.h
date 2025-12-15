@@ -3,6 +3,9 @@
 
 typedef struct {
     char* name;
+    bool is_active;
+    int line_number;
+    int col;
     ArrayList tokens;
 } PreprocessorSymbol;
 
@@ -10,6 +13,9 @@ typedef struct {
 
 typedef struct {
     char* name; 
+    bool is_active;
+    int line_number;
+    int col;
     ArrayList args;
     ArrayList body;
 } PreprocessorMacro;
@@ -18,9 +24,18 @@ typedef struct {
 
 #define NO_MACRO_PARAMS -1
 
+typedef enum{
+    CTX_BUILTIN,
+    CTX_ARG,
+    CTX_MACRO,
+    CTX_SYMBOL,
+} PreprocessorCtxType;
+
 typedef struct{
     struct PreprocessorCtx* next;
-    int macro_index; //index into macros list if a macro has parameters
+    bool has_args;
+    PreprocessorCtxType type;
+    int list_index;
     ArrayList arg_values; //values of the parameters
     ArrayList body;
     int index; //index into body list
