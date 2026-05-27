@@ -2,6 +2,7 @@
 #include "src/parser.h"
 #include "src/util.h"
 #include "x86/types.h"
+#include <ctype.h>
 #include <errno.h>
 #include <setjmp.h>
 #include <stdbool.h>
@@ -209,8 +210,12 @@ static int64_t evaluate_expression(Parser* p, jmp_buf* start, Expression* expr){
 
 bool parse_and_eval_expression(Parser* p, int64_t* result){
     if(!is_start_expr(p->currentToken.type)){
-        parser_error(p, "Expected start of expression got %s\n", 
+        if(p->currentToken.type > 255 || !isprint(p->currentToken.type)){
+            parser_error(p, "Expected start of expression got %s\n",
                 token_to_string(p->currentToken.type));
+        } else{
+            parser_error(p, "Expected start of expression got \'%c\'\n", p->currentToken.type);
+        }
         *result = 0;
         return false;
     }

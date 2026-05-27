@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
 
 
 //forward declare
@@ -145,8 +146,14 @@ static Token preprocessor_peek_token(){
 
 static bool preprocessor_expect_token(TokenType expected){
     if(preprocessor.currentToken.type != expected){
-        parser_error(preprocessor.p, "Expected %s found %s in macro\n", token_to_string(expected), 
-                token_to_string(preprocessor.currentToken.type));
+        if(preprocessor.currentToken.type > 255 || !isprint(preprocessor.currentToken.type)){
+            parser_error(preprocessor.p, "Expected %s found %s in macro\n",
+                    token_to_string(expected),
+                    token_to_string(preprocessor.currentToken.type));
+        } else{
+            parser_error(preprocessor.p, "Expected %s found \'%c\' in macro\n",
+                    preprocessor.currentToken.type);
+        }
         return false;
     }
     return true;

@@ -73,11 +73,15 @@ for tok in btypes.TOKENS:
             t = int(val)
             gperf_file.write(f"    case TOK_{tok}: return  \"{tok}\";\n")
         except:
-            gperf_file.write(f"    case TOK_{tok}: return \"{str(val)}\";\n")
+            if tok == "NEW_LINE":
+                gperf_file.write(f"    case TOK_{tok}: return \"\'\\{str(val)}\'\";\n")
+            else:
+                gperf_file.write(f"    case TOK_{tok}: return \"\'{str(val)}\'\";\n")
     else:
         gperf_file.write(f"    case TOK_{tok}: return  \"{tok}\";\n")
 for kw in bkeywords.KEYWORDS:
     gperf_file.write(f"    case TOK_{kw}: return  \"{kw}\";\n")
+gperf_file.write(f"    default: return  \"Unknown Token\";\n")
 gperf_file.write("}\n}\n")
 
 def instruction_allows_lock(instruction: Instruction, nmemonic: str) -> bool:

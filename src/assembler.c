@@ -15,6 +15,7 @@
 #include <stdarg.h>
 #include <setjmp.h>
 #include <errno.h>
+#include <ctype.h>
 
 
 
@@ -1887,9 +1888,13 @@ static bool parse_instruction(Parser* p, InstructionPrefix prefix, bool is_rep){
         parser_next_token(p);
 
         if(!match(p, TOK_COMMA, TOK_NEW_LINE)){
-            parser_error(p, "Expected comma or new line after operand got %s\n", 
+            if(p->currentToken.type > 255 || !isprint(p->currentToken.type)){
+                parser_error(p, "Expected comma or new line after operand got %s\n",
                     token_to_string(p->currentToken.type));
-
+            } else{
+                parser_error(p, "Expected comma or new line after operand got \'%c\'\n",
+                    p->currentToken.type);
+            }
             parser_expect_consume_token(p, TOK_NEW_LINE);
             return false;
         }

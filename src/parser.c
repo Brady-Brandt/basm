@@ -157,7 +157,6 @@ ArrayList tokenize_file(){
         if(file_buffer_eof(current_fb)) break;
 
         Token token;
-        token.type = TOK_MAX;
         token.literal = 0;
         token.line_number = line_number;
         token.col = col;
@@ -243,7 +242,7 @@ ArrayList tokenize_file(){
                 if(file_buffer_peek_char(current_fb) != '<'){
                     //unkown token
                     col++;
-                    token.type = TOK_MAX;
+                    token.type = c;
                     break;
                 }
                 file_buffer_get_char(current_fb);
@@ -254,7 +253,7 @@ ArrayList tokenize_file(){
                 if(file_buffer_peek_char(current_fb) != '>'){
                     //unkown token
                     col++;
-                    token.type = TOK_MAX;
+                    token.type = c;
                     break;
                 }
                 file_buffer_get_char(current_fb);
@@ -299,7 +298,7 @@ ArrayList tokenize_file(){
                 }else{
                     //unkown token
                     col++;
-                    token.type = TOK_MAX;
+                    token.type = c;
                 }
             } 
         }
@@ -403,7 +402,13 @@ Token parser_peek_token(Parser* p){
 
 bool parser_expect_token(Parser* p, TokenType expected){
     if(p->currentToken.type != expected){
-        parser_error(p, "Expected %s found %s\n", token_to_string(expected), token_to_string(p->currentToken.type));
+        if(p->currentToken.type > 255 || !isprint(p->currentToken.type)){
+            parser_error(p, "Expected %s found %s\n", token_to_string(expected),
+                token_to_string(p->currentToken.type));
+        } else{
+             parser_error(p, "Expected %s found \'%c\'\n", token_to_string(expected),
+                p->currentToken.type);
+        }
         return false;
     }
     return true;
