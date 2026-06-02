@@ -10,14 +10,14 @@ typedef struct {
         uint8_t rex;
         uint8_t variant_count;
     };
-    uint8_t op1;
-    uint8_t op2; 
-    uint8_t op3; 
+    uint32_t op1;
+    uint32_t op2;
+    uint32_t op3;
     uint8_t bytes[4];
     uint8_t size;
     int8_t digit;
     uint8_t encoding;
-    uint8_t flags; 
+    uint8_t flags;
 } Instruction;
 
 typedef enum  {

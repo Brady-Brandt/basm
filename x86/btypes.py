@@ -67,31 +67,55 @@ OPERAND_ENCODINGS = [
 
 class OperandType(IntEnum):
     NOP = 0
-    REL8 = auto()
+    # --- Registers ---
+    R8   = 1 << 0
+    R16  = 1 << 1
+    R32  = 1 << 2
+    R64  = 1 << 3
+    MM   = 1 << 4
+    XMM  = 1 << 5
+    YMM  = 1 << 6
+    BND  = 1 << 7
+    # --- Memory Addresses ---
+    M8   = 1 << 8
+    M16  = 1 << 9
+    M32  = 1 << 10
+    M64  = 1 << 11
+    M128 = 1 << 12
+    M256 = 1 << 13
+    M512 = 1 << 14
+    M80  = 1 << 15
+    # --- Register Memory ---
+    RM8     = R8  | M8
+    RM16    = R16 | M16
+    RM32    = R32 | M32
+    RM64    = R64 | M64
+    MMM32   = MM  | M32
+    MMM64   = MM  | M64
+    XMMM8   = XMM | M8
+    XMMM16  = XMM | M16
+    XMMM32  = XMM | M32
+    XMMM64  = XMM | M64
+    XMMM128 = XMM | M128
+    YMMM256 = YMM | M256
+    BNDM128 = BND | M128
+    # --- Misc ---
+    MEM_ANY = M8 | M16 | M32 | M64 | M128 | M256 | M512 | M80
+
+    # --- Lower 20 bits are a bit mask --
+    REL8 = 1 << 21
     REL16 = auto()
     REL32 = auto()
-    SREG = auto()
-    FS = auto()
-    GS = auto()
-    REG = auto()
-    R8 = auto()
-    R16 = auto()
-    R32 = auto()
-    R64 = auto()
-    MEM_ANY = auto()
-    M8 = auto()
-    M16 = auto()
-    M32 = auto()
-    M64 = auto()
-    M128 = auto()
-    M256 = auto()
-    M512 = auto()
-    M80 = auto()
-    RM8 = auto()
-    RM16 = auto()
-    RM32 = auto()
-    RM64 = auto()
-    IMM8 = auto()
+    L8 = auto()
+    L16 = auto()
+    L32 = auto()
+    L64 = auto()
+    M    = auto()
+    REG    = auto()
+    SREG  = auto()
+    FS    = auto()
+    GS    = auto()
+    IMM8  = auto()
     IMM16 = auto()
     IMM32 = auto()
     IMM64 = auto()
@@ -99,26 +123,8 @@ class OperandType(IntEnum):
     SIMM16 = auto()
     SIMM32 = auto()
     SIMM64 = auto()
-    L8 = auto()
-    L16 = auto()
-    L32 = auto()
-    L64 = auto()
-    M = auto()
     STI = auto()
-    MMM32 = auto()
-    MMM64 = auto()
-    MM = auto()
-    XMM = auto()
-    YMM = auto()
-    XMMM8 = auto()
-    XMMM16 = auto()
-    XMMM32 = auto()
-    XMMM64 = auto()
-    XMMM128 = auto()
-    YMMM256 = auto()
     TMM = auto()
-    BND = auto()
-    BNDM128 = auto()
     MOFFSET = auto()
     AL = auto()
     CL = auto()
@@ -126,7 +132,7 @@ class OperandType(IntEnum):
     DX = auto()
     EAX = auto()
     RAX = auto()
-    UNSUPPORTED = 255 
+    UNSUPPORTED = 1 << 31 
 
 REGISTERS = [
   "YMM0",

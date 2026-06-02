@@ -65,7 +65,6 @@ B   0   Extension of the ModR/M r/m field, SIB base field, or Opcode reg field
 #define is_extended_reg(type) (type >= 8 && type <= 15)
 
 #define is_ah_to_bh(index) (index >= (REG_AH - REG_AL) && index <= (REG_BH - REG_AL))
-#define is_xy_reg(r) (r == OPERAND_XMM || r == OPERAND_YMM)
 #define is_advanced_reg(r) (r >= OPERAND_MM && r <= OPERAND_YMM)
 #define is_reg32_or_64(type) (type == OPERAND_R32 || type == OPERAND_R64)
 #define is_immediate(i) (i >= OPERAND_IMM8 && i <= OPERAND_IMM64)
@@ -917,24 +916,18 @@ static bool parse_operand(Parser* p, Operand* op){
 }
 
 
-
-//converts an instruction of operand type register or memory to operand type RM 
-#define TO_RM(input_instr, reg8_or_m8) (input_instr + (OPERAND_RM8 - reg8_or_m8))
-
-
-
 static inline bool check_operand_certain_register(OperandType table_instr, OperandType input_instr, uint8_t reg_index){
     if(table_instr >= OPERAND_AL && table_instr <= OPERAND_RAX){
         if(input_instr == OPERAND_R64 && reg_index == 0){
             return table_instr == OPERAND_RAX;
-        } else if (input_instr == OPERAND_R32 && reg_index == 0) { 
+        } else if (input_instr == OPERAND_R32 && reg_index == 0) {
             return table_instr == OPERAND_EAX;
         } else if (input_instr == OPERAND_R16) {
-            if(reg_index == 0 && table_instr == OPERAND_AX) return true; 
-            else if(reg_index == 2 && table_instr == OPERAND_DX) return true; 
+            if(reg_index == 0 && table_instr == OPERAND_AX) return true;
+            else if(reg_index == 2 && table_instr == OPERAND_DX) return true;
         } else if (input_instr == OPERAND_R8) {
             if(reg_index == 0 && table_instr == OPERAND_AL) return true;
-            else if(reg_index == 1 && table_instr == OPERAND_CL) return true;  
+            else if(reg_index == 1 && table_instr == OPERAND_CL) return true;
         }
     }
     return false;
@@ -1006,32 +999,7 @@ static bool fit_immediate(OperandType immediate_size, Operand* op){
 }
 
 
-static bool check_operand_type(OperandType table_instr, OperandType input_instr, uint8_t reg_index){
-    if(table_instr == input_instr) return true;
 
-    //these instructions either take a memory location or registers
-    if(table_instr >= OPERAND_RM8 && table_instr <= OPERAND_RM64){
-        if(table_instr == TO_RM(input_instr, OPERAND_M8)|| table_instr == TO_RM(input_instr, OPERAND_R8)){
-            return true;
-        }
-    }
-
-    if(table_instr == OPERAND_M && input_instr >= OPERAND_MEM_ANY && input_instr <= OPERAND_M64) return true;
-
-    if(table_instr >= OPERAND_XMMM8 && table_instr <= OPERAND_XMMM128){
-        if(input_instr == OPERAND_XMM || (input_instr + (OPERAND_XMMM8 - OPERAND_M8)) == table_instr ) return true;
-    }
- 
-    if(table_instr == OPERAND_YMMM256 && (input_instr == OPERAND_YMM || input_instr == OPERAND_M256)) return true;
-
-    if(table_instr == OPERAND_MMM32 || table_instr == OPERAND_MMM64){
-        return input_instr == OPERAND_MM || table_instr == input_instr + (OPERAND_MMM32 - OPERAND_M32);
-    }
-
-    if(table_instr == OPERAND_BNDM128 && (input_instr == OPERAND_M128 || input_instr == OPERAND_BND)) return true;
-
-    return check_operand_certain_register(table_instr, input_instr, reg_index); 
-}
 
 static const Instruction* find_instruction_nop(uint64_t instr_index){
     uint64_t op_table_index = get_keyword(instr_index)->value;    
@@ -1048,6 +1016,7 @@ static const Instruction* find_instruction_nop(uint64_t instr_index){
     return NULL;
 }
 
+#define END_OP_BITMASK (1 << 21)
 static const Instruction* find_instruction_one_operand(uint64_t instr_index, Operand* op){
     uint64_t op_table_index = get_keyword(instr_index)->value;    
     int instruction_variant_count = INSTRUCTION_TABLE[op_table_index].variant_count;
@@ -1057,121 +1026,66 @@ static const Instruction* find_instruction_one_operand(uint64_t instr_index, Ope
         Instruction instruct_var = INSTRUCTION_TABLE[i];
 
         if(instruct_var.op2 != OPERAND_NOP) continue;
-
-        if(instruct_var.op1 == op->type ) return (Instruction*)&INSTRUCTION_TABLE[i];
-        
-
-        if(is_immediate(instruct_var.op1) && fit_immediate(instruct_var.op1, op)){
-            return (Instruction*)&INSTRUCTION_TABLE[i];
-        }
-
-        //these instructions either take a memory location or registers
-        if(instruct_var.op1 >= OPERAND_RM8 && instruct_var.op1 <= OPERAND_RM64){
-            if(instruct_var.op1 == TO_RM(op->type, OPERAND_M8)|| instruct_var.op1 == TO_RM(op->type, OPERAND_R8)){
-                return (Instruction*)&INSTRUCTION_TABLE[i];
-            }
-        }
-        
-        //for jmp instructions just assume rel32 for now
-        if(instruct_var.op1 == OPERAND_REL32 && op->type == OPERAND_L64) return (Instruction*)&INSTRUCTION_TABLE[i];
-
-        //check for ax,al,eax,rax operands
-        if(check_operand_certain_register(instruct_var.op1, op->type, op->reg.registerIndex)){
-            return (Instruction*)&INSTRUCTION_TABLE[i];
-        }
-
-        if(op->type == OPERAND_MEM_ANY){
-            if(instruct_var.op1 == OPERAND_M512){
-                op->type = OPERAND_M512;
+        if(op->type < END_OP_BITMASK && instruct_var.op1 < END_OP_BITMASK){
+            if(instruct_var.op1 & op->type)
                 return &INSTRUCTION_TABLE[i];
-            }else if(instruction_variant_count == 1 && is_mem(instruct_var.op1)){
+        } else{
+            if(instruct_var.op1 == op->type)
                 return &INSTRUCTION_TABLE[i];
-            }
-        } 
 
+            if(is_immediate(instruct_var.op1) && fit_immediate(instruct_var.op1, op))
+                return &INSTRUCTION_TABLE[i];
+
+            //for jmp instructions just assume rel32 for now
+            if(instruct_var.op1 == OPERAND_REL32 && op->type == OPERAND_L64)
+                return &INSTRUCTION_TABLE[i];
+
+            // FSTSW, FNSTSW instructions
+            if(instruct_var.op1 == OPERAND_AX && op->type == OPERAND_R16 && op->reg.registerIndex == 0)
+                return &INSTRUCTION_TABLE[i];
+        }
     }
-
     return NULL;
 }
 
 
-static const Instruction* find_instruction_two_operands(uint64_t instr_index, Operand* op1, Operand* op2){ 
-
-    //infer size of memory location if operand 2 is a register 
-    if(op1->type == OPERAND_MEM_ANY){
-        if(is_general_reg(op2->type)) op1->type = op2->type + (OPERAND_M8 - OPERAND_R8); 
-        else if (op2->type == OPERAND_BND) op1->type = OPERAND_M128;
-         ;
-    }
-
+static const Instruction* find_instruction_two_operands(uint64_t instr_index, Operand* op1, Operand* op2){
     uint64_t op_table_index = get_keyword(instr_index)->value;    
     int instruction_variant_count = INSTRUCTION_TABLE[op_table_index].variant_count;
-    
+
     // loop through each variant of the instruction check if the operands match 
     for(uint64_t i = op_table_index + 1; i < op_table_index + instruction_variant_count + 1; i++){ 
         Instruction instruct_var = INSTRUCTION_TABLE[i];
-
         if(instruct_var.op3 != OPERAND_NOP) continue;
-        
-
-        if(!check_operand_type(instruct_var.op1, op1->type, op1->reg.registerIndex)){
-            if(!is_immediate(instruct_var.op1)){
+        if(op1->type < END_OP_BITMASK && instruct_var.op1 < END_OP_BITMASK){
+            if((op1->type & instruct_var.op1) == 0)
                 continue;
-            }
-            if(!fit_immediate(instruct_var.op1, op1)){
-                continue;
-            }
+        } else{
+            if(op1->type != instruct_var.op1 && !fit_immediate(instruct_var.op1, op1) &&
+                    !check_operand_certain_register(instruct_var.op1, op1->type, op1->reg.registerIndex))
+            continue;
         }
 
+        if(op2->type < END_OP_BITMASK && instruct_var.op2 < END_OP_BITMASK){
+            if((op2->type & instruct_var.op2))
+                return &INSTRUCTION_TABLE[i];
+        } else{
+            if(op2->type == instruct_var.op2)
+                return &INSTRUCTION_TABLE[i];
 
-        if(op2->type == OPERAND_MEM_ANY){
-            if(is_mem(instruct_var.op2)){
-                op2->type = instruct_var.op2;
+            if(fit_immediate(instruct_var.op2, op2))
                 return &INSTRUCTION_TABLE[i];
-            } else if (instruct_var.op2 >= OPERAND_RM8 && instruct_var.op2 <= OPERAND_RM64) {
-                op2->type = OPERAND_M8 + (instruct_var.op2 - OPERAND_RM8); 
+
+            if(check_operand_certain_register(instruct_var.op2, op2->type, op2->reg.registerIndex))
                 return &INSTRUCTION_TABLE[i];
-            } else if(instruct_var.op2 >= OPERAND_XMMM8 && instruct_var.op2 <= OPERAND_YMMM256){ 
-                op2->type = OPERAND_M8 + (instruct_var.op2 - OPERAND_XMMM8); 
+
+            // lea instruction
+            if(instruct_var.op2 == OPERAND_M && op2->type == OPERAND_MEM_ANY)
                 return &INSTRUCTION_TABLE[i];
-            } else if (instruct_var.op2 == OPERAND_BNDM128) {
-                op2->type = OPERAND_M128;
-                return &INSTRUCTION_TABLE[i]; 
-            }
-        } else if ((op2->type == OPERAND_IMM64 || op2->type == OPERAND_SIMM64) && 
-                    fit_immediate(instruct_var.op2, op2)) {
-            return &INSTRUCTION_TABLE[i];
         }
-
-        if(check_operand_type(instruct_var.op2, op2->type, op2->reg.registerIndex)){
-            return &INSTRUCTION_TABLE[i];
-        }    
     }
-
     return NULL;
 }
-
-static bool check_operand_type_three(OperandType table_instr, OperandType input_instr){
-    if(table_instr == input_instr) return true;
-
-    //these instructions either take a memory location or registers
-    if(table_instr >= OPERAND_RM16 && table_instr <= OPERAND_RM64){
-        if(table_instr == TO_RM(input_instr, OPERAND_M8)|| table_instr == TO_RM(input_instr, OPERAND_R8)){
-            return true;
-        }
-    }
-
-    if(table_instr >= OPERAND_XMMM32 && table_instr <= OPERAND_XMMM128){
-        if(input_instr == OPERAND_XMM || (input_instr + (OPERAND_XMMM8 - OPERAND_M8)) == table_instr ) return true;
-    }
- 
-    if(table_instr == OPERAND_YMMM256 && (input_instr == OPERAND_YMM || input_instr == OPERAND_M256)) return true;
-
-    if(table_instr == OPERAND_REG && (input_instr == OPERAND_R32 || input_instr == OPERAND_R64)) return true;
-
-    return table_instr == OPERAND_MMM64 && (input_instr == OPERAND_MM || input_instr == OPERAND_M64);
-}
-
 
 
 static const Instruction* find_instruction_three_operands(uint64_t instr_index, Operand* op1, Operand* op2, Operand* op3){ 
@@ -1182,78 +1096,40 @@ static const Instruction* find_instruction_three_operands(uint64_t instr_index, 
     for(uint64_t i = op_table_index + 1; i < op_table_index + instruction_variant_count + 1; i++){ 
         Instruction instruct_var = INSTRUCTION_TABLE[i];
 
+        // 4 operand instructions so skip
         if(instruct_var.encoding == OP_ENC_RVMI || instruct_var.encoding == OP_ENC_RVMR) continue;
 
-        if(op1->type == OPERAND_MEM_ANY && check_operand_type_three(instruct_var.op2, op2->type)){
-           if(fit_immediate(instruct_var.op3, op3)){
-                if(is_mem(instruct_var.op1)){
-                    op1->type = instruct_var.op1;
-                    return &INSTRUCTION_TABLE[i];
-                } else if (instruct_var.op1 >= OPERAND_RM16 && instruct_var.op1 <= OPERAND_RM64) {
-                    op1->type = OPERAND_M16 + (instruct_var.op1 - OPERAND_RM16); 
-                    return &INSTRUCTION_TABLE[i];
-                } else if(instruct_var.op1 >= OPERAND_XMMM64 && instruct_var.op1 <= OPERAND_XMMM128){ 
-                    op1->type = OPERAND_M64 + (instruct_var.op1 - OPERAND_XMMM64); 
-                    return &INSTRUCTION_TABLE[i];
-                }
-           } 
-           continue;
-        } else if (op2->type == OPERAND_MEM_ANY && check_operand_type_three(instruct_var.op1, op1->type)) {
-            if(instruct_var.op3 == op3->type || fit_immediate(instruct_var.op3, op3)){ 
-                if(instruct_var.op2 >= OPERAND_RM16 && instruct_var.op2 <= OPERAND_RM64){
-                    op2->type = OPERAND_M16 + (instruct_var.op2 - OPERAND_RM16);
-                    return &INSTRUCTION_TABLE[i];
-                } else if (instruct_var.op2 >= OPERAND_XMMM32 && instruct_var.op2 <= OPERAND_YMMM256) {
-                    op2->type = OPERAND_M32 + (instruct_var.op2 - OPERAND_XMMM32); 
-                    return &INSTRUCTION_TABLE[i];
-                } else if(instruct_var.op2 == OPERAND_MMM64){ 
-                    op2->type = OPERAND_M64;
-                    return &INSTRUCTION_TABLE[i];
-                }
-           } 
-            continue;
+        if(op1->type < END_OP_BITMASK && instruct_var.op1 < END_OP_BITMASK){
+            if((op1->type & instruct_var.op1) == 0)
+                continue;
+        } else{
+            if(op1->type != instruct_var.op1)
+                continue;
         }
-       
 
-        if(!check_operand_type_three(instruct_var.op1, op1->type)) continue;
-        if(!check_operand_type_three(instruct_var.op2, op2->type)) continue;
-
-    
-        if(op3->type == OPERAND_MEM_ANY){
-            if(instruct_var.op3 == OPERAND_RM32 || instruct_var.op3 == OPERAND_RM64){
-                op3->type = OPERAND_M32 + (instruct_var.op3 - OPERAND_RM32);
-                return &INSTRUCTION_TABLE[i];
-            } else if (instruct_var.op3 == OPERAND_XMMM128 || instruct_var.op3 == OPERAND_YMMM256) { 
-                op3->type = OPERAND_M128 + (instruct_var.op3 - OPERAND_XMMM128);
-                return &INSTRUCTION_TABLE[i];
-            }
-        } else if (op3->type == OPERAND_SIMM64|| op3->type == OPERAND_IMM64) {
-            if(fit_immediate(instruct_var.op3, op3)) return &INSTRUCTION_TABLE[i]; 
-        } else if (instruct_var.op3 == OPERAND_CL && op3->type == OPERAND_R8 && op3->reg.registerIndex == 1) {
-            return &INSTRUCTION_TABLE[i]; 
-        } 
-        else if (check_operand_type_three(instruct_var.op3, op3->type)) {
-            return &INSTRUCTION_TABLE[i]; 
+        if(op2->type < END_OP_BITMASK && instruct_var.op2 < END_OP_BITMASK){
+            if((op2->type & instruct_var.op2) == 0)
+                continue;
+        } else{
+            if((op2->type != instruct_var.op2))
+                continue;
         }
-            
+
+        if(op3->type < END_OP_BITMASK && instruct_var.op3 < END_OP_BITMASK){
+            if((op3->type & instruct_var.op3))
+                return &INSTRUCTION_TABLE[i];
+        } else{
+            if(op3->type == instruct_var.op3)
+                return &INSTRUCTION_TABLE[i];
+            else if (fit_immediate(instruct_var.op3, op3))
+                return &INSTRUCTION_TABLE[i];
+            else if(check_operand_certain_register(instruct_var.op3, op3->type, op3->reg.registerIndex))
+                return &INSTRUCTION_TABLE[i];
+        }
     }
-
     return NULL;
 }
 
-
-#define TO_RM(input_instr, reg8_or_m8) (input_instr + (OPERAND_RM8 - reg8_or_m8))
-
-static bool check_operand_type_four(OperandType table_instr, OperandType input_instr){
-    if(table_instr >= OPERAND_XMMM32 && table_instr <= OPERAND_YMMM256){
-        if(table_instr == input_instr + (OPERAND_XMMM32 - OPERAND_M32) || input_instr == OPERAND_XMM || input_instr == OPERAND_YMM){
-            return true;
-        }
-    }
-    if(table_instr == OPERAND_RM32 && input_instr == OPERAND_R32 || input_instr == OPERAND_M32) return true;
-    if(table_instr == OPERAND_RM64 && input_instr == OPERAND_R64|| input_instr == OPERAND_M64) return true;
-    return false;
-}
 
 static const Instruction* find_instruction_four_operands(uint64_t instr_index, Operand* op1, Operand* op2, Operand* op3, Operand* op4){
     uint64_t op_table_index = get_keyword(instr_index)->value;    
@@ -1262,9 +1138,10 @@ static const Instruction* find_instruction_four_operands(uint64_t instr_index, O
     //the fourth operand is either an imm8 or a register 
     //the register has to be the same size as the first operand 
     if(op4->type == OPERAND_IMM64){
-        if(!fit_immediate(OPERAND_IMM8, op4)) return NULL;
+        if(!fit_immediate(OPERAND_IMM8, op4))
+            return NULL;
     } else if(op1->type != op4->type) {
-       return NULL; 
+        return NULL;
     }
     
     // loop through each variant of the instruction check if the operands match 
@@ -1274,27 +1151,17 @@ static const Instruction* find_instruction_four_operands(uint64_t instr_index, O
         if(instruct_var.op1 != op1->type) continue;
         if(instruct_var.op2 != op2->type) continue;
 
-        if(op3->type == OPERAND_MEM_ANY){
-            if(instruct_var.op3 == OPERAND_RM32 || instruct_var.op3 == OPERAND_RM64){
-                op3->type = OPERAND_M32 + (instruct_var.op3 - OPERAND_RM32); 
-            } else if (instruct_var.op3 >= OPERAND_XMMM32 && instruct_var.op3 <= OPERAND_YMMM256) { 
-                op3->type = OPERAND_M32 + (instruct_var.op3 - OPERAND_XMMM32);
+        if(op3->type < END_OP_BITMASK && (instruct_var.op3 & op3->type)){
+            if(instruct_var.encoding == OP_ENC_RVMR){
+                if(op4->type == OPERAND_XMM || op4->type == OPERAND_YMM)
+                    return &INSTRUCTION_TABLE[i];
             }
-        } else if(!check_operand_type_four(instruct_var.op3, op3->type)){
-            continue;
+            else if(instruct_var.encoding == OP_ENC_RVMI) {
+                if(op4->type == OPERAND_IMM8)
+                    return &INSTRUCTION_TABLE[i];
+            }
         }
-
-
-        if(instruct_var.encoding == OP_ENC_RVMR){
-            if(!is_xy_reg(op4->type)) continue;
-        } else if(instruct_var.encoding == OP_ENC_RVMI) {
-            if(op4->type != OPERAND_IMM8) continue; 
-        } else{
-            continue;
-        }
- 
-        return &INSTRUCTION_TABLE[i];
-    } 
+    }
     return NULL;
 }
 
