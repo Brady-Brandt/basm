@@ -71,8 +71,11 @@ parse_args:
 
     ; write the amount of time we are sleeping for
     write(STDOUT, sleep_time, 13)
-    mov qword [temp], [rsp + 16]
-    write(1, temp, [length])
+    mov eax, 1
+    mov edi, STDOUT
+    mov rsi, [rsp + 16]
+    mov edx, [length]
+    syscall
     write(STDOUT, seconds, 9)
 
 
