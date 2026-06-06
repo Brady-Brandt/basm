@@ -1043,6 +1043,12 @@ static const Instruction* find_instruction_one_operand(uint64_t instr_index, Ope
             // FSTSW, FNSTSW instructions
             if(instruct_var.op1 == OPERAND_AX && op->type == OPERAND_R16 && op->reg.registerIndex == 0)
                 return &INSTRUCTION_TABLE[i];
+
+            //push/pop
+            if(instruct_var.op1 == OPERAND_FS && op->type == OPERAND_SREG && op->reg.registerIndex == SREG_FS)
+                return &INSTRUCTION_TABLE[i];
+            if(instruct_var.op1 == OPERAND_GS && op->type == OPERAND_SREG && op->reg.registerIndex == SREG_GS)
+                return &INSTRUCTION_TABLE[i];
         }
     }
     return NULL;

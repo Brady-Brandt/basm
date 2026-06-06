@@ -113,6 +113,15 @@ typedef enum  {
 } RegisterType;
 
 typedef enum  {
+    SREG_ES,
+    SREG_CS,
+    SREG_SS,
+    SREG_DS,
+    SREG_FS,
+    SREG_GS,
+} SegmentRegisters;
+
+typedef enum  {
     OP_ENC_ZO,
     OP_ENC_I,
     OP_ENC_MI,

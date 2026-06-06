@@ -20,6 +20,14 @@ for reg in btypes.REGISTERS:
 types_h_file.write(f"    REG_MAX,\n")
 types_h_file.write("} RegisterType;\n\n")
 
+#write segment registers
+types_h_file.write("typedef enum  {\n")
+for reg in btypes.SREG:
+    types_h_file.write(f"    SREG_{reg},\n")
+types_h_file.write("} SegmentRegisters;\n\n")
+
+
+
 # write operand encodings
 types_h_file.write("typedef enum  {\n")
 for enc in btypes.OPERAND_ENCODINGS:
