@@ -1538,15 +1538,27 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             break;
         //add register to opcode
         case OP_ENC_OI:
-            //fallthrough expected
-            imm_index = 1;
-        case OP_ENC_O: 
             if(is_extended_reg(operand[0].reg.registerIndex)){
                 operand[0].reg.registerIndex -= 8;
                 operand[0].reg.rex |= REX_B;
             }
             rex |= operand[0].reg.rex;
             opcode[instruction->size - 1] += operand[0].reg.registerIndex; 
+            imm_index = 1;
+            break;
+        case OP_ENC_O: 
+            // handles xchg with operand AX,EAX,RAX
+            if(operand[1].type != OPERAND_NOP && operand[0].reg.registerIndex == 0){
+                Operand temp = operand[0];
+                operand[0] = operand[1];
+                operand[1] = temp;
+            }
+            if(is_extended_reg(operand[0].reg.registerIndex)){
+                operand[0].reg.registerIndex -= 8;
+                operand[0].reg.rex |= REX_B;
+            }
+            rex |= operand[0].reg.rex;
+            opcode[instruction->size - 1] += operand[0].reg.registerIndex;
             break;
         case OP_ENC_R:
             set_b(&operand[0], &vex, &rex);
