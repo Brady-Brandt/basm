@@ -339,6 +339,37 @@ def check_operand(nmemonic, op):
         return OperandType.M64
     if op == "ST(i)":
         return OperandType.STI
+
+    # handles mov & smsw
+    # Ignore the m16 portion of r64/m16.
+    # The memory form is encoded by a previous opcode variant.
+    if op == "r64/m16":
+        return OperandType.R64
+    # handles mov same reason as above
+    if op == "r16/r32/m16":
+        return OperandType.R32
+
+    # hanldes PEXTRB & VPEXTRB
+    if op == "reg/m8":
+        return OperandType.R32R64M8
+
+    # hanldes PEXTRW & VPEXTRW
+    if op == "reg/m16":
+        return OperandType.R32R64M16
+
+    if nmemonic == "SENDUIPI":
+        return OperandType.R64
+
+    if op == "reg/m32":
+        return OperandType.R32R64M32
+
+    if nmemonic == "LAR" and op == "reg":
+        return OperandType.R32
+
+    # MOVMSKPD, VMOVMSKPD, MOVMSKPS, VMOVMSKPS, PEXTRW, VPEXTRW, PMOVMSKB
+    if op == "reg":
+        return OperandType.R32R64
+
     op = op.replace('/', '')
     try:
         return OperandType[op.upper()]

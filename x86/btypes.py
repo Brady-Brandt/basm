@@ -100,21 +100,21 @@ class OperandType(IntEnum):
     YMMM256 = YMM | M256
     BNDM128 = BND | M128
     # --- Misc ---
-    MEM_ANY = M8 | M16 | M32 | M64 | M128 | M256 | M512 | M80
+    MEM_ANY   = M8  | M16 | M32 | M64 | M128 | M256 | M512 | M80
+    R32R64    = R32 | R64
+    R32M8     = R32 | M8
+    R32M16    = R32 | M16
+    R32R64M8  = M8  | R32 | R64
+    R32R64M16 = M16 | R32 | R64
+    R32R64M32 = M32 | R32 | R64
 
     # --- Lower 20 bits are a bit mask --
     REL8 = 1 << 21
     REL16 = auto()
     REL32 = auto()
-    L8 = auto()
-    L16 = auto()
-    L32 = auto()
-    L64 = auto()
+    L64 = auto() # label
     M    = auto()
-    REG    = auto()
     SREG  = auto()
-    FS    = auto()
-    GS    = auto()
     IMM8  = auto()
     IMM16 = auto()
     IMM32 = auto()
@@ -126,6 +126,8 @@ class OperandType(IntEnum):
     STI = auto()
     TMM = auto()
     MOFFSET = auto()
+    FS    = auto()
+    GS    = auto()
     AL = auto()
     CL = auto()
     AX = auto()
