@@ -74,7 +74,7 @@ const char* operand_to_string(OperandType type){
     case OPERAND_REL8: return "REL8";
     case OPERAND_REL16: return "REL16";
     case OPERAND_REL32: return "REL32";
-    case OPERAND_L64: return "L64";
+    case OPERAND_LABEL: return "LABEL";
     case OPERAND_M: return "M";
     case OPERAND_SREG: return "SREG";
     case OPERAND_IMM8: return "IMM8";

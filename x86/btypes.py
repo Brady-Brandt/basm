@@ -112,7 +112,7 @@ class OperandType(IntEnum):
     REL8 = 1 << 21
     REL16 = auto()
     REL32 = auto()
-    L64 = auto() # label
+    LABEL = auto() # label
     M    = auto()
     SREG  = auto()
     IMM8  = auto()

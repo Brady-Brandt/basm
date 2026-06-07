@@ -68,7 +68,6 @@ B   0   Extension of the ModR/M r/m field, SIB base field, or Opcode reg field
 #define is_advanced_reg(r) (r >= OPERAND_MM && r <= OPERAND_YMM)
 #define is_reg32_or_64(type) (type == OPERAND_R32 || type == OPERAND_R64)
 #define is_immediate(i) (i >= OPERAND_IMM8 && i <= OPERAND_IMM64)
-#define is_label(l) (l >= OPERAND_L8 && l <= OPERAND_L64)
 #define is_general_reg(r) (r >= OPERAND_R8 && r <= OPERAND_R64)
 #define is_mem(m) (m >= OPERAND_M8 && m <= OPERAND_M80 || m == OPERAND_MEM_ANY)
 #define is_relative(x) (x >= OPERAND_REL8 && x <= OPERAND_REL32)
@@ -850,7 +849,7 @@ static bool parse_operand(Parser* p, Operand* op){
             return true; 
 
         case TOK_IDENTIFIER: 
-            op->type = OPERAND_L64;
+            op->type = OPERAND_LABEL;
             op->label = p->currentToken.literal; 
             return true;
 
@@ -1037,7 +1036,7 @@ static const Instruction* find_instruction_one_operand(uint64_t instr_index, Ope
                 return &INSTRUCTION_TABLE[i];
 
             //for jmp instructions just assume rel32 for now
-            if(instruct_var.op1 == OPERAND_REL32 && op->type == OPERAND_L64)
+            if(instruct_var.op1 == OPERAND_REL32 && op->type == OPERAND_LABEL)
                 return &INSTRUCTION_TABLE[i];
 
             // FSTSW, FNSTSW instructions
@@ -1573,7 +1572,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             modrm_sib[MODRM_INDEX] |= operand[0].reg.registerIndex;
             break;
         case OP_ENC_D:
-          if(operand[0].type == OPERAND_L64){
+          if(operand[0].type == OPERAND_LABEL){
                 section_add_data(&program.text, opcode, instruction->size); 
                 uint32_t zero = 0; 
                 //add some temp zeros
