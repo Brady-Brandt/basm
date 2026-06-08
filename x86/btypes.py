@@ -22,10 +22,15 @@ TOKENS = {
   "OPENING_BRACKET": '[',
   "CLOSING_BRACKET": ']',
   "INSTRUCTION": 256,
+  # need to stay in this order
+  # ----------
+  "DREG" : None,
+  "CREG" : None,
   "SREG": None,
   "TREG": None,
   "BNDREG": None,
   "REG": None,
+  # ----------
   "INT": None,
   "IDENTIFIER": None,
   "NSTRING": None,
@@ -115,6 +120,9 @@ class OperandType(IntEnum):
     LABEL = auto() # label
     M    = auto()
     SREG  = auto()
+    CREG = auto()
+    CR8  = auto()
+    DREG = auto()
     IMM8  = auto()
     IMM16 = auto()
     IMM32 = auto()
@@ -268,4 +276,27 @@ BNDREG = [
   "BND1",
   "BND2",
   "BND3"
+]
+
+CREG = [
+  "CR0",
+  "CR1",
+  "CR2",
+  "CR3",
+  "CR4",
+  "CR5",
+  "CR6",
+  "CR7",
+  "CR8",
+]
+
+DREG = [
+  "DR0",
+  "DR1",
+  "DR2",
+  "DR3",
+  "DR4",
+  "DR5",
+  "DR6",
+  "DR7",
 ]

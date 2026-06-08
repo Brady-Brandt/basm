@@ -68,9 +68,7 @@ B   0   Extension of the ModR/M r/m field, SIB base field, or Opcode reg field
 #define is_advanced_reg(r) (r >= OPERAND_MM && r <= OPERAND_YMM)
 #define is_reg32_or_64(type) (type == OPERAND_R32 || type == OPERAND_R64)
 #define is_immediate(i) (i >= OPERAND_IMM8 && i <= OPERAND_IMM64)
-#define is_general_reg(r) (r >= OPERAND_R8 && r <= OPERAND_R64)
 #define is_mem(m) (m >= OPERAND_M8 && m <= OPERAND_M80 || m == OPERAND_MEM_ANY)
-#define is_relative(x) (x >= OPERAND_REL8 && x <= OPERAND_REL32)
 
 
 #define is_int32(n) ((int64_t)n <= INT32_MAX && (int64_t)n >= INT32_MIN)
@@ -842,7 +840,19 @@ static bool parse_operand(Parser* p, Operand* op){
             op->reg.registerIndex = p->currentToken.reg;
             op->reg.rex = REX_PREFIX(0, 0, 0, 0);
             return true;
-
+        case TOK_DREG:
+            op->type = OPERAND_DREG;
+            op->reg.registerIndex = p->currentToken.reg;
+            op->reg.rex = REX_PREFIX(0, 0, 0, 0);
+            return true;
+        case TOK_CREG:
+            op->reg.registerIndex = p->currentToken.reg;
+            op->reg.rex = REX_PREFIX(0, 0, 0, 0);
+            if(p->currentToken.reg == 8)
+                op->type = OPERAND_CR8;
+            else
+                op->type = OPERAND_CREG;
+            return true;
         case TOK_NSTRING:
         case TOK_STRING:
             op->type = OPERAND_IMM64;

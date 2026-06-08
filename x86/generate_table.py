@@ -170,7 +170,7 @@ for line in lines:
 
         parsed_instruction= parse_opcode(opcode)
         if parsed_instruction == None:
-            #print("Failed", opcode, operands, sep=" ")
+            print("Failed", opcode, operands, sep=" ")
             continue
 
         parsed_operands = parse_operands(operands)
@@ -334,6 +334,12 @@ for index, reg in enumerate(btypes.TREG):
 
 for index, reg in enumerate(btypes.BNDREG):
     gperf_file.write(f"{reg}, TOK_BNDREG, {index}\n")
+
+for index, reg in enumerate(btypes.CREG):
+    gperf_file.write(f"{reg}, TOK_CREG, {index}\n")
+
+for index, reg in enumerate(btypes.DREG):
+    gperf_file.write(f"{reg}, TOK_DREG, {index}\n")
 
 for kw in bkeywords.KEYWORDS:
     kw_tok= "TOK_" + kw

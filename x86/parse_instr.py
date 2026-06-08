@@ -370,6 +370,12 @@ def check_operand(nmemonic, op):
     if op == "reg":
         return OperandType.R32R64
 
+    if op == "CR0–CR7":
+        return OperandType.CREG
+
+    if op == "DR0–DR7":
+        return OperandType.DREG
+
     op = op.replace('/', '')
     try:
         return OperandType[op.upper()]
