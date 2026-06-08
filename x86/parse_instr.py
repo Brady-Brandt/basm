@@ -267,7 +267,12 @@ def parse_opcode(op):
                     op = int(chunk, 16) 
                     opcode.append(op)
             except ValueError:
-                #print(f"Failed: {chunk} in {chunks}")
+                # RSTORSSP, SAVEPREVSSP
+                # technically RSTORSSP has a modrm but it doesn't matter
+                # since we only use that for sorting and there is only one RSTORSSP instr
+                if chunk == "(mod!=11":
+                    break
+                print(f"Failed: {chunk} in {chunks}")
                 return None
 
         prev = chunk
