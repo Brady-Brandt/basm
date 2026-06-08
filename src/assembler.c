@@ -156,6 +156,17 @@ void symbol_table_add_instance(char* symbol_name, int line, int col, uint32_t of
     array_list_append(program.symTable.symbols, SymbolTableEntry, e);
 }
 
+static bool fits_backward_rel8_jmp(char* lbl, int64_t next_instruction){
+    for(int i = 0; i < program.symTable.symbols.size; i++){
+        SymbolTableEntry* e = &array_list_get(program.symTable.symbols, SymbolTableEntry, i);
+        if(strcmp(lbl, e->name) == 0){
+            if(((int64_t)e->section_offset - (int64_t)next_instruction) >= -128)
+                return true;
+        }
+    }
+    return false;
+}
+
 static inline bool is_float(char* literal){
     int size = strlen(literal);
     for(int i = 0; i < size; i++){
@@ -1036,8 +1047,18 @@ static const Instruction* find_instruction_one_operand(uint64_t instr_index, Ope
                 return &INSTRUCTION_TABLE[i];
 
             //for jmp instructions just assume rel32 for now
-            if(instruct_var.op1 == OPERAND_REL32 && op->type == OPERAND_LABEL)
-                return &INSTRUCTION_TABLE[i];
+            if(op->type == OPERAND_LABEL){
+                int64_t next_instruction = program.text.size + instruct_var.size + 1;
+                // return rel8 jumps if label is within a rel8 for backwards jumps only or
+                // the instruction only supports rel8 (loop,loopne,loope, JECXZ)
+                if(instruct_var.op1 == OPERAND_REL8 && (instruction_variant_count == 1
+                                            || fits_backward_rel8_jmp(op->label,  next_instruction)))
+                {
+                    return &INSTRUCTION_TABLE[i];
+                }
+                else if (instruct_var.op1 == OPERAND_REL32)
+                    return &INSTRUCTION_TABLE[i];
+            }
 
             // FSTSW, FNSTSW instructions
             if(instruct_var.op1 == OPERAND_AX && op->type == OPERAND_R16 && op->reg.registerIndex == 0)
@@ -1572,7 +1593,29 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             modrm_sib[MODRM_INDEX] |= operand[0].reg.registerIndex;
             break;
         case OP_ENC_D:
-          if(operand[0].type == OPERAND_LABEL){
+            if(instruction->op1 == OPERAND_REL8){
+                section_add_data(&program.text, opcode, instruction->size);
+                int l = operand[0].line;
+                int c = operand[0].col;
+                for(int i = 0; i < program.symTable.symbols.size; i++){
+                    SymbolTableEntry* e = &array_list_get(program.symTable.symbols, SymbolTableEntry, i);
+                    if(strcmp(operand[0].label, e->name) == 0){
+                        int32_t rel_addr = ((int64_t)e->section_offset - (int64_t)(program.text.size + 1));
+                        if(rel_addr < -128){
+                            parser_error_loc(p, l, c, "Jump destination out of range\n");
+                            return;
+                        }
+                        int8_t rel8 = rel_addr;
+                        section_add_data(&program.text, &rel8, 1);
+                        return;
+                    }
+                }
+                // label hasn't been defined yet
+                uint8_t zero = 0;
+                symbol_table_add_instance(operand[0].label,l,c, program.text.size, -1,true);
+                section_add_data(&program.text, &zero, 1);
+                return;
+            } else if(instruction->op1 == OPERAND_REL32){
                 section_add_data(&program.text, opcode, instruction->size); 
                 uint32_t zero = 0; 
                 //add some temp zeros
@@ -2048,13 +2091,25 @@ bool basm_assemble_program(){
                  //want the linker to handle relocation outside of text section
                  if(e->section != SECTION_TEXT){
                      continue;
-                 } 
-                 //assume size of 4   
-                 uint64_t next_instruction = instance->offset - instance->addend;
-                 uint64_t rip_addr = e->section_offset;
-                 //not sure if this is supposed to be signed or unsigned
-                 int32_t rel_addr = (int32_t)(rip_addr - next_instruction);
-                 memcpy(&program.text.data[instance->offset], &rel_addr, 4);
+                 }
+                 //rel8
+                 if(instance->addend == -1){
+                     int64_t next_instruction = instance->offset - instance->addend;
+                     int64_t rip_addr = e->section_offset;
+                     int32_t rel_addr = (int32_t)(rip_addr - next_instruction);
+                     if(rel_addr > 127){
+                         error_loc(instance->line, instance->col, "Error jump destination out of range\n");
+                         continue;
+                     }
+                     int8_t rel8 = (int8_t)rel_addr;
+                     memcpy(&program.text.data[instance->offset], &rel8, 1);
+                 } else{
+                     //assume size of 4
+                     uint64_t next_instruction = instance->offset - instance->addend;
+                     uint64_t rip_addr = e->section_offset;
+                     int32_t rel_addr = (int32_t)(rip_addr - next_instruction);
+                     memcpy(&program.text.data[instance->offset], &rel_addr, 4);
+                 }
              }
 
          }
