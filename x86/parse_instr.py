@@ -1,38 +1,60 @@
+from dataclasses import dataclass
 from btypes import OperandType
-from btypes import REX, TWO_BYTE_VEX, THREE_BYTE_VEX
+from btypes import InstructionFlags
 
+
+@dataclass
 class Instruction:
-    def __init__(self, rex: int, opcode: list[int], digit: int, flags: int, imm_size: int, has_modrm: bool) -> None:
-        self.rex = rex
-        self.opcode = opcode 
-        self.digit =  digit
-        self.encoding: str = ""
-        self.flags = flags
+    opcode: list[int]
+    imm_size: int
+    has_modrm: bool
+    uses_rex: int
+    two_byte_vex: int
+    three_byte_vex: int
+    evex: int
+    rve_w: int
+    pp: int
+    ll: int
+    mmmmm: int
+    has_opcode_ext: int
+    digit: int
+    requires_sib: int
+    op1: int = 0
+    op2: int = 0
+    op3: int = 0
+    encoding: str = ''
+    lock = 0
+    rep = 0
+    repe = 0
+    valid_64_b0  = 0
+    valid_64_b1  = 0
 
-        self.immediate_size = imm_size
-        self.has_modrm = has_modrm
+    def get_size(self) -> int:
+        size = len(self.opcode)
+        size += self.imm_size
+        if self.uses_rex:
+            size += 1
+        if self.has_opcode_ext or self.has_modrm:
+            size += 1
+        if self.two_byte_vex:
+            size += 2
+        if self.three_byte_vex:
+            size += 3
+        return size
 
-        self.op1 = 0
-        self.op2 = 0
-        self.op3 = 0
-
-    def to_c_struct(self): 
-        # hreset has an opcode length of 5
-        # since we only have a length of 4 in our struct
-        # we are just going to pretend the last byte is an operand extension
+    def to_c_struct(self, variant_count):
+        # hreset has an implicit operand eax which is already stored in the modrm byte in the manual
+        # because of this, this actually comes out to be a 5 byte opcode
+        # But since it already is in the modrm byte I am just going to treat it as an opcode extension
         if len(self.opcode) > 4:
-            assert self.digit == -1, f"Error: Opcode has length >4 and has an opcode extension: {self.opcode}"
-            self.digit = self.opcode[-1] >> 3
+            print("Warning hreset won't work right now")
+            self.opcode = self.opcode[:4]
 
-        begin = "{" 
-        opcode = "{"
         op_len = len(self.opcode)
-
         if op_len > 4:
             assert op_len <= 5, f"Opcode Too long {self.opcode}"
             op_len = 4
-
-
+        opcode = "{"
         for i in range(4):
             if i < len(self.opcode):
                 opcode += hex(self.opcode[i]) + ','
@@ -42,29 +64,68 @@ class Instruction:
         opcode = opcode[:-1]
         opcode += '}'
 
-        op1 = f"(OperandType){self.op1}"
-        op2 = f"(OperandType){self.op2}"
-        op3 = f"(OperandType){self.op3}"
-        
-        # for the header that comes before each instructions operand variant list
-        if self.encoding == "":
-            self.encoding = 'ZO'
-        return begin + f"(uint16_t){hex(self.rex)}, {op1}, {op2}, {op3}, {opcode}, {op_len}, {self.digit}, OP_ENC_{self.encoding}, {self.flags}}},"
+        operands = '{' + f"(OperandType){self.op1}, (OperandType){self.op2}, (OperandType){self.op3}"
 
-    def get_size(self):
-        size = len(self.opcode)
-        if self.rex >= 0x40:
-            size += 1
-        if self.digit != -1 or self.has_modrm:
-            size += 1
+        # button 2 bits is size
+        flags = (op_len - 1)
+        if self.uses_rex:
+            flags |= InstructionFlags.REX
+        if self.two_byte_vex:
+            flags |= InstructionFlags.TWO_BYTE_VEX
+        if self.three_byte_vex:
+            flags |= InstructionFlags.THREE_BYTE_VEX
+        if self.evex:
+            flags |= InstructionFlags.EVEX
+        # TODO STORE WHETHER A PREFIX IS ALLOWED HERE
+        #LOCK = 1 << 6
+        #REP  = 1 << 7
+        #REPE  = 1 << 8
+        if self.rve_w:
+            flags |= InstructionFlags.REX_W
 
-        size += self.immediate_size
-        if self.flags & TWO_BYTE_VEX:
-            size += 2
-        elif self.flags & THREE_BYTE_VEX:
-            size += 3
+        if self.pp & 1:
+            flags |= InstructionFlags.VEX_P0
+        if self.pp & 2:
+            flags |= InstructionFlags.VEX_P1
 
-        return size
+        if self.ll & 1:
+            flags |= InstructionFlags.EVEX_L0
+        if self.ll & 2:
+            flags |= InstructionFlags.EVEX_L1
+
+        if self.mmmmm & 1:
+            flags |= InstructionFlags.VEX_M0
+        if self.mmmmm & 2:
+            flags |= InstructionFlags.VEX_M1
+        if self.mmmmm & 4:
+            flags |= InstructionFlags.VEX_M2
+        if self.mmmmm & 8:
+            flags |= InstructionFlags.VEX_M3
+        if self.mmmmm & 16:
+            flags |= InstructionFlags.VEX_M4
+
+        if self.has_opcode_ext:
+            flags |= InstructionFlags.OPCODE_EXTENSION
+
+        if self.digit & 1:
+            flags |= InstructionFlags.DIGIT0
+        if self.digit & 2:
+            flags |= InstructionFlags.DIGIT1
+        if self.digit & 4:
+            flags |= InstructionFlags.DIGIT2
+
+        if self.requires_sib:
+            flags |= InstructionFlags.REQURIES_SIB
+
+        # STORE DEFAULT OPERAND SIZE IN THE FLAGS
+        #VALID_64_B0  = 1 << 24
+        #VALID_64_B1  = 1 << 25
+
+        reserved0 = 0
+        reserved1 = 0
+
+        return f"{operands}, {opcode}, {flags}, {reserved0}, {reserved1}, {self.encoding}, {variant_count}" + '},'
+
 
 def parse_opcode(op):
     new_op = ""
@@ -92,16 +153,23 @@ def parse_opcode(op):
     
     chunks = new_op.split(' ')
    
-    digit = -1
-    flags = 0
-    ib = -1
-    has_modrm = False
-    rex = 0
+    
+    opcode: list[int] = []
+    imm_size: int = 0
+    has_modrm: bool = False
+    uses_rex: int  = 0
+    two_byte_vex: int = 0
+    three_byte_vex: int = 0
+    evex: int = 0
+    rve_w: int = 0
+    pp: int = 0
+    ll: int = 0
+    mmmmm: int = 0
+    has_opcode_ext: bool = False
+    digit: int = 0
+    requires_sib: int = 0
 
-    vex = 0
-    two_vex = 0
 
-    opcode = []
 
     low_op= ["rb", "rw", "rd", "ro"]
 
@@ -116,10 +184,11 @@ def parse_opcode(op):
             try:
                 if chunk[1].isdigit():
                     digit = int(chunk[1:]) 
+                    has_opcode_ext = True
                 elif chunk[1] == "r":
                     has_modrm = True
                 elif chunk[1:] == 'is4' or chunk[1:] == 'ib':
-                    ib = 1
+                    imm_size = 1
                 else:
                     print(f"Failed: {chunk} in {chunks}")
             except IndexError:
@@ -150,9 +219,9 @@ def parse_opcode(op):
             pass
  
         elif "REX" in chunk:
-            rex = 0x40
+            uses_rex = 1
             if chunk[-1].lower() == "w":
-                rex |= 0x8
+                rve_w = 1
 
         elif "VEX" in chunk:
             chunk = chunk.strip()
@@ -163,34 +232,35 @@ def parse_opcode(op):
             
             for enc in vex_encoding:
                 if enc == "128" or enc == "LZ" or enc == "L0" or enc == "LIG":
-                    vex |= 0
+                    ll = 0
                 elif enc == "256" or enc == "L1":
-                    vex |= 0x4 
+                    ll = 1
                 elif enc == "66":
-                    vex |= 1
+                    pp = 1
                 elif enc == "F3":
-                    vex |= 2
+                    pp = 2
                 elif enc == "F2":
-                    vex |= 3 
+                    pp = 3
                 elif enc == "0F":
                     is_three_byte = True
-                    two_vex |= 1
+                    mmmmm = 1
                 elif enc == "0F38":
                     is_three_byte = True
-                    two_vex |= 2
+                    mmmmm = 2
                 elif enc == "0F3A":
                     is_three_byte = True
-                    two_vex |= 3
+                    mmmmm = 3
                 elif enc == "W0" or enc == "0":
                     is_three_byte = True
+                    rve_w = 0
                 elif enc == "W1":
                     is_three_byte = True
-                    vex |= 128
+                    rve_w = 1
                 elif enc == "660F":
                     #missing period between 66 & 0F
-                    vex |= 1
+                    pp = 1
                     is_three_byte = True
-                    two_vex |= 1
+                    mmmmm = 1
                 elif enc == "WIG":
                     pass 
                 elif enc == "NP":
@@ -200,30 +270,30 @@ def parse_opcode(op):
                     print(f"INVALID VEX PREFIX: {new_op}")
             
             if is_three_byte:
-                flags |= THREE_BYTE_VEX
+                three_byte_vex = 1
             else:
-                flags |= TWO_BYTE_VEX 
+                two_byte_vex = 1
 
         elif chunk == "ib" or chunk == "ib1" or chunk == "imm8":
-            ib = 1
+            imm_size = 1
         elif chunk == "iw":
-            ib = 2
+            imm_size = 2
         elif chunk == "id":
-            ib = 4
+            imm_size = 4
         elif chunk == "io":
-            ib = 8
+            imm_size = 8
         elif chunk == "cb":
-            ib = 1
+            imm_size = 1
         elif chunk == "cw":
-            ib = 2
+            imm_size = 2
         elif chunk == "cd":
-            ib = 4
+            imm_size = 4
         elif chunk == "cp":
-            ib = 6
+            imm_size = 6
         elif chunk == "co":
-            ib = 8
+            imm_size = 8
         elif chunk == "ct":
-            ib = 10
+            imm_size = 10
 
         elif ':' in chunk:
             # just going to ignore the mod portion 
@@ -235,13 +305,17 @@ def parse_opcode(op):
             try:
                 # this is essentially just an opcode extension
                 digit = int(reg_portion, 2)
+                has_opcode_ext = True
             except ValueError:
                 pass
 
             try:
                 int(rm_portion, 2)
+
+                if rm_portion == "000":
+                    pass
                 # not really sure what to do here yet
-                print("Failed", chunk)
+                print("Here Failed", chunk)
                 return None
             except ValueError:
                 pass
@@ -277,11 +351,22 @@ def parse_opcode(op):
 
         prev = chunk
 
-    if (flags & TWO_BYTE_VEX) or (flags & THREE_BYTE_VEX):
-        return Instruction((two_vex << 8) | vex, opcode, digit, flags, ib, has_modrm)
-    else:
-        flags |= REX
-        return Instruction(rex, opcode, digit,flags, ib, has_modrm)
+    return Instruction(
+            opcode,
+            imm_size,
+            has_modrm,
+            uses_rex,
+            two_byte_vex,
+            three_byte_vex,
+            evex,
+            rve_w,
+            pp,
+            ll,
+            mmmmm,
+            has_opcode_ext,
+            digit,
+            requires_sib
+        )
 
 
 
@@ -388,17 +473,14 @@ def check_operand(nmemonic, op):
         print(f"Operand Not Supported for instruction {nmemonic}: {op}")
         return OperandType.UNSUPPORTED
 
-
+@dataclass
 class ParsedOperands:
-    def __init__(self, nmemonic: str, op1: int, op2: int, op3: int, op4: int):
-        self.nmemonic = nmemonic
-        self.op1= op1 
-        self.op2= op2 
-        self.op3= op3 
-        self.op4= op4 
-
-
-
+    nmemonic: str
+    op1: int
+    op2: int
+    op3: int
+    op4: int
+    
 def parse_operands(desc):
     # some inconsistency in the intel pdf 
     desc = desc.replace('ymm3 /m256', 'ymm3/m256')

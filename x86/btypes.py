@@ -1,8 +1,51 @@
 from enum import IntEnum, auto
 
-REX = 0x1
-TWO_BYTE_VEX = 0x2
-THREE_BYTE_VEX = 0x4
+# 32 bit bit field
+class InstructionFlags:
+    # opcode size be the first 2 bits
+    # allowed prefixes
+    REX = 1 << 2
+    TWO_BYTE_VEX = 1 << 3
+    THREE_BYTE_VEX = 1 << 4
+    EVEX = 1 << 5
+    LOCK = 1 << 6
+    REP  = 1 << 7
+    REPE  = 1 << 8
+    # 64 bit mode for rex
+    # opcode specific for vex/evex
+    REX_W  = 1 << 9
+    VEX_W  = REX_W
+    EVEX_W = REX_W
+    # opcode extension
+    VEX_P0 = 1 << 10
+    VEX_P1 = 1 << 11
+    EVEX_P0 = VEX_P0
+    EVEX_P1 = VEX_P1
+    # Length
+    VEX_L = 1 << 12
+    EVEX_L0 = VEX_L
+    EVEX_L1 = 1 << 13
+    # Opcode Map
+    VEX_M0  = 1 << 14
+    VEX_M1  = 1 << 15
+    VEX_M2  = 1 << 16
+    VEX_M3  = 1 << 17
+    VEX_M4  = 1 << 18
+    EVEX_M0  = VEX_M0
+    EVEX_M1 =  VEX_M1
+    EVEX_M2 =  VEX_M2
+    # Opcode extension is reg part of modrm
+    OPCODE_EXTENSION = 1 << 19
+    DIGIT0 = 1 << 20
+    DIGIT1 = 1 << 21
+    DIGIT2 = 1 << 22
+    REQURIES_SIB = 1 << 23
+    # Instruction Mode Information
+    VALID_64_B0  = 1 << 24
+    VALID_64_B1  = 1 << 25
+
+
+
 
 TOKENS = {
   "NEW_LINE": '\\n',

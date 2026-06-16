@@ -19,24 +19,13 @@
 
 
 
-/*
-- 7:4  0100
-W   3   0 = Operand size determined by CS.D
-        1 = 64 Bit Operand Size
-R   2   Extension of the ModR/M reg field
-X   1   Extension of the SIB index field
-B   0   Extension of the ModR/M r/m field, SIB base field, or Opcode reg field
-*/
-
 
 #define REX_PREFIX(w,r,x,b) ((4 << 4) | (w * 8) | (r * 4) | (x * 2) | b)
-#define REX_CLEAR_OP_SIZE(prefix) (prefix & 71)
-#define REX_CHECK_OP_SIZE(prefix) (prefix & 16)
-
-#define REX_W 8
-#define REX_R 4
-#define REX_X 2
-#define REX_B 1
+#define REX_NIBBLE 0x40
+#define REX_W 8    // 0 = Operand size determined by CS.D 1 = 64 Bit Operand Size
+#define REX_R 4   // Extension of the ModR/M reg field
+#define REX_X 2  // Extension of the SIB index field
+#define REX_B 1 // Extension of the ModR/M r/m field, SIB base field, or Opcode reg field
 
 
 
@@ -64,7 +53,8 @@ B   0   Extension of the ModR/M r/m field, SIB base field, or Opcode reg field
 // CONVERTED TO AN INDEX 0-15
 #define is_extended_reg(type) (type >= 8 && type <= 15)
 
-#define is_ah_to_bh(index) (index >= (REG_AH - REG_AL) && index <= (REG_BH - REG_AL))
+#define is_ah_to_bh(op) (!op.isExtendedRegister && (op.registerIndex >= (REG_AH - REG_AL) \
+                        && op.registerIndex <= (REG_BH - REG_AL)))
 #define is_advanced_reg(r) (r >= OPERAND_MM && r <= OPERAND_YMM)
 #define is_reg32_or_64(type) (type == OPERAND_R32 || type == OPERAND_R64)
 #define is_immediate(i) (i >= OPERAND_IMM8 && i <= OPERAND_IMM64)
@@ -474,22 +464,35 @@ static void parse_data_section(Parser* p){
 }
 
 
-#define mem_op_prefix(mem) (mem.scale & 64)
-#define mem_set_prefix(mem) (mem.scale |= 64)
-#define mem_get_scale(mem) ((mem.scale & 63))
+#define MEMORY_TYPE_MASK  0x3f
+typedef enum {
+    MEM_NO_REGS  = 0,
+    MEM_BASE     = 1 << 0,
+    MEM_INDEX    = 1 << 1,
+    MEM_RELATIVE = 1 << 6,
+    MEM_OVERRIDE = 1 << 7,
+} MemoryFlag;
 
-#define mem_set_rel(mem) (mem.scale |= 128)
-#define mem_is_rel(mem) (mem.scale & 128)
+#define REGISTER_RSP 0x4
+#define REGISTER_RBP 0x5
+
+#define MEMORY_BASE_MASK 0x7
+#define MEMORY_SCALE_FACTOR1_MASK 0x3f
+#define MEMORY_SCALE_FACTOR2_MASK 0x7f
+
+#define MEMORY_SCALE_FACTOR2 0x40
+#define MEMORY_SCALE_FACTOR4 0x80
+#define MEMORY_SCALE_FACTOR8 0xC0
 
 typedef struct {
     OperandType type;
     union {
         struct{
             uint8_t registerIndex;
-            uint8_t rex;
-        } reg;
+            bool isExtendedRegister;
+        };
+        uint8_t fpuIndex;
 
-        uint8_t fpu_stack_index;
         uint8_t imm8;
         uint16_t imm16;
         uint32_t imm32;
@@ -499,52 +502,51 @@ typedef struct {
 
         struct {
             uint8_t rex;
-            uint8_t base; //type reg
-            uint8_t index; //type reg
-
-            uint8_t scale; //store if we need op override prefix in upper bit         
-
-            int32_t offset;            
+            uint8_t data;
+            uint8_t flags;
+            uint8_t reserved;
+            int32_t offset;
             char* label;
         } mem;
-
-
     };
     int line;
     int col;
 } Operand;
 
 
-static bool check_scale_factor(Parser* p, int scale, Operand* op){
+static bool check_scale_factor(Parser* p, int scale, Operand* op, uint8_t* base, uint8_t* index){
     switch (scale) {
         case 1:
             return true;
         case 2:
-            op->mem.scale |= 1; 
+            op->mem.data |= MEMORY_SCALE_FACTOR2;
             return true;
         case 3:
             //[reg * 3] -> [reg + reg * 2]
-            if(op->mem.base != REG_MAX) goto invalid_scale;
-            op->mem.base = op->mem.index;
-            op->mem.scale |= 1;
+            if(*base != REG_MAX) goto invalid_scale;
+            *base = *index;
+            op->mem.data  |= MEMORY_SCALE_FACTOR2;
+            op->mem.flags |= MEM_BASE;
             return true;
         case 4:
-            op->mem.scale |= 2;
+            op->mem.data |= MEMORY_SCALE_FACTOR4;
             return true;
         case 5:
             //[reg * 5] -> [reg + reg * 4]
-            if(op->mem.base != REG_MAX) goto invalid_scale;
-            op->mem.base = op->mem.index;
-            op->mem.scale |= 2;
+            if(*base != REG_MAX) goto invalid_scale;
+            *base = *index;
+            op->mem.data  |= MEMORY_SCALE_FACTOR4;
+            op->mem.flags |= MEM_BASE;
             return true;
         case 8:
-            op->mem.scale |= 3;
+            op->mem.data |= MEMORY_SCALE_FACTOR8;
             return true;
         case 9:
             //[reg * 9] -> [reg + reg * 8]
-            if(op->mem.base != REG_MAX) goto invalid_scale;
-            op->mem.base = op->mem.index;
-            op->mem.scale |= 3;
+            if(*base != REG_MAX) goto invalid_scale;
+            *base = *index;
+            op->mem.data  |= MEMORY_SCALE_FACTOR8;
+            op->mem.flags |= MEM_BASE;
             return true;
         default:
             break;
@@ -557,10 +559,10 @@ invalid_scale:
 
 
 static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
-    op->mem.base = REG_MAX;
-    op->mem.index = REG_MAX;
-    op->mem.rex |= REX_PREFIX(0, 0, 0, 0);
+    uint8_t base = REG_MAX;
+    uint8_t index = REG_MAX;
     op->type = mem_type;
+    op->mem.flags = 0;
 
     OperandType base_size = OPERAND_NOP;
     OperandType index_size = OPERAND_NOP;
@@ -576,7 +578,7 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
 
     if(t.type == TOK_REL){
         is_rel = true;
-        mem_set_rel(op->mem);
+        op->mem.flags |= MEM_RELATIVE;
         t = parser_next_token(p);
     } 
     
@@ -604,7 +606,7 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                     } else if(is_r32(p->currentToken.reg)){
                         size = OPERAND_R32;
                         reg = p->currentToken.reg - REG_EAX;
-                        mem_set_prefix(op->mem);
+                        op->mem.flags |= MEM_OVERRIDE;
                     } else{
                         //In 64 bit mode these registers need to be 32 or 64 bit
                         parser_error(p, "Invalid Register Size\n");
@@ -612,7 +614,7 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                     }
 
                     if(parser_peek_token(p).type == TOK_MULTIPLY){
-                        if(op->mem.index != REG_MAX){
+                        if(index != REG_MAX){
                             parser_error(p, "Invalid address\n");
                             return false;
                         }
@@ -630,22 +632,26 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                             parser_error(p,"Invalid Number\n");
                             return false;
                         }
-                        op->mem.index = reg;
-                        if(!check_scale_factor(p, scale, op)) return false; 
+                        index = reg;
                         index_size = size;
-                    } else if(op->mem.base == REG_MAX){ 
+                        op->mem.flags |= MEM_INDEX;
+                        if(!check_scale_factor(p, scale, op, &base, &index))
+                            return false;
+                    } else if(base == REG_MAX){
                         base_size = size;
-                        op->mem.base = reg;
-                    } else if(op->mem.index == REG_MAX){ 
+                        base = reg;
+                        op->mem.flags |= MEM_BASE;
+                    } else if(index == REG_MAX){
+                        op->mem.flags |= MEM_INDEX;
                         //rsp/r12 cannot be an index 
                         if(reg == (REG_RSP - REG_RAX)){
                             index_size = base_size;
-                            op->mem.index = op->mem.base;
-                            op->mem.base = reg;
+                            index = base;
+                            base = reg;
                             base_size = size;
                         } else{
                             index_size = size;
-                            op->mem.index = reg;
+                            index = reg;
                         }
                     } else{
                         parser_error(p, "Invalid address\n");
@@ -668,7 +674,7 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                         parser_error_loc(p, mul.line_number, mul.col, "Invalid Relative Address\n");
                         return false;
                     }
-                    if(op->mem.index != REG_MAX){
+                    if(index != REG_MAX){
                         parser_error(p, "Invalid address\n");
                         return false;
                     }
@@ -684,7 +690,7 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                     } else if(is_r32(p->currentToken.reg)){
                         size = OPERAND_R32;
                         reg = p->currentToken.reg - REG_EAX;
-                        mem_set_prefix(op->mem);
+                        op->mem.flags |= MEM_OVERRIDE;
                     } else{
                         //In 64 bit mode these registers need to be 32 or 64 bit
                         parser_error(p, "Invalid Register Size\n");
@@ -696,9 +702,11 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                         return false;
                     }
 
-                    op->mem.index = reg;
-                    if(!check_scale_factor(p, temp, op)) return false; 
+                    index = reg;
                     index_size = size;
+                    op->mem.flags |= MEM_INDEX;
+                    if(!check_scale_factor(p, temp, op, &base, &index))
+                        return false;
                 } else{
                     op->mem.offset += temp; 
                 }
@@ -748,28 +756,30 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
     }
     
     
-    if(op->mem.index != REG_MAX && op->mem.base == REG_MAX){
+    if(index != REG_MAX && base == REG_MAX){
         //converts [reg * 1] -> [reg]
-        if(mem_get_scale(op->mem) == 0){
-            op->mem.base = op->mem.index;
-            op->mem.index = REG_MAX;
-        } else if (mem_get_scale(op->mem) == 1) { 
+        if((op->mem.data & MEMORY_SCALE_FACTOR1_MASK) == op->mem.data){
+            base = index;
+            index = REG_MAX;
+            op->mem.flags ^= MEM_INDEX;
+            op->mem.flags |= MEM_BASE;
+        } else if ((op->mem.data & MEMORY_SCALE_FACTOR2_MASK) == op->mem.data) {
             //converts [reg * 2] -> [reg + reg]
-            op->mem.base = op->mem.index;
-            //set scale factor to 0
-            op->mem.scale ^= 1;
+            base = index;
+            //set scale factor to 1
+            op->mem.data &= MEMORY_SCALE_FACTOR1_MASK;
+            op->mem.flags |= MEM_BASE;
         }
-        
     }
 
-    if(is_extended_reg(op->mem.base)){
+    if(is_extended_reg(base)){
         op->mem.rex |= REX_B;
-        op->mem.base -= 8;
+        base -= 8;
     }
 
-    if(is_extended_reg(op->mem.index)){
+    if(is_extended_reg(index)){
         op->mem.rex |= REX_X;
-        op->mem.index -= 8;
+        index -= 8;
     }
 
     if(program.flags.ftype == BASM_FILE_MACHO){
@@ -784,6 +794,8 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
         }
     }
 
+    op->mem.data |= ((index & 7) << 3);
+    op->mem.data |= base & 7;
     
     return true;
 }
@@ -800,56 +812,61 @@ static bool parse_operand(Parser* p, Operand* op){
         case TOK_REG: { 
             if(is_r256(p->currentToken.reg)){
                 op->type = OPERAND_YMM;
-                op->reg.registerIndex = p->currentToken.reg - REG_YMM0;
+                op->registerIndex = p->currentToken.reg - REG_YMM0;
             }
             else if(is_r128(p->currentToken.reg)){
                 op->type = OPERAND_XMM;
-                op->reg.registerIndex = p->currentToken.reg - REG_XMM0;
+                op->registerIndex = p->currentToken.reg - REG_XMM0;
             } else if(is_mmx(p->currentToken.reg)){
                 op->type = OPERAND_MM;
-                op->reg.registerIndex = p->currentToken.reg - REG_MM0;
+                op->registerIndex = p->currentToken.reg - REG_MM0;
             }
             else if(is_r64(p->currentToken.reg)){
                 op->type = OPERAND_R64;
-                op->reg.registerIndex = p->currentToken.reg - REG_RAX;
+                op->registerIndex = p->currentToken.reg - REG_RAX;
             } else if(is_r32(p->currentToken.reg)){
                 op->type = OPERAND_R32;
-                op->reg.registerIndex = p->currentToken.reg - REG_EAX;
+                op->registerIndex = p->currentToken.reg - REG_EAX;
             } else if(is_r16(p->currentToken.reg)){
                 op->type = OPERAND_R16;
-                op->reg.registerIndex = p->currentToken.reg - REG_AX;
+                op->registerIndex = p->currentToken.reg - REG_AX;
             } else {
                 op->type = OPERAND_R8;
-                op->reg.registerIndex = p->currentToken.reg - REG_AL;
+                op->registerIndex = p->currentToken.reg - REG_AL;
             }             
-            op->reg.rex = REX_PREFIX(0, 0, 0, 0);
+
+            op->isExtendedRegister = false;
+            if(is_extended_reg(op->registerIndex)){
+                op->isExtendedRegister = true;
+                op->registerIndex -= 8;
+            }
+
+
             return true;
         }
         case TOK_SREG:
             op->type = OPERAND_SREG;
-            op->reg.registerIndex = p->currentToken.reg;
-            op->reg.rex = REX_PREFIX(0, 0, 0, 0);
+            op->registerIndex = p->currentToken.reg;
             return true;
         case TOK_TREG:
             op->type = OPERAND_TMM;
-            op->reg.registerIndex = p->currentToken.reg;
-            op->reg.rex = REX_PREFIX(0, 0, 0, 0);
+            op->registerIndex = p->currentToken.reg;
             return true;
         case TOK_BNDREG:
             op->type = OPERAND_BND;
-            op->reg.registerIndex = p->currentToken.reg;
-            op->reg.rex = REX_PREFIX(0, 0, 0, 0);
+            op->registerIndex = p->currentToken.reg;
             return true;
         case TOK_DREG:
             op->type = OPERAND_DREG;
-            op->reg.registerIndex = p->currentToken.reg;
-            op->reg.rex = REX_PREFIX(0, 0, 0, 0);
+            op->registerIndex = p->currentToken.reg;
             return true;
         case TOK_CREG:
-            op->reg.registerIndex = p->currentToken.reg;
-            op->reg.rex = REX_PREFIX(0, 0, 0, 0);
-            if(p->currentToken.reg == 8)
+            op->registerIndex = p->currentToken.reg;
+            if(p->currentToken.reg == 8){
                 op->type = OPERAND_CR8;
+                op->isExtendedRegister = true;
+                op->registerIndex -= 8;
+            }
             else
                 op->type = OPERAND_CREG;
             return true;
@@ -883,7 +900,7 @@ static bool parse_operand(Parser* p, Operand* op){
         case TOK_ST6:
         case TOK_ST7:
             op->type = OPERAND_STI;
-            op->fpu_stack_index = p->currentToken.type - TOK_ST0;
+            op->fpuIndex = p->currentToken.type - TOK_ST0;
             return true;
 
         case TOK_MOFFSET:
@@ -936,18 +953,23 @@ static bool parse_operand(Parser* p, Operand* op){
 }
 
 
-static inline bool check_operand_certain_register(OperandType table_instr, OperandType input_instr, uint8_t reg_index){
+static inline bool check_operand_certain_register(OperandType table_instr, Operand* op){
     if(table_instr >= OPERAND_AL && table_instr <= OPERAND_RAX){
-        if(input_instr == OPERAND_R64 && reg_index == 0){
-            return table_instr == OPERAND_RAX;
-        } else if (input_instr == OPERAND_R32 && reg_index == 0) {
-            return table_instr == OPERAND_EAX;
-        } else if (input_instr == OPERAND_R16) {
-            if(reg_index == 0 && table_instr == OPERAND_AX) return true;
-            else if(reg_index == 2 && table_instr == OPERAND_DX) return true;
-        } else if (input_instr == OPERAND_R8) {
-            if(reg_index == 0 && table_instr == OPERAND_AL) return true;
-            else if(reg_index == 1 && table_instr == OPERAND_CL) return true;
+        if(op->type == OPERAND_R64)
+            return table_instr == OPERAND_RAX && (!op->isExtendedRegister && op->registerIndex == 0);
+        if (op->type == OPERAND_R32)
+            return table_instr == OPERAND_EAX && (!op->isExtendedRegister && op->registerIndex == 0);
+        if (op->type == OPERAND_R16) {
+            if(op->isExtendedRegister)
+                return false;
+            if(op->registerIndex == 0 && table_instr == OPERAND_AX)
+                return true;
+            return op->registerIndex == 2 && table_instr == OPERAND_DX;
+        }
+        if (op->type == OPERAND_R8 && !op->isExtendedRegister) {
+            if(op->registerIndex == 0 && table_instr == OPERAND_AL)
+                return true;
+            return op->registerIndex == 1 && table_instr == OPERAND_CL;
         }
     }
     return false;
@@ -1019,13 +1041,11 @@ static bool fit_immediate(OperandType immediate_size, Operand* op){
 }
 
 
-
-
 static const Instruction* find_instruction_nop(uint64_t instr_index){
     uint64_t op_table_index = get_keyword(instr_index)->value;    
-    int instruction_variant_count = INSTRUCTION_TABLE[op_table_index].variant_count;
+    int instruction_variant_count = INSTRUCTION_TABLE[op_table_index].count;
 
-    for(uint64_t i = op_table_index + 1; i < op_table_index + instruction_variant_count + 1; i++){ 
+    for(uint64_t i = op_table_index; i < op_table_index + instruction_variant_count; i++){
         Instruction instruct_var = INSTRUCTION_TABLE[i];
 
         if(instruct_var.op1 != OPERAND_NOP) continue;
@@ -1039,10 +1059,10 @@ static const Instruction* find_instruction_nop(uint64_t instr_index){
 #define END_OP_BITMASK (1 << 21)
 static const Instruction* find_instruction_one_operand(uint64_t instr_index, Operand* op){
     uint64_t op_table_index = get_keyword(instr_index)->value;    
-    int instruction_variant_count = INSTRUCTION_TABLE[op_table_index].variant_count;
+    int instruction_variant_count = INSTRUCTION_TABLE[op_table_index].count;
 
     // loop through each variant of the instruction check if the operands match 
-    for(uint64_t i = op_table_index + 1; i < op_table_index + instruction_variant_count + 1; i++){ 
+    for(uint64_t i = op_table_index; i < op_table_index + instruction_variant_count; i++){
         Instruction instruct_var = INSTRUCTION_TABLE[i];
 
         if(instruct_var.op2 != OPERAND_NOP) continue;
@@ -1058,7 +1078,7 @@ static const Instruction* find_instruction_one_operand(uint64_t instr_index, Ope
 
             //for jmp instructions just assume rel32 for now
             if(op->type == OPERAND_LABEL){
-                int64_t next_instruction = program.text.size + instruct_var.size + 1;
+                int64_t next_instruction = program.text.size + GET_INSTR_SIZE(instruct_var.flags) + 1;
                 // return rel8 jumps if label is within a rel8 for backwards jumps only or
                 // the instruction only supports rel8 (loop,loopne,loope, JECXZ)
                 if(instruct_var.op1 == OPERAND_REL8 && (instruction_variant_count == 1
@@ -1071,13 +1091,14 @@ static const Instruction* find_instruction_one_operand(uint64_t instr_index, Ope
             }
 
             // FSTSW, FNSTSW instructions
-            if(instruct_var.op1 == OPERAND_AX && op->type == OPERAND_R16 && op->reg.registerIndex == 0)
+            if(instruct_var.op1 == OPERAND_AX && op->type == OPERAND_R16 && !op->isExtendedRegister
+                    && op->registerIndex == 0)
                 return &INSTRUCTION_TABLE[i];
 
             //push/pop
-            if(instruct_var.op1 == OPERAND_FS && op->type == OPERAND_SREG && op->reg.registerIndex == SREG_FS)
+            if(instruct_var.op1 == OPERAND_FS && op->type == OPERAND_SREG && op->registerIndex == SREG_FS)
                 return &INSTRUCTION_TABLE[i];
-            if(instruct_var.op1 == OPERAND_GS && op->type == OPERAND_SREG && op->reg.registerIndex == SREG_GS)
+            if(instruct_var.op1 == OPERAND_GS && op->type == OPERAND_SREG && op->registerIndex == SREG_GS)
                 return &INSTRUCTION_TABLE[i];
         }
     }
@@ -1087,10 +1108,10 @@ static const Instruction* find_instruction_one_operand(uint64_t instr_index, Ope
 
 static const Instruction* find_instruction_two_operands(uint64_t instr_index, Operand* op1, Operand* op2){
     uint64_t op_table_index = get_keyword(instr_index)->value;    
-    int instruction_variant_count = INSTRUCTION_TABLE[op_table_index].variant_count;
+    int instruction_variant_count = INSTRUCTION_TABLE[op_table_index].count;
 
     // loop through each variant of the instruction check if the operands match 
-    for(uint64_t i = op_table_index + 1; i < op_table_index + instruction_variant_count + 1; i++){ 
+    for(uint64_t i = op_table_index; i < op_table_index + instruction_variant_count; i++){
         Instruction instruct_var = INSTRUCTION_TABLE[i];
         if(instruct_var.op3 != OPERAND_NOP) continue;
         if(op1->type < END_OP_BITMASK && instruct_var.op1 < END_OP_BITMASK){
@@ -1098,7 +1119,7 @@ static const Instruction* find_instruction_two_operands(uint64_t instr_index, Op
                 continue;
         } else{
             if(op1->type != instruct_var.op1 && !fit_immediate(instruct_var.op1, op1) &&
-                    !check_operand_certain_register(instruct_var.op1, op1->type, op1->reg.registerIndex))
+                    !check_operand_certain_register(instruct_var.op1, op1))
             continue;
         }
 
@@ -1112,7 +1133,7 @@ static const Instruction* find_instruction_two_operands(uint64_t instr_index, Op
             if(fit_immediate(instruct_var.op2, op2))
                 return &INSTRUCTION_TABLE[i];
 
-            if(check_operand_certain_register(instruct_var.op2, op2->type, op2->reg.registerIndex))
+            if(check_operand_certain_register(instruct_var.op2, op2))
                 return &INSTRUCTION_TABLE[i];
 
             // lea instruction
@@ -1126,10 +1147,10 @@ static const Instruction* find_instruction_two_operands(uint64_t instr_index, Op
 
 static const Instruction* find_instruction_three_operands(uint64_t instr_index, Operand* op1, Operand* op2, Operand* op3){ 
     uint64_t op_table_index = get_keyword(instr_index)->value; 
-    int instruction_variant_count = INSTRUCTION_TABLE[op_table_index].variant_count;
+    int instruction_variant_count = INSTRUCTION_TABLE[op_table_index].count;
     
     // loop through each variant of the instruction check if the operands match 
-    for(uint64_t i = op_table_index + 1; i < op_table_index + instruction_variant_count + 1; i++){ 
+    for(uint64_t i = op_table_index; i < op_table_index + instruction_variant_count; i++){
         Instruction instruct_var = INSTRUCTION_TABLE[i];
 
         // 4 operand instructions so skip
@@ -1159,7 +1180,7 @@ static const Instruction* find_instruction_three_operands(uint64_t instr_index, 
                 return &INSTRUCTION_TABLE[i];
             else if (fit_immediate(instruct_var.op3, op3))
                 return &INSTRUCTION_TABLE[i];
-            else if(check_operand_certain_register(instruct_var.op3, op3->type, op3->reg.registerIndex))
+            else if(check_operand_certain_register(instruct_var.op3, op3))
                 return &INSTRUCTION_TABLE[i];
         }
     }
@@ -1169,7 +1190,7 @@ static const Instruction* find_instruction_three_operands(uint64_t instr_index, 
 
 static const Instruction* find_instruction_four_operands(uint64_t instr_index, Operand* op1, Operand* op2, Operand* op3, Operand* op4){
     uint64_t op_table_index = get_keyword(instr_index)->value;    
-    int instruction_variant_count = INSTRUCTION_TABLE[op_table_index].variant_count;
+    int instruction_variant_count = INSTRUCTION_TABLE[op_table_index].count;
 
     //the fourth operand is either an imm8 or a register 
     //the register has to be the same size as the first operand 
@@ -1181,7 +1202,7 @@ static const Instruction* find_instruction_four_operands(uint64_t instr_index, O
     }
     
     // loop through each variant of the instruction check if the operands match 
-    for(uint64_t i = op_table_index + 1; i < op_table_index + instruction_variant_count + 1; i++){ 
+    for(uint64_t i = op_table_index; i < op_table_index + instruction_variant_count; i++){
         Instruction instruct_var = INSTRUCTION_TABLE[i];
 
         if(instruct_var.op1 != op1->type) continue;
@@ -1208,8 +1229,8 @@ static const Instruction* find_instruction_four_operands(uint64_t instr_index, O
 #define DISPLACEMENT_SIZE 4
 
 #define set_mod(mod) (mod << 6)
-#define set_sib(scale, index, base) ((scale << 6) | (index << 3) | base)
 
+// see page 45-46 of intel.pdf for full modrm/sib tables
 static int modrm_sib_fields(Operand* op, uint8_t *data, char** label){
     uint8_t ADDRESS_OVERRIDE_PREFIX = 0x67;
     int size = 1;
@@ -1225,10 +1246,11 @@ static int modrm_sib_fields(Operand* op, uint8_t *data, char** label){
         }
     }
 
-    if(mem_op_prefix(op->mem)) section_add_data(&program.text, &ADDRESS_OVERRIDE_PREFIX, 1);
-        
-    if(op->mem.base == REG_MAX && op->mem.index == REG_MAX){
-        if(mem_is_rel(op->mem)){
+    if(op->mem.flags & MEM_OVERRIDE)
+        section_add_data(&program.text, &ADDRESS_OVERRIDE_PREFIX, 1);
+
+    if((op->mem.flags & MEMORY_TYPE_MASK) == MEM_NO_REGS){
+        if(op->mem.flags & MEM_RELATIVE){
             data[MODRM_INDEX] |= 0x5;
             size += DISPLACEMENT_SIZE;  
             memcpy(data + 1, &offset, DISPLACEMENT_SIZE);
@@ -1238,114 +1260,64 @@ static int modrm_sib_fields(Operand* op, uint8_t *data, char** label){
             size++;
             size += DISPLACEMENT_SIZE;  
             memcpy(data + 2, &offset, DISPLACEMENT_SIZE);
-        } 
-    } else if (op->mem.base != REG_MAX && op->mem.index == REG_MAX) {
-        data[MODRM_INDEX] |= op->mem.base; 
+        }
+    }
+    else if ((op->mem.flags & MEM_BASE) && (op->mem.flags & MEM_INDEX)) {
+        //both a base and an index
+        data[SIB_INDEX] = op->mem.data;
+        data[MODRM_INDEX] |= 0x4;
+        size++;
 
-        int offset_size = 0;
-
+        // 32 bit displacement after sib
         if(op->mem.label != NULL || !is_int8(op->mem.offset)){
-            // we want a 32 bit displacement
             data[MODRM_INDEX] += 0x80;
-            offset_size = DISPLACEMENT_SIZE;
+            memcpy(data + size, &offset, DISPLACEMENT_SIZE);
             size += DISPLACEMENT_SIZE;
-        } else if(op->mem.base == (REG_RBP - REG_RAX)){
-            //can't just do [RBP] so we do [RBP + disp8]
-            data[MODRM_INDEX] |= set_mod(0x01);
-            size++;
-            offset_size = 1;
-        } else if(op->mem.offset != 0){
-            //8 bit displacement 
-            size += 1;
+        } else if (op->mem.offset != 0 || (op->mem.data & MEMORY_BASE_MASK) == REGISTER_RBP) {
+            // 8 bit displacement after sib
             data[MODRM_INDEX] += 0x40;
-            offset_size  = 1; 
-        } 
+            memcpy(data + size, &offset, 1);
+            size += 1;
+        }
+    }
+    else if (op->mem.flags & MEM_BASE) {
+        data[MODRM_INDEX] |= op->mem.data & 0x7;
+
         // the rsp/r12 register requires a sib byte
-        if(op->mem.base == (REG_RSP - REG_RAX)){
-            if(offset_size == 0) data[MODRM_INDEX] = 0x4; 
-            data[SIB_INDEX] = 0x24; 
+        if((op->mem.data & MEMORY_BASE_MASK) == REGISTER_RSP){
+            data[SIB_INDEX] = 0x24;
             size += 1;
         }
 
-        if(offset_size != 0) memcpy(data + size - offset_size, &offset, offset_size);
-
-    } else if (op->mem.base == REG_MAX && op->mem.index != REG_MAX) {
+        if(op->mem.label != NULL || !is_int8(op->mem.offset)){
+            // 32 bit displacement
+            data[MODRM_INDEX] += 0x80;
+            memcpy(data + size, &offset, DISPLACEMENT_SIZE);
+            size += DISPLACEMENT_SIZE;
+        } else if(op->mem.offset != 0){
+            //8 bit displacement
+            data[MODRM_INDEX] += 0x40;
+            memcpy(data + size, &offset, 1);
+            size += 1;
+        } else if((op->mem.data & MEMORY_BASE_MASK) == REGISTER_RBP){
+            //can't just do [RBP] so we do [RBP + disp8]
+            data[MODRM_INDEX] |= set_mod(0x01);
+            memcpy(data + size, &offset, 1);
+            size++;
+        }
+    }
+    else if (op->mem.flags & MEM_INDEX) {
         //need an sib byte
         data[MODRM_INDEX] |= 0x4;
         //0x5 indicates we have no base
-        data[SIB_INDEX] = set_sib(op->mem.scale, op->mem.index, 0x5);
+        data[SIB_INDEX] = op->mem.data | 0x5;
         size++;
-        size += DISPLACEMENT_SIZE;
         //either copy zeros, an offset or zeros for a label
         //you need to have a disp32 if you are just using an index
-        memcpy(data + 2, &offset, DISPLACEMENT_SIZE); 
-    } else{
-        //both a base and an index 
-        int offset_size = 0;
-
-        if(op->mem.base == (REG_RBP - REG_RAX)){
-            data[SIB_INDEX] = set_sib(op->mem.scale, op->mem.index, 0x5);
-            offset_size = 1;
-        } else{
-            data[SIB_INDEX] = set_sib(op->mem.scale, op->mem.index, op->mem.base);
-        }
-
-        data[MODRM_INDEX] |= 0x4;
-        if(op->mem.label != NULL || !is_int8(op->mem.offset)){
-            data[MODRM_INDEX] += 0x80;
-            size += DISPLACEMENT_SIZE;
-            offset_size = DISPLACEMENT_SIZE;
-        } else if (op->mem.offset != 0 || op->mem.base == (REG_RBP - REG_RAX)) { 
-            data[MODRM_INDEX] += 0x40;
-            size += 1;
-            offset_size = 1;
-        } 
-        size++;
-        if(offset_size != 0) memcpy(data + size - offset_size, &offset, offset_size); 
-    } 
-    
-
+        memcpy(data + 2, &offset, DISPLACEMENT_SIZE);
+        size += DISPLACEMENT_SIZE;
+    }
     return size;
-}
-
-/*
-Two Byte 
-
-0xC5 R vvvv L pp 
-R - > Extension of reg field
-vvvv -> ~register index ones complement
-
-Three byte
-0xC4 R X B mmmmm   W vvvv L pp
-
-
-*/
-
-
-
-#define VEX_ONE_BYTE_DEFAULT 0x80
-#define VEX_TWO_BYTE_R 0x8000
-#define VEX_TWO_BYTE_X 0x4000
-#define VEX_TWO_BYTE_B 0x2000
-#define VEX_UNUSED_REG 0x78
-
-static inline void set_b(Operand* op, uint16_t* vex, uint8_t* rex){
-    if(is_extended_reg(op->reg.registerIndex)){
-        op->reg.registerIndex -= 8;
-        (*vex) ^= VEX_TWO_BYTE_B;
-        (*rex) |= REX_B;
-    }
-    (*rex) |= op->reg.rex;
-}
-
-static inline void set_r(Operand* op, uint16_t* vex, uint8_t* rex){
-    if(is_extended_reg(op->reg.registerIndex)){
-        op->reg.registerIndex -= 8;
-        (*rex) |= REX_R;
-    } else{
-        (*vex) |= VEX_ONE_BYTE_DEFAULT;
-    }
-    (*rex) |= op->reg.rex;
 }
 
 
@@ -1357,22 +1329,16 @@ static inline void emit_operand_overide_prefix(OperandType op1, OperandType inst
 
 }
 
-
-
-//R bit gets inverted 
-#define REX_TO_ONE_BYTE_VEX(rex) ((~(rex >> 2)) << 7)
-
-//convert the rex prefix on memory operand to vex 
-//perform xor on vex
-#define REX_MEM_TO_VEX(rex) ((uint16_t)rex << 13)
-
-#define ONE_VEX_TO_TWO_BYTE_VEX(vex) (((VEX_TWO_BYTE_R) & ((vex & 0x80) << 8)) | vex & 0x7F7F)
-#define VEX_REGISTER(reg) (((~(reg)) & 0xF) << 3)
+#define VEX_REGISTER(idx, is_extended) (is_extended) ? (((~(idx + 8)) & 0xF) << 3): (((~(idx)) & 0xF) << 3);
+#define VEX_UNUSED_REG 0x78
 
 
 static void emit_instruction(Parser *p, const Instruction* instruction, Operand operand[4]){
-    uint16_t vex = 0xE000;
+    uint8_t vex_reg = VEX_UNUSED_REG;
+
+    // these can be rex, vex, or evex
     uint8_t rex = 0;
+
     uint8_t modrm_sib[6] = {0};
     uint8_t modrm_size = 0;
     char* lbl = NULL;
@@ -1381,66 +1347,48 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
     int imm_index = -1;
 
     uint8_t opcode[4] = {0};
-    int instruction_size = instruction->size;
-    memcpy(opcode, instruction->bytes, instruction->size);
+    int instruction_size = GET_INSTR_SIZE(instruction->flags);
+    memcpy(opcode, instruction->bytes, instruction_size);
 
     int32_t addend = 0;
     bool is_rel = false; 
 
 
-    //indicate opcode extension in the reg portion of modrm
-    if(instruction->digit != -1){
+    if(instruction->flags & FLAG_OPCODE_EXTENSION){
         modrm_size = 1;
-        modrm_sib[MODRM_INDEX] |= (instruction->digit << 3);
+        modrm_sib[MODRM_INDEX] |= GET_OP_DIGIT(instruction->flags);
     }
 
-    bool op1_is_upper_reg = false;
-    bool op2_is_upper_reg = false;
-
-    if(operand[0].type == OPERAND_R8 && is_ah_to_bh(operand[0].reg.registerIndex)){
-        op1_is_upper_reg = true;
-    } else if(operand[1].type == OPERAND_R8 && is_ah_to_bh(operand[1].reg.registerIndex)){
-        op2_is_upper_reg = true;
-    }
-
-    if(instruction->encoding != OP_ENC_FPU && (instruction->rex & REX_W) == 0){ 
+    if(instruction->encoding != OP_ENC_FPU && (instruction->flags & FLAG_REX_W) == 0)
         emit_operand_overide_prefix(operand[0].type, instruction->op2);
-    }
 
     switch (instruction->encoding) {
         case OP_ENC_ZO:
-            vex |= VEX_ONE_BYTE_DEFAULT;
-            vex |= VEX_UNUSED_REG;
-            break;                        
+            break;
         case OP_ENC_I:
-            vex |= VEX_ONE_BYTE_DEFAULT;
-            vex |= VEX_UNUSED_REG;
-            if(is_immediate(instruction->op1)){
+            if(is_immediate(instruction->op1))
                 imm_index = 0;
-            } else{
+            else
                 imm_index = 1;
-            }
-            break; 
+            break;
         case OP_ENC_MI:
             //fall through expected
             imm_index = 1;
         case OP_ENC_M1: // 1 imm is implicit
         case OP_ENC_MC: //cl operand is implicit
         case OP_ENC_M:
-            vex |= VEX_UNUSED_REG;
-            vex |= VEX_ONE_BYTE_DEFAULT;
             if(is_mem(operand[0].type)){
-                vex ^= REX_MEM_TO_VEX(operand[0].mem.rex);
                 rex |= operand[0].mem.rex;
                 addend = operand[0].mem.offset;
-                is_rel = mem_is_rel(operand[0].mem);
+                is_rel = operand[0].mem.flags & MEM_RELATIVE;
                 modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
                 lbl_l = operand[0].line;
                 lbl_c = operand[0].col;
             } else{
-                set_b(&operand[0], &vex, &rex);
+                if(operand[0].isExtendedRegister)
+                    rex |= REX_B;
                 modrm_sib[MODRM_INDEX] |= 192;
-                modrm_sib[MODRM_INDEX] |= operand[0].reg.registerIndex;
+                modrm_sib[MODRM_INDEX] |= operand[0].registerIndex;
                 modrm_size = 1;
             }
             break;
@@ -1449,23 +1397,25 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             imm_index = 2;
         case OP_ENC_MRC: //cl is immplicit
         case OP_ENC_MR:
-            set_r(&operand[1], &vex, &rex);
-            vex |= VEX_UNUSED_REG;
-            if(!is_mem(operand[0].type)){
-                set_b(&operand[0], &vex, &rex);
-                modrm_sib[MODRM_INDEX] |= 192;
-                modrm_sib[MODRM_INDEX] |=(operand[1].reg.registerIndex << 3);
-                modrm_sib[MODRM_INDEX] |= operand[0].reg.registerIndex; 
-                modrm_size = 1;
-            } else{ 
-                vex ^= REX_MEM_TO_VEX(operand[0].mem.rex);
+            if(operand[1].isExtendedRegister)
+                rex |= REX_R;
+
+            modrm_sib[MODRM_INDEX] |= (operand[1].registerIndex << 3);
+
+            if(is_mem(operand[0].type)){
                 rex |= operand[0].mem.rex;
                 addend = operand[0].mem.offset;
-                is_rel = mem_is_rel(operand[0].mem);
-                modrm_sib[MODRM_INDEX] |= (operand[1].reg.registerIndex << 3);
+                is_rel = operand[0].mem.flags & MEM_RELATIVE;
                 modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
                 lbl_l = operand[0].line;
                 lbl_c = operand[0].col;
+            } else{
+                if(operand[0].isExtendedRegister)
+                    rex |= REX_B;
+
+                modrm_sib[MODRM_INDEX] |= 192;
+                modrm_sib[MODRM_INDEX] |= operand[0].registerIndex;
+                modrm_size = 1;
             }
             break;
         case OP_ENC_RMI:
@@ -1473,100 +1423,106 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             imm_index = 2;
         case OP_ENC_RM0: //zero indicates implicit xmm0 operand
         case OP_ENC_RM: 
-            set_r(&operand[0], &vex, &rex);
-            vex |= VEX_UNUSED_REG;
-            modrm_sib[MODRM_INDEX] |= operand[0].reg.registerIndex << 3; 
-            if(!is_mem(operand[1].type)){
-                set_b(&operand[1], &vex, &rex);
-                modrm_size = 1;
-                rex |= operand[1].reg.rex;
-                modrm_sib[MODRM_INDEX] |= 192;
-                modrm_sib[MODRM_INDEX] |= operand[1].reg.registerIndex; 
-            } else {
-                vex ^= REX_MEM_TO_VEX(operand[1].mem.rex);
+            if(operand[0].isExtendedRegister)
+                rex |= REX_R;
+
+            modrm_sib[MODRM_INDEX] |= operand[0].registerIndex << 3; 
+            if(is_mem(operand[1].type)){
                 rex |= operand[1].mem.rex;
                 addend = operand[1].mem.offset;
-                is_rel = mem_is_rel(operand[1].mem);
-                modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl); 
+                is_rel = operand[1].mem.flags & MEM_RELATIVE;
+                modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl);
                 lbl_l = operand[1].line;
                 lbl_c = operand[1].col;
+            } else{
+                if(operand[1].isExtendedRegister)
+                    rex |= REX_B;
+
+                modrm_sib[MODRM_INDEX] |= 192;
+                modrm_sib[MODRM_INDEX] |= operand[1].registerIndex;
+                modrm_size = 1;
             }
-            break;  
-        
+            break;
         case OP_ENC_RVMR:
         case OP_ENC_RVMI:
             //fall through expected
             imm_index = 3;
         case OP_ENC_RVM:
-            set_r(&operand[0], &vex, &rex);
-            vex |= VEX_REGISTER(operand[1].reg.registerIndex);
+            if(operand[0].isExtendedRegister)
+                rex |= REX_R;
+            vex_reg = VEX_REGISTER(operand[1].registerIndex, operand[1].isExtendedRegister);
+            modrm_sib[MODRM_INDEX] |= (operand[0].registerIndex << 3);
             if(is_advanced_reg(operand[2].type) || is_reg32_or_64(operand[2].type)){
-                set_b(&operand[2], &vex, &rex);
+                if(operand[2].isExtendedRegister)
+                    rex |= REX_B;
                 modrm_sib[MODRM_INDEX] |= 192;
-                modrm_sib[MODRM_INDEX] |=(operand[0].reg.registerIndex << 3);
-                modrm_sib[MODRM_INDEX] |= operand[2].reg.registerIndex; 
+                modrm_sib[MODRM_INDEX] |= operand[2].registerIndex;
                 modrm_size = 1;
-            } else{ 
-                vex ^= REX_MEM_TO_VEX(operand[2].mem.rex);
-                addend = operand[2].mem.offset; 
-                is_rel = mem_is_rel(operand[2].mem);
-                modrm_sib[MODRM_INDEX] |= (operand[0].reg.registerIndex << 3);
+            } else{
+                rex |= operand[2].mem.rex;
+                addend = operand[2].mem.offset;
+                is_rel = operand[2].mem.flags & MEM_RELATIVE;
                 modrm_size = modrm_sib_fields(&operand[2], modrm_sib, &lbl);
                 lbl_l = operand[2].line;
                 lbl_c = operand[2].col;
             }
             break;
         case OP_ENC_RMV: 
-            set_r(&operand[0], &vex, &rex);
-            vex |= VEX_REGISTER(operand[2].reg.registerIndex);
-            modrm_sib[MODRM_INDEX] |= (operand[0].reg.registerIndex << 3);
-            if(is_advanced_reg(operand[1].type) || is_reg32_or_64(operand[1].type) || operand[1].type == OPERAND_TMM){
-                set_b(&operand[1], &vex, &rex);
-                modrm_sib[MODRM_INDEX] |= 192;
-                modrm_sib[MODRM_INDEX] |= operand[1].reg.registerIndex; 
-                modrm_size = 1;
-            } else{ 
-                vex ^= REX_MEM_TO_VEX(operand[1].mem.rex);
+            if(operand[0].isExtendedRegister)
+                rex |= REX_R;
+
+            vex_reg = VEX_REGISTER(operand[2].registerIndex, operand[2].isExtendedRegister);
+            modrm_sib[MODRM_INDEX] |= (operand[0].registerIndex << 3);
+            if(is_mem(operand[1].type)){
+                rex |= operand[1].mem.rex;
                 addend = operand[1].mem.offset; 
-                is_rel = mem_is_rel(operand[1].mem);
-                modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl); 
+                is_rel = operand[1].mem.flags & MEM_RELATIVE;
+                modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl);
                 lbl_l = operand[1].line;
                 lbl_c = operand[1].col;
+            } else{
+                if(operand[1].isExtendedRegister)
+                    rex |= REX_B;
+                modrm_sib[MODRM_INDEX] |= 192;
+                modrm_sib[MODRM_INDEX] |= operand[1].registerIndex;
+                modrm_size = 1;
             }
             break;
         case OP_ENC_VMI: 
             //fallthrough expected
             imm_index = 2;
         case OP_ENC_VM: 
-            vex |= (uint8_t)VEX_ONE_BYTE_DEFAULT;
-            vex |= VEX_REGISTER(operand[0].reg.registerIndex);
+            vex_reg = VEX_REGISTER(operand[0].registerIndex, operand[0].isExtendedRegister);
             if(is_advanced_reg(operand[1].type) || is_reg32_or_64(operand[1].type)){
-                set_b(&operand[1], &vex, &rex);
+                if(operand[1].isExtendedRegister)
+                    rex |= REX_B;
                 modrm_sib[MODRM_INDEX] |= 192;
-                modrm_sib[MODRM_INDEX] |= operand[1].reg.registerIndex; 
+                modrm_sib[MODRM_INDEX] |= operand[1].registerIndex;
                 modrm_size = 1;
-            } else{ 
-                vex ^= REX_MEM_TO_VEX(operand[1].mem.rex);
+            } else{
+                rex |= operand[1].mem.rex;
                 addend = operand[1].mem.offset;
-                is_rel = mem_is_rel(operand[1].mem);
+                is_rel = operand[1].mem.flags & MEM_RELATIVE;
                 modrm_size = modrm_sib_fields(&operand[1], modrm_sib, &lbl);
                 lbl_l = operand[1].line;
                 lbl_c = operand[1].col;
             } 
             break;
         case OP_ENC_MVR:
-            set_r(&operand[2], &vex, &rex);
-            vex |= VEX_REGISTER(operand[1].reg.registerIndex);
-            modrm_sib[MODRM_INDEX] |= (operand[2].reg.registerIndex << 3);
+            if(operand[2].isExtendedRegister)
+                rex |= REX_R;
+            vex_reg = VEX_REGISTER(operand[1].registerIndex, operand[1].isExtendedRegister);
+            modrm_sib[MODRM_INDEX] |= (operand[2].registerIndex << 3);
             if(is_advanced_reg(operand[0].type) || is_reg32_or_64(operand[0].type)){
-                set_b(&operand[0], &vex, &rex);
+                if(operand[0].isExtendedRegister)
+                    rex |= REX_B;
                 modrm_sib[MODRM_INDEX] |= 192;
-                modrm_sib[MODRM_INDEX] |= operand[0].reg.registerIndex; 
+                modrm_sib[MODRM_INDEX] |= operand[0].registerIndex;
                 modrm_size = 1;
-            } else{ 
-                vex ^= REX_MEM_TO_VEX(operand[0].mem.rex);
+            } else{
+                rex |= operand[0].mem.rex;
                 addend = operand[0].mem.offset; 
-                is_rel = mem_is_rel(operand[0].mem);
+                is_rel = operand[0].mem.flags & MEM_RELATIVE;
                 modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
                 lbl_l = operand[0].line;
                 lbl_c = operand[0].col;
@@ -1574,37 +1530,34 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             break;
         //add register to opcode
         case OP_ENC_OI:
-            if(is_extended_reg(operand[0].reg.registerIndex)){
-                operand[0].reg.registerIndex -= 8;
-                operand[0].reg.rex |= REX_B;
-            }
-            rex |= operand[0].reg.rex;
-            opcode[instruction->size - 1] += operand[0].reg.registerIndex; 
+            if(operand[0].isExtendedRegister)
+                rex |= REX_B;   
+
+            opcode[instruction_size - 1] += operand[0].registerIndex;
             imm_index = 1;
             break;
         case OP_ENC_O: 
             // handles xchg with operand AX,EAX,RAX
-            if(operand[1].type != OPERAND_NOP && operand[0].reg.registerIndex == 0){
+            if(operand[1].type != OPERAND_NOP && operand[0].registerIndex == 0 && !operand[0].isExtendedRegister){
                 Operand temp = operand[0];
                 operand[0] = operand[1];
                 operand[1] = temp;
             }
-            if(is_extended_reg(operand[0].reg.registerIndex)){
-                operand[0].reg.registerIndex -= 8;
-                operand[0].reg.rex |= REX_B;
-            }
-            rex |= operand[0].reg.rex;
-            opcode[instruction->size - 1] += operand[0].reg.registerIndex;
+            if(operand[0].isExtendedRegister)
+                rex |= REX_B; 
+
+            opcode[instruction_size - 1] += operand[0].registerIndex;
             break;
         case OP_ENC_R:
-            set_b(&operand[0], &vex, &rex);
+            if(operand[0].isExtendedRegister)
+                rex |= REX_B;
             modrm_size = 1;
             modrm_sib[MODRM_INDEX] |= 192;
-            modrm_sib[MODRM_INDEX] |= operand[0].reg.registerIndex;
+            modrm_sib[MODRM_INDEX] |= operand[0].registerIndex;
             break;
         case OP_ENC_D:
             if(instruction->op1 == OPERAND_REL8){
-                section_add_data(&program.text, opcode, instruction->size);
+                section_add_data(&program.text, opcode, instruction_size);
                 int l = operand[0].line;
                 int c = operand[0].col;
                 for(int i = 0; i < program.symTable.symbols.size; i++){
@@ -1626,41 +1579,41 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 section_add_data(&program.text, &zero, 1);
                 return;
             } else if(instruction->op1 == OPERAND_REL32){
-                section_add_data(&program.text, opcode, instruction->size); 
-                uint32_t zero = 0; 
+                section_add_data(&program.text, opcode, instruction_size);
+                uint32_t zero = 0;
                 //add some temp zeros
                 int l = operand[0].line;
                 int c = operand[0].col;
-                symbol_table_add_instance(operand[0].label,l,c, program.text.size, -DISPLACEMENT_SIZE,true); 
+                symbol_table_add_instance(operand[0].label,l,c, program.text.size, -DISPLACEMENT_SIZE,true);
                 section_add_data(&program.text, &zero, 4);
                 return;
             } 
             break;
         case OP_ENC_FPU: 
             if(operand[0].type == OPERAND_STI){
-                opcode[instruction->size - 1] += operand[0].fpu_stack_index; 
+                opcode[instruction_size - 1] += operand[0].fpuIndex;
             } else if(is_mem(operand[0].type)){
                 //these instructions technically call fwait before being executed
                 //if we have an operand override prefix or rex prefix its must
                 //come after 0x9b (fwait)
                 if(opcode[0] == 0x9b){
-                    section_add_data(&program.text, &opcode[0], 1); 
+                    section_add_data(&program.text, &opcode[0], 1);
                     instruction_size--;
-                    opcode[0] = opcode[1]; 
-                    opcode[1] = opcode[2]; 
-                    opcode[2] = opcode[3]; 
+                    opcode[0] = opcode[1];
+                    opcode[1] = opcode[2];
+                    opcode[2] = opcode[3];
                 }
                 rex |= operand[0].mem.rex;
                 addend = operand[0].mem.offset;
-                is_rel = mem_is_rel(operand[0].mem);
-                modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl); 
+                is_rel = operand[0].mem.flags & MEM_RELATIVE;
+                modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
                 lbl_l = operand[0].line;
                 lbl_c = operand[0].col;
             }
             break;
         case OP_ENC_II:
             //the only instruction that has this encoding is enter
-            section_add_data(&program.text, opcode, instruction->size); 
+            section_add_data(&program.text, opcode, instruction_size);
             section_add_data(&program.text, &operand[0].imm16, 2);
             section_add_data(&program.text, &operand[1].imm8, 1);
             return; 
@@ -1671,8 +1624,9 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             imm_index++;
         case OP_ENC_TD: 
             imm_index++;
-            if(instruction->rex > 0x40){
-                section_add_data(&program.text, (uint8_t*)&instruction->rex, 1);
+            if(instruction->flags & FLAG_REX_W){
+                uint8_t rexw = REX_PREFIX(1, 0, 0, 0);
+                section_add_data(&program.text, &rexw, 1);
             }
             section_add_data(&program.text, opcode, instruction_size); 
 
@@ -1686,59 +1640,62 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             break;
     }
 
+    bool upgrade_to_3byte = (instruction->flags & FLAG_TWO_BYTE_VEX) && ((rex & REX_B) || (rex & REX_X));
+    if((instruction->flags & FLAG_THREE_BYTE_VEX) || upgrade_to_3byte){
+        uint8_t VEX_3BYTE_PREFIX = 0xC4;
+        // | R X B | m m m m m|
+        // RXB is stored in inverted format
+        uint8_t VEX_PAYLOAD0 = ((~rex) << 5) | GET_VEX_OPCODE_MAP(instruction->flags);
+        // instruction that can be encoded with 2 byte
+        // that needs to be encoded with 3 byte vex
+        // set mmmmm part to 1
+        if(upgrade_to_3byte)
+            VEX_PAYLOAD0 |= 1;
 
-    if(instruction->flags & INSTR_USES_REX){
-        rex |= instruction->rex;
-        if(rex > 0x40){
-            if(op1_is_upper_reg){
-                parser_error_loc(p, operand[0].line, 
-                        operand[0].col, "Cannot use AH, BH, CH, or DH with rex prefix\n");
-                return;
-            } else if(op2_is_upper_reg){
-                parser_error_loc(p, operand[1].line, 
-                        operand[1].col, "Cannot use AH, BH, CH, or DH with rex prefix\n");
-                return;
-            }
-
+        // |w| vvvv | l | pp|
+        uint8_t VEX_PAYLOAD1 = GET_THREE_VEX_PAYLOAD(instruction->flags) | vex_reg;
+        section_add_data(&program.text, &VEX_3BYTE_PREFIX, 1);
+        section_add_data(&program.text, &VEX_PAYLOAD0, 1);
+        section_add_data(&program.text, &VEX_PAYLOAD1, 1);
+        section_add_data(&program.text, opcode, instruction_size);
+    }
+    else if (instruction->flags & FLAG_TWO_BYTE_VEX) {
+        uint8_t VEX_2BYTE_PREFIX = 0xC5;
+        // |R| vvvv| l | pp
+        // R is stored in inverted format
+        uint8_t VEX_PAYLOAD = GET_TWO_VEX_PAYLOAD(instruction->flags) | vex_reg;
+        if(!(rex & REX_R))
+            VEX_PAYLOAD |= (1 << 7);
+        section_add_data(&program.text, &VEX_2BYTE_PREFIX, 1);
+        section_add_data(&program.text, &VEX_PAYLOAD, 1);
+        section_add_data(&program.text, opcode, instruction_size);
+    }
+    else if (instruction->flags & FLAG_EVEX) {
+        fatal_error("EVEX not supported yet Unreachable\n");
+    } else{
+        rex |= REX_NIBBLE;
+        rex |= GET_REX_W(instruction->flags);
+        if(rex > REX_NIBBLE){
+            const char* REX_8BIT_REG_ERR = "Cannot use AH, BH, CH, or DH with rex prefix\n";
+            if(operand[0].type == OPERAND_R8 && is_ah_to_bh(operand[0]))
+                return parser_error_loc(p, operand[0].line, operand[0].col, REX_8BIT_REG_ERR);
+            if(operand[1].type == OPERAND_R8 && is_ah_to_bh(operand[1]))
+                return parser_error_loc(p, operand[1].line, operand[1].col, REX_8BIT_REG_ERR);
 
             //rex prefix must come right before escape prefix
-            if(opcode[1] == 0x0f){ 
+            if(opcode[1] == 0x0f){
                 section_add_data(&program.text, &opcode[0], 1);
                 opcode[0] = rex;
             } else{
                 section_add_data(&program.text, &rex, 1);
             }
         }
-        section_add_data(&program.text, opcode, instruction_size); 
-    } 
-    else if((instruction->flags & INSTR_USES_2VEX) && ((vex & 0xE000) == 0xE000)){
-        vex |= instruction->three_vex;
-        uint8_t tmp = 0xC5;
-        section_add_data(&program.text, &tmp, 1); 
-        section_add_data(&program.text, &vex, 1); 
-        section_add_data(&program.text, opcode, instruction->size); 
-    } else {
-        vex = ONE_VEX_TO_TWO_BYTE_VEX(vex);
-        vex |= instruction->three_vex;
-        //instruction that can be encoded with 2 byte
-        //needs to be encoded with 3 byte vex
-        //set mmmmm part to 1
-        if(((vex >> 8) & 0x1F) == 0){
-            vex |= (1 << 8);
-        }
-        uint8_t tmp = 0xC4;
-        section_add_data(&program.text, &tmp, 1); 
-
-        //on little endian lsb goes first
-        //need to put the upper 16 bits in first though
-        uint8_t upper = vex >> 8;
-        uint8_t lower = (0x00FF & vex);
-        section_add_data(&program.text, &upper, 1);  
-        section_add_data(&program.text, &lower, 1);  
-        section_add_data(&program.text, opcode, instruction->size); 
+        section_add_data(&program.text, opcode, instruction_size);
     }
 
-    if(modrm_size != 0) section_add_data(&program.text, modrm_sib, modrm_size);
+
+    if(modrm_size != 0)
+        section_add_data(&program.text, modrm_sib, modrm_size);
 
     uint64_t lbl_displacement = program.text.size - DISPLACEMENT_SIZE;
 
@@ -1758,7 +1715,8 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 break;
             case OPERAND_YMM:
             case OPERAND_XMM:{
-                uint8_t payload = (operand[3].reg.registerIndex) << 4; 
+                operand[3].registerIndex += (operand[3].isExtendedRegister) ? 8 : 0;
+                uint8_t payload = (operand[3].registerIndex) << 4;
                 section_add_data(&program.text, &payload, 1); 
             }
             break;
@@ -1783,8 +1741,6 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
         }
         symbol_table_add_instance(lbl, lbl_l, lbl_c, lbl_displacement, addend, is_rel);
     }
-
-
 }
 
 
