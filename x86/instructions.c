@@ -191,51 +191,51 @@ const char* token_to_string(TokenType type){
 }
 const Instruction INSTRUCTION_TABLE[] = {
 {(OperandType)2097174, (OperandType)2097161, (OperandType)0, {0x14,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0x10,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
-{(OperandType)514, (OperandType)2, (OperandType)0, {0x11,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
-{(OperandType)1028, (OperandType)4, (OperandType)0, {0x11,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0x10,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
+{(OperandType)514, (OperandType)2, (OperandType)0, {0x11,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
+{(OperandType)1028, (OperandType)4, (OperandType)0, {0x11,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
 {(OperandType)1, (OperandType)257, (OperandType)0, {0x12,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)2, (OperandType)514, (OperandType)0, {0x13,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)4, (OperandType)1028, (OperandType)0, {0x13,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)2097176, (OperandType)2097162, (OperandType)0, {0x15,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
-{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 2621440, 0, 0, OP_ENC_MI, 22},
-{(OperandType)514, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 2621440, 0, 0, OP_ENC_MI, 22},
-{(OperandType)1028, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 2621440, 0, 0, OP_ENC_MI, 22},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0x10,0x00,0x00,0x00}, 4, 0, 0, OP_ENC_MR, 22},
-{(OperandType)2056, (OperandType)8, (OperandType)0, {0x11,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_MR, 22},
+{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 2621504, 0, 0, OP_ENC_MI, 22},
+{(OperandType)514, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 2621504, 0, 0, OP_ENC_MI, 22},
+{(OperandType)1028, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 2621504, 0, 0, OP_ENC_MI, 22},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0x10,0x00,0x00,0x00}, 68, 0, 0, OP_ENC_MR, 22},
+{(OperandType)2056, (OperandType)8, (OperandType)0, {0x11,0x00,0x00,0x00}, 580, 0, 0, OP_ENC_MR, 22},
 {(OperandType)1, (OperandType)257, (OperandType)0, {0x12,0x00,0x00,0x00}, 4, 0, 0, OP_ENC_RM, 22},
 {(OperandType)8, (OperandType)2056, (OperandType)0, {0x13,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_RM, 22},
-{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 2621444, 0, 0, OP_ENC_MI, 22},
-{(OperandType)514, (OperandType)2097162, (OperandType)0, {0x81,0x00,0x00,0x00}, 2621440, 0, 0, OP_ENC_MI, 22},
-{(OperandType)2056, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 2621956, 0, 0, OP_ENC_MI, 22},
+{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 2621508, 0, 0, OP_ENC_MI, 22},
+{(OperandType)514, (OperandType)2097162, (OperandType)0, {0x81,0x00,0x00,0x00}, 2621504, 0, 0, OP_ENC_MI, 22},
+{(OperandType)2056, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 2622020, 0, 0, OP_ENC_MI, 22},
 {(OperandType)2097178, (OperandType)2097163, (OperandType)0, {0x15,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
 {(OperandType)2097179, (OperandType)2097167, (OperandType)0, {0x15,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_I, 22},
-{(OperandType)1028, (OperandType)2097163, (OperandType)0, {0x81,0x00,0x00,0x00}, 2621440, 0, 0, OP_ENC_MI, 22},
-{(OperandType)2056, (OperandType)2097167, (OperandType)0, {0x81,0x00,0x00,0x00}, 2621956, 0, 0, OP_ENC_MI, 22},
+{(OperandType)1028, (OperandType)2097163, (OperandType)0, {0x81,0x00,0x00,0x00}, 2621504, 0, 0, OP_ENC_MI, 22},
+{(OperandType)2056, (OperandType)2097167, (OperandType)0, {0x81,0x00,0x00,0x00}, 2622020, 0, 0, OP_ENC_MI, 22},
 {(OperandType)4, (OperandType)1028, (OperandType)0, {0x66,0xf,0x38,0xf6}, 3, 0, 0, OP_ENC_RM, 2},
 {(OperandType)8, (OperandType)2056, (OperandType)0, {0x66,0xf,0x38,0xf6}, 519, 0, 0, OP_ENC_RM, 2},
 {(OperandType)2097174, (OperandType)2097161, (OperandType)0, {0x4,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0x0,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
-{(OperandType)514, (OperandType)2, (OperandType)0, {0x1,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
-{(OperandType)1028, (OperandType)4, (OperandType)0, {0x1,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0x0,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
+{(OperandType)514, (OperandType)2, (OperandType)0, {0x1,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
+{(OperandType)1028, (OperandType)4, (OperandType)0, {0x1,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
 {(OperandType)1, (OperandType)257, (OperandType)0, {0x2,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)2, (OperandType)514, (OperandType)0, {0x3,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)4, (OperandType)1028, (OperandType)0, {0x3,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)2097176, (OperandType)2097162, (OperandType)0, {0x5,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
-{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 524288, 0, 0, OP_ENC_MI, 22},
-{(OperandType)514, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 524288, 0, 0, OP_ENC_MI, 22},
-{(OperandType)1028, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 524288, 0, 0, OP_ENC_MI, 22},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0x0,0x00,0x00,0x00}, 4, 0, 0, OP_ENC_MR, 22},
-{(OperandType)2056, (OperandType)8, (OperandType)0, {0x1,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_MR, 22},
+{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 524352, 0, 0, OP_ENC_MI, 22},
+{(OperandType)514, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 524352, 0, 0, OP_ENC_MI, 22},
+{(OperandType)1028, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 524352, 0, 0, OP_ENC_MI, 22},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0x0,0x00,0x00,0x00}, 68, 0, 0, OP_ENC_MR, 22},
+{(OperandType)2056, (OperandType)8, (OperandType)0, {0x1,0x00,0x00,0x00}, 580, 0, 0, OP_ENC_MR, 22},
 {(OperandType)1, (OperandType)257, (OperandType)0, {0x2,0x00,0x00,0x00}, 4, 0, 0, OP_ENC_RM, 22},
 {(OperandType)8, (OperandType)2056, (OperandType)0, {0x3,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_RM, 22},
-{(OperandType)257, (OperandType)2097165, (OperandType)0, {0x80,0x00,0x00,0x00}, 524292, 0, 0, OP_ENC_MI, 22},
-{(OperandType)514, (OperandType)2097162, (OperandType)0, {0x81,0x00,0x00,0x00}, 524288, 0, 0, OP_ENC_MI, 22},
-{(OperandType)2056, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 524804, 0, 0, OP_ENC_MI, 22},
+{(OperandType)257, (OperandType)2097165, (OperandType)0, {0x80,0x00,0x00,0x00}, 524356, 0, 0, OP_ENC_MI, 22},
+{(OperandType)514, (OperandType)2097162, (OperandType)0, {0x81,0x00,0x00,0x00}, 524352, 0, 0, OP_ENC_MI, 22},
+{(OperandType)2056, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 524868, 0, 0, OP_ENC_MI, 22},
 {(OperandType)2097178, (OperandType)2097163, (OperandType)0, {0x5,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
 {(OperandType)2097179, (OperandType)2097167, (OperandType)0, {0x5,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_I, 22},
-{(OperandType)1028, (OperandType)2097163, (OperandType)0, {0x81,0x00,0x00,0x00}, 524288, 0, 0, OP_ENC_MI, 22},
-{(OperandType)2056, (OperandType)2097167, (OperandType)0, {0x81,0x00,0x00,0x00}, 524804, 0, 0, OP_ENC_MI, 22},
+{(OperandType)1028, (OperandType)2097163, (OperandType)0, {0x81,0x00,0x00,0x00}, 524352, 0, 0, OP_ENC_MI, 22},
+{(OperandType)2056, (OperandType)2097167, (OperandType)0, {0x81,0x00,0x00,0x00}, 524868, 0, 0, OP_ENC_MI, 22},
 {(OperandType)32, (OperandType)4128, (OperandType)0, {0x66,0xf,0x58,0x00}, 2, 0, 0, OP_ENC_RM, 1},
 {(OperandType)32, (OperandType)4128, (OperandType)0, {0xf,0x58,0x00,0x00}, 1, 0, 0, OP_ENC_RM, 1},
 {(OperandType)32, (OperandType)2080, (OperandType)0, {0xf2,0xf,0x58,0x00}, 2, 0, 0, OP_ENC_RM, 1},
@@ -257,27 +257,27 @@ const Instruction INSTRUCTION_TABLE[] = {
 {(OperandType)32, (OperandType)4128, (OperandType)0, {0x66,0xf,0x38,0xdb}, 3, 0, 0, OP_ENC_RM, 1},
 {(OperandType)32, (OperandType)4128, (OperandType)2097161, {0x66,0xf,0x3a,0xdf}, 3, 0, 0, OP_ENC_RMI, 1},
 {(OperandType)2097174, (OperandType)2097161, (OperandType)0, {0x24,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0x20,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
-{(OperandType)514, (OperandType)2, (OperandType)0, {0x21,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
-{(OperandType)1028, (OperandType)4, (OperandType)0, {0x21,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0x20,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
+{(OperandType)514, (OperandType)2, (OperandType)0, {0x21,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
+{(OperandType)1028, (OperandType)4, (OperandType)0, {0x21,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
 {(OperandType)1, (OperandType)257, (OperandType)0, {0x22,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)2, (OperandType)514, (OperandType)0, {0x23,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)4, (OperandType)1028, (OperandType)0, {0x23,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)2097176, (OperandType)2097162, (OperandType)0, {0x25,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
-{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 4718592, 0, 0, OP_ENC_MI, 22},
-{(OperandType)514, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 4718592, 0, 0, OP_ENC_MI, 22},
-{(OperandType)1028, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 4718592, 0, 0, OP_ENC_MI, 22},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0x20,0x00,0x00,0x00}, 4, 0, 0, OP_ENC_MR, 22},
-{(OperandType)2056, (OperandType)8, (OperandType)0, {0x21,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_MR, 22},
+{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 4718656, 0, 0, OP_ENC_MI, 22},
+{(OperandType)514, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 4718656, 0, 0, OP_ENC_MI, 22},
+{(OperandType)1028, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 4718656, 0, 0, OP_ENC_MI, 22},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0x20,0x00,0x00,0x00}, 68, 0, 0, OP_ENC_MR, 22},
+{(OperandType)2056, (OperandType)8, (OperandType)0, {0x21,0x00,0x00,0x00}, 580, 0, 0, OP_ENC_MR, 22},
 {(OperandType)1, (OperandType)257, (OperandType)0, {0x22,0x00,0x00,0x00}, 4, 0, 0, OP_ENC_RM, 22},
 {(OperandType)8, (OperandType)2056, (OperandType)0, {0x23,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_RM, 22},
-{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 4718596, 0, 0, OP_ENC_MI, 22},
-{(OperandType)514, (OperandType)2097162, (OperandType)0, {0x81,0x00,0x00,0x00}, 4718592, 0, 0, OP_ENC_MI, 22},
-{(OperandType)2056, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 4719108, 0, 0, OP_ENC_MI, 22},
+{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 4718660, 0, 0, OP_ENC_MI, 22},
+{(OperandType)514, (OperandType)2097162, (OperandType)0, {0x81,0x00,0x00,0x00}, 4718656, 0, 0, OP_ENC_MI, 22},
+{(OperandType)2056, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 4719172, 0, 0, OP_ENC_MI, 22},
 {(OperandType)2097178, (OperandType)2097163, (OperandType)0, {0x25,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
 {(OperandType)2097179, (OperandType)2097167, (OperandType)0, {0x25,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_I, 22},
-{(OperandType)1028, (OperandType)2097163, (OperandType)0, {0x81,0x00,0x00,0x00}, 4718592, 0, 0, OP_ENC_MI, 22},
-{(OperandType)2056, (OperandType)2097167, (OperandType)0, {0x81,0x00,0x00,0x00}, 4719108, 0, 0, OP_ENC_MI, 22},
+{(OperandType)1028, (OperandType)2097163, (OperandType)0, {0x81,0x00,0x00,0x00}, 4718656, 0, 0, OP_ENC_MI, 22},
+{(OperandType)2056, (OperandType)2097167, (OperandType)0, {0x81,0x00,0x00,0x00}, 4719172, 0, 0, OP_ENC_MI, 22},
 {(OperandType)4, (OperandType)4, (OperandType)1028, {0xf2,0x00,0x00,0x00}, 32784, 0, 0, OP_ENC_RVM, 2},
 {(OperandType)8, (OperandType)8, (OperandType)2056, {0xf2,0x00,0x00,0x00}, 33296, 0, 0, OP_ENC_RVM, 2},
 {(OperandType)32, (OperandType)4128, (OperandType)0, {0x66,0xf,0x55,0x00}, 2, 0, 0, OP_ENC_RM, 1},
@@ -318,24 +318,24 @@ const Instruction INSTRUCTION_TABLE[] = {
 {(OperandType)514, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 4718593, 0, 0, OP_ENC_MI, 6},
 {(OperandType)1028, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 4718593, 0, 0, OP_ENC_MI, 6},
 {(OperandType)2056, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 4719109, 0, 0, OP_ENC_MI, 6},
-{(OperandType)514, (OperandType)2, (OperandType)0, {0xf,0xbb,0x00,0x00}, 1, 0, 0, OP_ENC_MR, 6},
-{(OperandType)1028, (OperandType)4, (OperandType)0, {0xf,0xbb,0x00,0x00}, 1, 0, 0, OP_ENC_MR, 6},
-{(OperandType)2056, (OperandType)8, (OperandType)0, {0xf,0xbb,0x00,0x00}, 517, 0, 0, OP_ENC_MR, 6},
-{(OperandType)514, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 7864321, 0, 0, OP_ENC_MI, 6},
-{(OperandType)1028, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 7864321, 0, 0, OP_ENC_MI, 6},
-{(OperandType)2056, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 7864837, 0, 0, OP_ENC_MI, 6},
-{(OperandType)514, (OperandType)2, (OperandType)0, {0xf,0xb3,0x00,0x00}, 1, 0, 0, OP_ENC_MR, 6},
-{(OperandType)1028, (OperandType)4, (OperandType)0, {0xf,0xb3,0x00,0x00}, 1, 0, 0, OP_ENC_MR, 6},
-{(OperandType)2056, (OperandType)8, (OperandType)0, {0xf,0xb3,0x00,0x00}, 517, 0, 0, OP_ENC_MR, 6},
-{(OperandType)514, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 6815745, 0, 0, OP_ENC_MI, 6},
-{(OperandType)1028, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 6815745, 0, 0, OP_ENC_MI, 6},
-{(OperandType)2056, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 6816261, 0, 0, OP_ENC_MI, 6},
-{(OperandType)514, (OperandType)2, (OperandType)0, {0xf,0xab,0x00,0x00}, 1, 0, 0, OP_ENC_MR, 6},
-{(OperandType)1028, (OperandType)4, (OperandType)0, {0xf,0xab,0x00,0x00}, 1, 0, 0, OP_ENC_MR, 6},
-{(OperandType)2056, (OperandType)8, (OperandType)0, {0xf,0xab,0x00,0x00}, 517, 0, 0, OP_ENC_MR, 6},
-{(OperandType)514, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 5767169, 0, 0, OP_ENC_MI, 6},
-{(OperandType)1028, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 5767169, 0, 0, OP_ENC_MI, 6},
-{(OperandType)2056, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 5767685, 0, 0, OP_ENC_MI, 6},
+{(OperandType)514, (OperandType)2, (OperandType)0, {0xf,0xbb,0x00,0x00}, 65, 0, 0, OP_ENC_MR, 6},
+{(OperandType)1028, (OperandType)4, (OperandType)0, {0xf,0xbb,0x00,0x00}, 65, 0, 0, OP_ENC_MR, 6},
+{(OperandType)2056, (OperandType)8, (OperandType)0, {0xf,0xbb,0x00,0x00}, 581, 0, 0, OP_ENC_MR, 6},
+{(OperandType)514, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 7864385, 0, 0, OP_ENC_MI, 6},
+{(OperandType)1028, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 7864385, 0, 0, OP_ENC_MI, 6},
+{(OperandType)2056, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 7864901, 0, 0, OP_ENC_MI, 6},
+{(OperandType)514, (OperandType)2, (OperandType)0, {0xf,0xb3,0x00,0x00}, 65, 0, 0, OP_ENC_MR, 6},
+{(OperandType)1028, (OperandType)4, (OperandType)0, {0xf,0xb3,0x00,0x00}, 65, 0, 0, OP_ENC_MR, 6},
+{(OperandType)2056, (OperandType)8, (OperandType)0, {0xf,0xb3,0x00,0x00}, 581, 0, 0, OP_ENC_MR, 6},
+{(OperandType)514, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 6815809, 0, 0, OP_ENC_MI, 6},
+{(OperandType)1028, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 6815809, 0, 0, OP_ENC_MI, 6},
+{(OperandType)2056, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 6816325, 0, 0, OP_ENC_MI, 6},
+{(OperandType)514, (OperandType)2, (OperandType)0, {0xf,0xab,0x00,0x00}, 65, 0, 0, OP_ENC_MR, 6},
+{(OperandType)1028, (OperandType)4, (OperandType)0, {0xf,0xab,0x00,0x00}, 65, 0, 0, OP_ENC_MR, 6},
+{(OperandType)2056, (OperandType)8, (OperandType)0, {0xf,0xab,0x00,0x00}, 581, 0, 0, OP_ENC_MR, 6},
+{(OperandType)514, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 5767233, 0, 0, OP_ENC_MI, 6},
+{(OperandType)1028, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 5767233, 0, 0, OP_ENC_MI, 6},
+{(OperandType)2056, (OperandType)2097161, (OperandType)0, {0xf,0xba,0x00,0x00}, 5767749, 0, 0, OP_ENC_MI, 6},
 {(OperandType)4, (OperandType)1028, (OperandType)4, {0xf5,0x00,0x00,0x00}, 32784, 0, 0, OP_ENC_RMV, 2},
 {(OperandType)8, (OperandType)2056, (OperandType)8, {0xf5,0x00,0x00,0x00}, 33296, 0, 0, OP_ENC_RMV, 2},
 {(OperandType)2056, (OperandType)0, (OperandType)0, {0xff,0x00,0x00,0x00}, 2621440, 0, 0, OP_ENC_M, 5},
@@ -472,19 +472,19 @@ const Instruction INSTRUCTION_TABLE[] = {
 {(OperandType)2056, (OperandType)2097167, (OperandType)0, {0x81,0x00,0x00,0x00}, 7864836, 0, 0, OP_ENC_MI, 22},
 {(OperandType)32, (OperandType)4128, (OperandType)2097161, {0x66,0xf,0xc2,0x00}, 2, 0, 0, OP_ENC_RMI, 1},
 {(OperandType)32, (OperandType)4128, (OperandType)2097161, {0xf,0xc2,0x00,0x00}, 1, 0, 0, OP_ENC_RMI, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xa6,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xa7,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 2},
-{(OperandType)32, (OperandType)2080, (OperandType)2097161, {0xf2,0xf,0xc2,0x00}, 2, 0, 0, OP_ENC_RMI, 2},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xa7,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xa6,0x00,0x00,0x00}, 256, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xa7,0x00,0x00,0x00}, 256, 0, 0, OP_ENC_ZO, 2},
+{(OperandType)32, (OperandType)2080, (OperandType)2097161, {0xf2,0xf,0xc2,0x00}, 258, 0, 0, OP_ENC_RMI, 2},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xa7,0x00,0x00,0x00}, 772, 0, 0, OP_ENC_ZO, 1},
 {(OperandType)32, (OperandType)1056, (OperandType)2097161, {0xf3,0xf,0xc2,0x00}, 2, 0, 0, OP_ENC_RMI, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xa7,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0xf,0xb0,0x00,0x00}, 1, 0, 0, OP_ENC_MR, 5},
-{(OperandType)514, (OperandType)2, (OperandType)0, {0xf,0xb1,0x00,0x00}, 1, 0, 0, OP_ENC_MR, 5},
-{(OperandType)1028, (OperandType)4, (OperandType)0, {0xf,0xb1,0x00,0x00}, 1, 0, 0, OP_ENC_MR, 5},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0xf,0xb0,0x00,0x00}, 5, 0, 0, OP_ENC_MR, 5},
-{(OperandType)2056, (OperandType)8, (OperandType)0, {0xf,0xb1,0x00,0x00}, 517, 0, 0, OP_ENC_MR, 5},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xa7,0x00,0x00,0x00}, 256, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0xf,0xb0,0x00,0x00}, 65, 0, 0, OP_ENC_MR, 5},
+{(OperandType)514, (OperandType)2, (OperandType)0, {0xf,0xb1,0x00,0x00}, 65, 0, 0, OP_ENC_MR, 5},
+{(OperandType)1028, (OperandType)4, (OperandType)0, {0xf,0xb1,0x00,0x00}, 65, 0, 0, OP_ENC_MR, 5},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0xf,0xb0,0x00,0x00}, 69, 0, 0, OP_ENC_MR, 5},
+{(OperandType)2056, (OperandType)8, (OperandType)0, {0xf,0xb1,0x00,0x00}, 581, 0, 0, OP_ENC_MR, 5},
 {(OperandType)4096, (OperandType)0, (OperandType)0, {0xf,0xc7,0x00,0x00}, 1573381, 0, 0, OP_ENC_M, 1},
-{(OperandType)2048, (OperandType)0, (OperandType)0, {0xf,0xc7,0x00,0x00}, 1572865, 0, 0, OP_ENC_M, 1},
+{(OperandType)2048, (OperandType)0, (OperandType)0, {0xf,0xc7,0x00,0x00}, 1572929, 0, 0, OP_ENC_M, 1},
 {(OperandType)32, (OperandType)2080, (OperandType)0, {0x66,0xf,0x2f,0x00}, 2, 0, 0, OP_ENC_RM, 1},
 {(OperandType)32, (OperandType)1056, (OperandType)0, {0xf,0x2f,0x00,0x00}, 1, 0, 0, OP_ENC_RM, 1},
 {(OperandType)0, (OperandType)0, (OperandType)0, {0xf,0xa2,0x00,0x00}, 1, 0, 0, OP_ENC_ZO, 1},
@@ -523,11 +523,11 @@ const Instruction INSTRUCTION_TABLE[] = {
 {(OperandType)8, (OperandType)1056, (OperandType)0, {0xf3,0xf,0x2c,0x00}, 518, 0, 0, OP_ENC_RM, 2},
 {(OperandType)0, (OperandType)0, (OperandType)0, {0x99,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
 {(OperandType)0, (OperandType)0, (OperandType)0, {0x98,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
-{(OperandType)257, (OperandType)0, (OperandType)0, {0xfe,0x00,0x00,0x00}, 1572864, 0, 0, OP_ENC_M, 5},
-{(OperandType)514, (OperandType)0, (OperandType)0, {0xff,0x00,0x00,0x00}, 1572864, 0, 0, OP_ENC_M, 5},
-{(OperandType)1028, (OperandType)0, (OperandType)0, {0xff,0x00,0x00,0x00}, 1572864, 0, 0, OP_ENC_M, 5},
-{(OperandType)257, (OperandType)0, (OperandType)0, {0xfe,0x00,0x00,0x00}, 1572868, 0, 0, OP_ENC_M, 5},
-{(OperandType)2056, (OperandType)0, (OperandType)0, {0xff,0x00,0x00,0x00}, 1573380, 0, 0, OP_ENC_M, 5},
+{(OperandType)257, (OperandType)0, (OperandType)0, {0xfe,0x00,0x00,0x00}, 1572928, 0, 0, OP_ENC_M, 5},
+{(OperandType)514, (OperandType)0, (OperandType)0, {0xff,0x00,0x00,0x00}, 1572928, 0, 0, OP_ENC_M, 5},
+{(OperandType)1028, (OperandType)0, (OperandType)0, {0xff,0x00,0x00,0x00}, 1572928, 0, 0, OP_ENC_M, 5},
+{(OperandType)257, (OperandType)0, (OperandType)0, {0xfe,0x00,0x00,0x00}, 1572932, 0, 0, OP_ENC_M, 5},
+{(OperandType)2056, (OperandType)0, (OperandType)0, {0xff,0x00,0x00,0x00}, 1573444, 0, 0, OP_ENC_M, 5},
 {(OperandType)257, (OperandType)0, (OperandType)0, {0xf6,0x00,0x00,0x00}, 6815744, 0, 0, OP_ENC_M, 5},
 {(OperandType)514, (OperandType)0, (OperandType)0, {0xf7,0x00,0x00,0x00}, 6815744, 0, 0, OP_ENC_M, 5},
 {(OperandType)1028, (OperandType)0, (OperandType)0, {0xf7,0x00,0x00,0x00}, 6815744, 0, 0, OP_ENC_M, 5},
@@ -732,17 +732,17 @@ const Instruction INSTRUCTION_TABLE[] = {
 {(OperandType)2097174, (OperandType)2097161, (OperandType)0, {0xe4,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 6},
 {(OperandType)2097176, (OperandType)2097161, (OperandType)0, {0xe5,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 6},
 {(OperandType)2097178, (OperandType)2097161, (OperandType)0, {0xe5,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 6},
-{(OperandType)257, (OperandType)0, (OperandType)0, {0xfe,0x00,0x00,0x00}, 524288, 0, 0, OP_ENC_M, 5},
-{(OperandType)514, (OperandType)0, (OperandType)0, {0xff,0x00,0x00,0x00}, 524288, 0, 0, OP_ENC_M, 5},
-{(OperandType)1028, (OperandType)0, (OperandType)0, {0xff,0x00,0x00,0x00}, 524288, 0, 0, OP_ENC_M, 5},
-{(OperandType)257, (OperandType)0, (OperandType)0, {0xfe,0x00,0x00,0x00}, 524292, 0, 0, OP_ENC_M, 5},
-{(OperandType)2056, (OperandType)0, (OperandType)0, {0xff,0x00,0x00,0x00}, 524804, 0, 0, OP_ENC_M, 5},
+{(OperandType)257, (OperandType)0, (OperandType)0, {0xfe,0x00,0x00,0x00}, 524352, 0, 0, OP_ENC_M, 5},
+{(OperandType)514, (OperandType)0, (OperandType)0, {0xff,0x00,0x00,0x00}, 524352, 0, 0, OP_ENC_M, 5},
+{(OperandType)1028, (OperandType)0, (OperandType)0, {0xff,0x00,0x00,0x00}, 524352, 0, 0, OP_ENC_M, 5},
+{(OperandType)257, (OperandType)0, (OperandType)0, {0xfe,0x00,0x00,0x00}, 524356, 0, 0, OP_ENC_M, 5},
+{(OperandType)2056, (OperandType)0, (OperandType)0, {0xff,0x00,0x00,0x00}, 524868, 0, 0, OP_ENC_M, 5},
 {(OperandType)4, (OperandType)0, (OperandType)0, {0xf3,0xf,0xae,0x00}, 5767170, 0, 0, OP_ENC_R, 1},
 {(OperandType)8, (OperandType)0, (OperandType)0, {0xf3,0xf,0xae,0x00}, 5767686, 0, 0, OP_ENC_R, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0x6c,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0x6d,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0x6c,0x00,0x00,0x00}, 128, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0x6d,0x00,0x00,0x00}, 128, 0, 0, OP_ENC_ZO, 1},
 {(OperandType)32, (OperandType)1056, (OperandType)2097161, {0x66,0xf,0x3a,0x21}, 3, 0, 0, OP_ENC_RMI, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0x6d,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0x6d,0x00,0x00,0x00}, 128, 0, 0, OP_ENC_ZO, 1},
 {(OperandType)0, (OperandType)0, (OperandType)0, {0xf,0x8,0x00,0x00}, 1, 0, 0, OP_ENC_ZO, 1},
 {(OperandType)2097156, (OperandType)0, (OperandType)0, {0xf,0x1,0x00,0x00}, 7864321, 0, 0, OP_ENC_M, 1},
 {(OperandType)8, (OperandType)4096, (OperandType)0, {0x66,0xf,0x38,0x82}, 3, 0, 0, OP_ENC_RM, 1},
@@ -840,10 +840,10 @@ const Instruction INSTRUCTION_TABLE[] = {
 {(OperandType)514, (OperandType)0, (OperandType)0, {0xf,0x0,0x00,0x00}, 2621441, 0, 0, OP_ENC_M, 1},
 {(OperandType)514, (OperandType)0, (OperandType)0, {0xf,0x1,0x00,0x00}, 6815745, 0, 0, OP_ENC_M, 1},
 {(OperandType)32, (OperandType)32, (OperandType)0, {0xf3,0xf,0x38,0xdc}, 3, 0, 0, OP_ENC_RM, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xac,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xad,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xad,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_ZO, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xad,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xac,0x00,0x00,0x00}, 128, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xad,0x00,0x00,0x00}, 128, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xad,0x00,0x00,0x00}, 644, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xad,0x00,0x00,0x00}, 128, 0, 0, OP_ENC_ZO, 1},
 {(OperandType)2097152, (OperandType)0, (OperandType)0, {0xe2,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_D, 1},
 {(OperandType)2097152, (OperandType)0, (OperandType)0, {0xe1,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_D, 1},
 {(OperandType)2097152, (OperandType)0, (OperandType)0, {0xe0,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_D, 1},
@@ -961,18 +961,18 @@ const Instruction INSTRUCTION_TABLE[] = {
 {(OperandType)32, (OperandType)2056, (OperandType)0, {0x66,0xf,0x6e,0x00}, 518, 0, 0, OP_ENC_RM, 8},
 {(OperandType)2056, (OperandType)32, (OperandType)0, {0x66,0xf,0x7e,0x00}, 518, 0, 0, OP_ENC_MR, 8},
 {(OperandType)32, (OperandType)16, (OperandType)0, {0xf3,0xf,0xd6,0x00}, 2, 0, 0, OP_ENC_RM, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xa4,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xa5,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 4},
-{(OperandType)32, (OperandType)32, (OperandType)0, {0xf2,0xf,0x10,0x00}, 2, 0, 0, OP_ENC_RM, 4},
-{(OperandType)32, (OperandType)2048, (OperandType)0, {0xf2,0xf,0x10,0x00}, 2, 0, 0, OP_ENC_RM, 4},
-{(OperandType)2080, (OperandType)32, (OperandType)0, {0xf2,0xf,0x11,0x00}, 2, 0, 0, OP_ENC_MR, 4},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xa4,0x00,0x00,0x00}, 128, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xa5,0x00,0x00,0x00}, 128, 0, 0, OP_ENC_ZO, 4},
+{(OperandType)32, (OperandType)32, (OperandType)0, {0xf2,0xf,0x10,0x00}, 130, 0, 0, OP_ENC_RM, 4},
+{(OperandType)32, (OperandType)2048, (OperandType)0, {0xf2,0xf,0x10,0x00}, 130, 0, 0, OP_ENC_RM, 4},
+{(OperandType)2080, (OperandType)32, (OperandType)0, {0xf2,0xf,0x11,0x00}, 130, 0, 0, OP_ENC_MR, 4},
 {(OperandType)32, (OperandType)4128, (OperandType)0, {0xf3,0xf,0x16,0x00}, 2, 0, 0, OP_ENC_RM, 1},
 {(OperandType)32, (OperandType)4128, (OperandType)0, {0xf3,0xf,0x12,0x00}, 2, 0, 0, OP_ENC_RM, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xa5,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xa5,0x00,0x00,0x00}, 644, 0, 0, OP_ENC_ZO, 1},
 {(OperandType)32, (OperandType)32, (OperandType)0, {0xf3,0xf,0x10,0x00}, 2, 0, 0, OP_ENC_RM, 3},
 {(OperandType)32, (OperandType)1024, (OperandType)0, {0xf3,0xf,0x10,0x00}, 2, 0, 0, OP_ENC_RM, 3},
 {(OperandType)1056, (OperandType)32, (OperandType)0, {0xf3,0xf,0x11,0x00}, 2, 0, 0, OP_ENC_MR, 3},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xa5,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xa5,0x00,0x00,0x00}, 128, 0, 0, OP_ENC_ZO, 1},
 {(OperandType)2, (OperandType)257, (OperandType)0, {0xf,0xbe,0x00,0x00}, 1, 0, 0, OP_ENC_RM, 5},
 {(OperandType)4, (OperandType)257, (OperandType)0, {0xf,0xbe,0x00,0x00}, 1, 0, 0, OP_ENC_RM, 5},
 {(OperandType)4, (OperandType)514, (OperandType)0, {0xf,0xbf,0x00,0x00}, 1, 0, 0, OP_ENC_RM, 5},
@@ -1001,41 +1001,41 @@ const Instruction INSTRUCTION_TABLE[] = {
 {(OperandType)4, (OperandType)4, (OperandType)1028, {0xf6,0x00,0x00,0x00}, 35856, 0, 0, OP_ENC_RVM, 2},
 {(OperandType)8, (OperandType)8, (OperandType)2056, {0xf6,0x00,0x00,0x00}, 36368, 0, 0, OP_ENC_RVM, 2},
 {(OperandType)0, (OperandType)0, (OperandType)0, {0xf,0x1,0xc9,0x00}, 2, 0, 0, OP_ENC_ZO, 1},
-{(OperandType)257, (OperandType)0, (OperandType)0, {0xf6,0x00,0x00,0x00}, 3670016, 0, 0, OP_ENC_M, 5},
-{(OperandType)514, (OperandType)0, (OperandType)0, {0xf7,0x00,0x00,0x00}, 3670016, 0, 0, OP_ENC_M, 5},
-{(OperandType)1028, (OperandType)0, (OperandType)0, {0xf7,0x00,0x00,0x00}, 3670016, 0, 0, OP_ENC_M, 5},
-{(OperandType)257, (OperandType)0, (OperandType)0, {0xf6,0x00,0x00,0x00}, 3670020, 0, 0, OP_ENC_M, 5},
-{(OperandType)2056, (OperandType)0, (OperandType)0, {0xf7,0x00,0x00,0x00}, 3670532, 0, 0, OP_ENC_M, 5},
+{(OperandType)257, (OperandType)0, (OperandType)0, {0xf6,0x00,0x00,0x00}, 3670080, 0, 0, OP_ENC_M, 5},
+{(OperandType)514, (OperandType)0, (OperandType)0, {0xf7,0x00,0x00,0x00}, 3670080, 0, 0, OP_ENC_M, 5},
+{(OperandType)1028, (OperandType)0, (OperandType)0, {0xf7,0x00,0x00,0x00}, 3670080, 0, 0, OP_ENC_M, 5},
+{(OperandType)257, (OperandType)0, (OperandType)0, {0xf6,0x00,0x00,0x00}, 3670084, 0, 0, OP_ENC_M, 5},
+{(OperandType)2056, (OperandType)0, (OperandType)0, {0xf7,0x00,0x00,0x00}, 3670596, 0, 0, OP_ENC_M, 5},
 {(OperandType)0, (OperandType)0, (OperandType)0, {0x90,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 3},
 {(OperandType)514, (OperandType)0, (OperandType)0, {0xf,0x1f,0x00,0x00}, 524289, 0, 0, OP_ENC_M, 3},
 {(OperandType)1028, (OperandType)0, (OperandType)0, {0xf,0x1f,0x00,0x00}, 524289, 0, 0, OP_ENC_M, 3},
-{(OperandType)257, (OperandType)0, (OperandType)0, {0xf6,0x00,0x00,0x00}, 2621440, 0, 0, OP_ENC_M, 5},
-{(OperandType)514, (OperandType)0, (OperandType)0, {0xf7,0x00,0x00,0x00}, 2621440, 0, 0, OP_ENC_M, 5},
-{(OperandType)1028, (OperandType)0, (OperandType)0, {0xf7,0x00,0x00,0x00}, 2621440, 0, 0, OP_ENC_M, 5},
-{(OperandType)257, (OperandType)0, (OperandType)0, {0xf6,0x00,0x00,0x00}, 2621444, 0, 0, OP_ENC_M, 5},
-{(OperandType)2056, (OperandType)0, (OperandType)0, {0xf7,0x00,0x00,0x00}, 2621956, 0, 0, OP_ENC_M, 5},
+{(OperandType)257, (OperandType)0, (OperandType)0, {0xf6,0x00,0x00,0x00}, 2621504, 0, 0, OP_ENC_M, 5},
+{(OperandType)514, (OperandType)0, (OperandType)0, {0xf7,0x00,0x00,0x00}, 2621504, 0, 0, OP_ENC_M, 5},
+{(OperandType)1028, (OperandType)0, (OperandType)0, {0xf7,0x00,0x00,0x00}, 2621504, 0, 0, OP_ENC_M, 5},
+{(OperandType)257, (OperandType)0, (OperandType)0, {0xf6,0x00,0x00,0x00}, 2621508, 0, 0, OP_ENC_M, 5},
+{(OperandType)2056, (OperandType)0, (OperandType)0, {0xf7,0x00,0x00,0x00}, 2622020, 0, 0, OP_ENC_M, 5},
 {(OperandType)2097174, (OperandType)2097161, (OperandType)0, {0xc,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0x8,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
-{(OperandType)514, (OperandType)2, (OperandType)0, {0x9,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
-{(OperandType)1028, (OperandType)4, (OperandType)0, {0x9,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0x8,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
+{(OperandType)514, (OperandType)2, (OperandType)0, {0x9,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
+{(OperandType)1028, (OperandType)4, (OperandType)0, {0x9,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
 {(OperandType)1, (OperandType)257, (OperandType)0, {0xa,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)2, (OperandType)514, (OperandType)0, {0xb,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)4, (OperandType)1028, (OperandType)0, {0xb,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)2097176, (OperandType)2097162, (OperandType)0, {0xd,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
-{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 1572864, 0, 0, OP_ENC_MI, 22},
-{(OperandType)514, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 1572864, 0, 0, OP_ENC_MI, 22},
-{(OperandType)1028, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 1572864, 0, 0, OP_ENC_MI, 22},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0x8,0x00,0x00,0x00}, 4, 0, 0, OP_ENC_MR, 22},
-{(OperandType)2056, (OperandType)8, (OperandType)0, {0x9,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_MR, 22},
+{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 1572928, 0, 0, OP_ENC_MI, 22},
+{(OperandType)514, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 1572928, 0, 0, OP_ENC_MI, 22},
+{(OperandType)1028, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 1572928, 0, 0, OP_ENC_MI, 22},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0x8,0x00,0x00,0x00}, 68, 0, 0, OP_ENC_MR, 22},
+{(OperandType)2056, (OperandType)8, (OperandType)0, {0x9,0x00,0x00,0x00}, 580, 0, 0, OP_ENC_MR, 22},
 {(OperandType)1, (OperandType)257, (OperandType)0, {0xa,0x00,0x00,0x00}, 4, 0, 0, OP_ENC_RM, 22},
 {(OperandType)8, (OperandType)2056, (OperandType)0, {0xb,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_RM, 22},
-{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 1572868, 0, 0, OP_ENC_MI, 22},
-{(OperandType)514, (OperandType)2097162, (OperandType)0, {0x81,0x00,0x00,0x00}, 1572864, 0, 0, OP_ENC_MI, 22},
-{(OperandType)2056, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 1573380, 0, 0, OP_ENC_MI, 22},
+{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 1572932, 0, 0, OP_ENC_MI, 22},
+{(OperandType)514, (OperandType)2097162, (OperandType)0, {0x81,0x00,0x00,0x00}, 1572928, 0, 0, OP_ENC_MI, 22},
+{(OperandType)2056, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 1573444, 0, 0, OP_ENC_MI, 22},
 {(OperandType)2097178, (OperandType)2097163, (OperandType)0, {0xd,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
 {(OperandType)2097179, (OperandType)2097167, (OperandType)0, {0xd,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_I, 22},
-{(OperandType)1028, (OperandType)2097163, (OperandType)0, {0x81,0x00,0x00,0x00}, 1572864, 0, 0, OP_ENC_MI, 22},
-{(OperandType)2056, (OperandType)2097167, (OperandType)0, {0x81,0x00,0x00,0x00}, 1573380, 0, 0, OP_ENC_MI, 22},
+{(OperandType)1028, (OperandType)2097163, (OperandType)0, {0x81,0x00,0x00,0x00}, 1572928, 0, 0, OP_ENC_MI, 22},
+{(OperandType)2056, (OperandType)2097167, (OperandType)0, {0x81,0x00,0x00,0x00}, 1573444, 0, 0, OP_ENC_MI, 22},
 {(OperandType)32, (OperandType)4128, (OperandType)0, {0x66,0xf,0x56,0x00}, 2, 0, 0, OP_ENC_RM, 1},
 {(OperandType)32, (OperandType)4128, (OperandType)0, {0xf,0x56,0x00,0x00}, 1, 0, 0, OP_ENC_RM, 1},
 {(OperandType)0, (OperandType)0, (OperandType)0, {0xee,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 6},
@@ -1044,9 +1044,9 @@ const Instruction INSTRUCTION_TABLE[] = {
 {(OperandType)2097161, (OperandType)2097174, (OperandType)0, {0xe6,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 6},
 {(OperandType)2097161, (OperandType)2097176, (OperandType)0, {0xe7,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 6},
 {(OperandType)2097161, (OperandType)2097178, (OperandType)0, {0xe7,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 6},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0x6e,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0x6f,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0x6f,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0x6e,0x00,0x00,0x00}, 128, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0x6f,0x00,0x00,0x00}, 128, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0x6f,0x00,0x00,0x00}, 128, 0, 0, OP_ENC_ZO, 1},
 {(OperandType)16, (OperandType)2064, (OperandType)0, {0xf,0x38,0x1c,0x00}, 2, 0, 0, OP_ENC_RM, 2},
 {(OperandType)32, (OperandType)4128, (OperandType)0, {0x66,0xf,0x38,0x1c}, 3, 0, 0, OP_ENC_RM, 2},
 {(OperandType)16, (OperandType)2064, (OperandType)0, {0xf,0x38,0x1e,0x00}, 2, 0, 0, OP_ENC_RM, 2},
@@ -1423,31 +1423,31 @@ const Instruction INSTRUCTION_TABLE[] = {
 {(OperandType)8, (OperandType)2056, (OperandType)8, {0xf7,0x00,0x00,0x00}, 35344, 0, 0, OP_ENC_RMV, 2},
 {(OperandType)0, (OperandType)0, (OperandType)0, {0xf3,0xf,0x1,0xea}, 3, 0, 0, OP_ENC_ZO, 1},
 {(OperandType)2097174, (OperandType)2097161, (OperandType)0, {0x1c,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0x18,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
-{(OperandType)514, (OperandType)2, (OperandType)0, {0x19,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
-{(OperandType)1028, (OperandType)4, (OperandType)0, {0x19,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0x18,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
+{(OperandType)514, (OperandType)2, (OperandType)0, {0x19,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
+{(OperandType)1028, (OperandType)4, (OperandType)0, {0x19,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
 {(OperandType)1, (OperandType)257, (OperandType)0, {0x1a,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)2, (OperandType)514, (OperandType)0, {0x1b,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)4, (OperandType)1028, (OperandType)0, {0x1b,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)2097176, (OperandType)2097162, (OperandType)0, {0x1d,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
-{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 3670016, 0, 0, OP_ENC_MI, 22},
-{(OperandType)514, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 3670016, 0, 0, OP_ENC_MI, 22},
-{(OperandType)1028, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 3670016, 0, 0, OP_ENC_MI, 22},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0x18,0x00,0x00,0x00}, 4, 0, 0, OP_ENC_MR, 22},
-{(OperandType)2056, (OperandType)8, (OperandType)0, {0x19,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_MR, 22},
+{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 3670080, 0, 0, OP_ENC_MI, 22},
+{(OperandType)514, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 3670080, 0, 0, OP_ENC_MI, 22},
+{(OperandType)1028, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 3670080, 0, 0, OP_ENC_MI, 22},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0x18,0x00,0x00,0x00}, 68, 0, 0, OP_ENC_MR, 22},
+{(OperandType)2056, (OperandType)8, (OperandType)0, {0x19,0x00,0x00,0x00}, 580, 0, 0, OP_ENC_MR, 22},
 {(OperandType)1, (OperandType)257, (OperandType)0, {0x1a,0x00,0x00,0x00}, 4, 0, 0, OP_ENC_RM, 22},
 {(OperandType)8, (OperandType)2056, (OperandType)0, {0x1b,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_RM, 22},
-{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 3670020, 0, 0, OP_ENC_MI, 22},
-{(OperandType)514, (OperandType)2097162, (OperandType)0, {0x81,0x00,0x00,0x00}, 3670016, 0, 0, OP_ENC_MI, 22},
-{(OperandType)2056, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 3670532, 0, 0, OP_ENC_MI, 22},
+{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 3670084, 0, 0, OP_ENC_MI, 22},
+{(OperandType)514, (OperandType)2097162, (OperandType)0, {0x81,0x00,0x00,0x00}, 3670080, 0, 0, OP_ENC_MI, 22},
+{(OperandType)2056, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 3670596, 0, 0, OP_ENC_MI, 22},
 {(OperandType)2097178, (OperandType)2097163, (OperandType)0, {0x1d,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
 {(OperandType)2097179, (OperandType)2097167, (OperandType)0, {0x1d,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_I, 22},
-{(OperandType)1028, (OperandType)2097163, (OperandType)0, {0x81,0x00,0x00,0x00}, 3670016, 0, 0, OP_ENC_MI, 22},
-{(OperandType)2056, (OperandType)2097167, (OperandType)0, {0x81,0x00,0x00,0x00}, 3670532, 0, 0, OP_ENC_MI, 22},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xae,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xaf,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xaf,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_ZO, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xaf,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)1028, (OperandType)2097163, (OperandType)0, {0x81,0x00,0x00,0x00}, 3670080, 0, 0, OP_ENC_MI, 22},
+{(OperandType)2056, (OperandType)2097167, (OperandType)0, {0x81,0x00,0x00,0x00}, 3670596, 0, 0, OP_ENC_MI, 22},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xae,0x00,0x00,0x00}, 256, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xaf,0x00,0x00,0x00}, 256, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xaf,0x00,0x00,0x00}, 772, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xaf,0x00,0x00,0x00}, 256, 0, 0, OP_ENC_ZO, 1},
 {(OperandType)8, (OperandType)0, (OperandType)0, {0xf3,0xf,0xc7,0x00}, 6815746, 0, 0, OP_ENC_R, 1},
 {(OperandType)0, (OperandType)0, (OperandType)0, {0xf,0x1,0xe8,0x00}, 2, 0, 0, OP_ENC_ZO, 1},
 {(OperandType)257, (OperandType)0, (OperandType)0, {0xf,0x97,0x00,0x00}, 1, 0, 0, OP_ENC_M, 2},
@@ -1582,35 +1582,35 @@ const Instruction INSTRUCTION_TABLE[] = {
 {(OperandType)0, (OperandType)0, (OperandType)0, {0xfd,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
 {(OperandType)0, (OperandType)0, (OperandType)0, {0xfb,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
 {(OperandType)1024, (OperandType)0, (OperandType)0, {0xf,0xae,0x00,0x00}, 3670017, 0, 0, OP_ENC_M, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xaa,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xab,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xab,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_ZO, 1},
-{(OperandType)0, (OperandType)0, (OperandType)0, {0xab,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xaa,0x00,0x00,0x00}, 128, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xab,0x00,0x00,0x00}, 128, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xab,0x00,0x00,0x00}, 644, 0, 0, OP_ENC_ZO, 1},
+{(OperandType)0, (OperandType)0, (OperandType)0, {0xab,0x00,0x00,0x00}, 128, 0, 0, OP_ENC_ZO, 1},
 {(OperandType)514, (OperandType)0, (OperandType)0, {0xf,0x0,0x00,0x00}, 1572865, 0, 0, OP_ENC_M, 1},
 {(OperandType)16384, (OperandType)0, (OperandType)0, {0x49,0x00,0x00,0x00}, 558096, 0, 0, OP_ENC_M, 1},
 {(OperandType)0, (OperandType)0, (OperandType)0, {0xf3,0xf,0x1,0xef}, 3, 0, 0, OP_ENC_ZO, 1},
 {(OperandType)2097174, (OperandType)2097161, (OperandType)0, {0x2c,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0x28,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
-{(OperandType)514, (OperandType)2, (OperandType)0, {0x29,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
-{(OperandType)1028, (OperandType)4, (OperandType)0, {0x29,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0x28,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
+{(OperandType)514, (OperandType)2, (OperandType)0, {0x29,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
+{(OperandType)1028, (OperandType)4, (OperandType)0, {0x29,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
 {(OperandType)1, (OperandType)257, (OperandType)0, {0x2a,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)2, (OperandType)514, (OperandType)0, {0x2b,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)4, (OperandType)1028, (OperandType)0, {0x2b,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)2097176, (OperandType)2097162, (OperandType)0, {0x2d,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
-{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 5767168, 0, 0, OP_ENC_MI, 22},
-{(OperandType)514, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 5767168, 0, 0, OP_ENC_MI, 22},
-{(OperandType)1028, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 5767168, 0, 0, OP_ENC_MI, 22},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0x28,0x00,0x00,0x00}, 4, 0, 0, OP_ENC_MR, 22},
-{(OperandType)2056, (OperandType)8, (OperandType)0, {0x29,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_MR, 22},
+{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 5767232, 0, 0, OP_ENC_MI, 22},
+{(OperandType)514, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 5767232, 0, 0, OP_ENC_MI, 22},
+{(OperandType)1028, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 5767232, 0, 0, OP_ENC_MI, 22},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0x28,0x00,0x00,0x00}, 68, 0, 0, OP_ENC_MR, 22},
+{(OperandType)2056, (OperandType)8, (OperandType)0, {0x29,0x00,0x00,0x00}, 580, 0, 0, OP_ENC_MR, 22},
 {(OperandType)1, (OperandType)257, (OperandType)0, {0x2a,0x00,0x00,0x00}, 4, 0, 0, OP_ENC_RM, 22},
 {(OperandType)8, (OperandType)2056, (OperandType)0, {0x2b,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_RM, 22},
-{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 5767172, 0, 0, OP_ENC_MI, 22},
-{(OperandType)514, (OperandType)2097162, (OperandType)0, {0x81,0x00,0x00,0x00}, 5767168, 0, 0, OP_ENC_MI, 22},
-{(OperandType)2056, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 5767684, 0, 0, OP_ENC_MI, 22},
+{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 5767236, 0, 0, OP_ENC_MI, 22},
+{(OperandType)514, (OperandType)2097162, (OperandType)0, {0x81,0x00,0x00,0x00}, 5767232, 0, 0, OP_ENC_MI, 22},
+{(OperandType)2056, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 5767748, 0, 0, OP_ENC_MI, 22},
 {(OperandType)2097178, (OperandType)2097163, (OperandType)0, {0x2d,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
 {(OperandType)2097179, (OperandType)2097167, (OperandType)0, {0x2d,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_I, 22},
-{(OperandType)1028, (OperandType)2097163, (OperandType)0, {0x81,0x00,0x00,0x00}, 5767168, 0, 0, OP_ENC_MI, 22},
-{(OperandType)2056, (OperandType)2097167, (OperandType)0, {0x81,0x00,0x00,0x00}, 5767684, 0, 0, OP_ENC_MI, 22},
+{(OperandType)1028, (OperandType)2097163, (OperandType)0, {0x81,0x00,0x00,0x00}, 5767232, 0, 0, OP_ENC_MI, 22},
+{(OperandType)2056, (OperandType)2097167, (OperandType)0, {0x81,0x00,0x00,0x00}, 5767748, 0, 0, OP_ENC_MI, 22},
 {(OperandType)32, (OperandType)4128, (OperandType)0, {0x66,0xf,0x5c,0x00}, 2, 0, 0, OP_ENC_RM, 1},
 {(OperandType)32, (OperandType)4128, (OperandType)0, {0xf,0x5c,0x00,0x00}, 1, 0, 0, OP_ENC_RM, 1},
 {(OperandType)32, (OperandType)2080, (OperandType)0, {0xf2,0xf,0x5c,0x00}, 2, 0, 0, OP_ENC_RM, 1},
@@ -2345,11 +2345,11 @@ const Instruction INSTRUCTION_TABLE[] = {
 {(OperandType)1024, (OperandType)4, (OperandType)0, {0x66,0xf,0x38,0xf5}, 3, 0, 0, OP_ENC_MR, 1},
 {(OperandType)2048, (OperandType)8, (OperandType)0, {0x66,0xf,0x38,0xf5}, 519, 0, 0, OP_ENC_MR, 1},
 {(OperandType)2097161, (OperandType)0, (OperandType)0, {0xc6,0xf8,0x00,0x00}, 1, 0, 0, OP_ENC_I, 1},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0xf,0xc0,0x00,0x00}, 1, 0, 0, OP_ENC_MR, 5},
-{(OperandType)514, (OperandType)2, (OperandType)0, {0xf,0xc1,0x00,0x00}, 1, 0, 0, OP_ENC_MR, 5},
-{(OperandType)1028, (OperandType)4, (OperandType)0, {0xf,0xc1,0x00,0x00}, 1, 0, 0, OP_ENC_MR, 5},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0xf,0xc0,0x00,0x00}, 5, 0, 0, OP_ENC_MR, 5},
-{(OperandType)2056, (OperandType)8, (OperandType)0, {0xf,0xc1,0x00,0x00}, 517, 0, 0, OP_ENC_MR, 5},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0xf,0xc0,0x00,0x00}, 65, 0, 0, OP_ENC_MR, 5},
+{(OperandType)514, (OperandType)2, (OperandType)0, {0xf,0xc1,0x00,0x00}, 65, 0, 0, OP_ENC_MR, 5},
+{(OperandType)1028, (OperandType)4, (OperandType)0, {0xf,0xc1,0x00,0x00}, 65, 0, 0, OP_ENC_MR, 5},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0xf,0xc0,0x00,0x00}, 69, 0, 0, OP_ENC_MR, 5},
+{(OperandType)2056, (OperandType)8, (OperandType)0, {0xf,0xc1,0x00,0x00}, 581, 0, 0, OP_ENC_MR, 5},
 {(OperandType)2097153, (OperandType)0, (OperandType)0, {0xc7,0xf8,0x00,0x00}, 1, 0, 0, OP_ENC_D, 2},
 {(OperandType)2097154, (OperandType)0, (OperandType)0, {0xc7,0xf8,0x00,0x00}, 1, 0, 0, OP_ENC_D, 2},
 {(OperandType)2097176, (OperandType)2, (OperandType)0, {0x90,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_O, 16},
@@ -2358,15 +2358,15 @@ const Instruction INSTRUCTION_TABLE[] = {
 {(OperandType)4, (OperandType)2097178, (OperandType)0, {0x90,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_O, 16},
 {(OperandType)2097179, (OperandType)8, (OperandType)0, {0x90,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_O, 16},
 {(OperandType)8, (OperandType)2097179, (OperandType)0, {0x90,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_O, 16},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0x86,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 16},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0x86,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 16},
 {(OperandType)1, (OperandType)257, (OperandType)0, {0x86,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 16},
-{(OperandType)514, (OperandType)2, (OperandType)0, {0x87,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 16},
+{(OperandType)514, (OperandType)2, (OperandType)0, {0x87,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 16},
 {(OperandType)2, (OperandType)514, (OperandType)0, {0x87,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 16},
-{(OperandType)1028, (OperandType)4, (OperandType)0, {0x87,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 16},
+{(OperandType)1028, (OperandType)4, (OperandType)0, {0x87,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 16},
 {(OperandType)4, (OperandType)1028, (OperandType)0, {0x87,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 16},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0x86,0x00,0x00,0x00}, 4, 0, 0, OP_ENC_MR, 16},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0x86,0x00,0x00,0x00}, 68, 0, 0, OP_ENC_MR, 16},
 {(OperandType)1, (OperandType)257, (OperandType)0, {0x86,0x00,0x00,0x00}, 4, 0, 0, OP_ENC_RM, 16},
-{(OperandType)2056, (OperandType)8, (OperandType)0, {0x87,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_MR, 16},
+{(OperandType)2056, (OperandType)8, (OperandType)0, {0x87,0x00,0x00,0x00}, 580, 0, 0, OP_ENC_MR, 16},
 {(OperandType)8, (OperandType)2056, (OperandType)0, {0x87,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_RM, 16},
 {(OperandType)0, (OperandType)0, (OperandType)0, {0xf,0x1,0xd5,0x00}, 2, 0, 0, OP_ENC_ZO, 1},
 {(OperandType)0, (OperandType)0, (OperandType)0, {0xf,0x1,0xd0,0x00}, 2, 0, 0, OP_ENC_ZO, 1},
@@ -2374,27 +2374,27 @@ const Instruction INSTRUCTION_TABLE[] = {
 {(OperandType)0, (OperandType)0, (OperandType)0, {0xd7,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_ZO, 2},
 {(OperandType)0, (OperandType)0, (OperandType)0, {0xd7,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_ZO, 2},
 {(OperandType)2097174, (OperandType)2097161, (OperandType)0, {0x34,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0x30,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
-{(OperandType)514, (OperandType)2, (OperandType)0, {0x31,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
-{(OperandType)1028, (OperandType)4, (OperandType)0, {0x31,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_MR, 22},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0x30,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
+{(OperandType)514, (OperandType)2, (OperandType)0, {0x31,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
+{(OperandType)1028, (OperandType)4, (OperandType)0, {0x31,0x00,0x00,0x00}, 64, 0, 0, OP_ENC_MR, 22},
 {(OperandType)1, (OperandType)257, (OperandType)0, {0x32,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)2, (OperandType)514, (OperandType)0, {0x33,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)4, (OperandType)1028, (OperandType)0, {0x33,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_RM, 22},
 {(OperandType)2097176, (OperandType)2097162, (OperandType)0, {0x35,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
-{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 6815744, 0, 0, OP_ENC_MI, 22},
-{(OperandType)514, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 6815744, 0, 0, OP_ENC_MI, 22},
-{(OperandType)1028, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 6815744, 0, 0, OP_ENC_MI, 22},
-{(OperandType)257, (OperandType)1, (OperandType)0, {0x30,0x00,0x00,0x00}, 4, 0, 0, OP_ENC_MR, 22},
-{(OperandType)2056, (OperandType)8, (OperandType)0, {0x31,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_MR, 22},
+{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 6815808, 0, 0, OP_ENC_MI, 22},
+{(OperandType)514, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 6815808, 0, 0, OP_ENC_MI, 22},
+{(OperandType)1028, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 6815808, 0, 0, OP_ENC_MI, 22},
+{(OperandType)257, (OperandType)1, (OperandType)0, {0x30,0x00,0x00,0x00}, 68, 0, 0, OP_ENC_MR, 22},
+{(OperandType)2056, (OperandType)8, (OperandType)0, {0x31,0x00,0x00,0x00}, 580, 0, 0, OP_ENC_MR, 22},
 {(OperandType)1, (OperandType)257, (OperandType)0, {0x32,0x00,0x00,0x00}, 4, 0, 0, OP_ENC_RM, 22},
 {(OperandType)8, (OperandType)2056, (OperandType)0, {0x33,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_RM, 22},
-{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 6815748, 0, 0, OP_ENC_MI, 22},
-{(OperandType)514, (OperandType)2097162, (OperandType)0, {0x81,0x00,0x00,0x00}, 6815744, 0, 0, OP_ENC_MI, 22},
-{(OperandType)2056, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 6816260, 0, 0, OP_ENC_MI, 22},
+{(OperandType)257, (OperandType)2097161, (OperandType)0, {0x80,0x00,0x00,0x00}, 6815812, 0, 0, OP_ENC_MI, 22},
+{(OperandType)514, (OperandType)2097162, (OperandType)0, {0x81,0x00,0x00,0x00}, 6815808, 0, 0, OP_ENC_MI, 22},
+{(OperandType)2056, (OperandType)2097165, (OperandType)0, {0x83,0x00,0x00,0x00}, 6816324, 0, 0, OP_ENC_MI, 22},
 {(OperandType)2097178, (OperandType)2097163, (OperandType)0, {0x35,0x00,0x00,0x00}, 0, 0, 0, OP_ENC_I, 22},
 {(OperandType)2097179, (OperandType)2097167, (OperandType)0, {0x35,0x00,0x00,0x00}, 516, 0, 0, OP_ENC_I, 22},
-{(OperandType)1028, (OperandType)2097163, (OperandType)0, {0x81,0x00,0x00,0x00}, 6815744, 0, 0, OP_ENC_MI, 22},
-{(OperandType)2056, (OperandType)2097167, (OperandType)0, {0x81,0x00,0x00,0x00}, 6816260, 0, 0, OP_ENC_MI, 22},
+{(OperandType)1028, (OperandType)2097163, (OperandType)0, {0x81,0x00,0x00,0x00}, 6815808, 0, 0, OP_ENC_MI, 22},
+{(OperandType)2056, (OperandType)2097167, (OperandType)0, {0x81,0x00,0x00,0x00}, 6816324, 0, 0, OP_ENC_MI, 22},
 {(OperandType)32, (OperandType)4128, (OperandType)0, {0x66,0xf,0x57,0x00}, 2, 0, 0, OP_ENC_RM, 1},
 {(OperandType)32, (OperandType)4128, (OperandType)0, {0xf,0x57,0x00,0x00}, 1, 0, 0, OP_ENC_RM, 1},
 {(OperandType)0, (OperandType)0, (OperandType)0, {0xf2,0xf,0x1,0xe9}, 3, 0, 0, OP_ENC_ZO, 1},
@@ -2414,15 +2414,6 @@ const Instruction INSTRUCTION_TABLE[] = {
 {(OperandType)0, (OperandType)0, (OperandType)0, {0xf2,0xf,0x1,0xe8}, 3, 0, 0, OP_ENC_ZO, 1},
 {(OperandType)0, (OperandType)0, (OperandType)0, {0xf,0x1,0xd6,0x00}, 2, 0, 0, OP_ENC_ZO, 1},
 };
-const uint16_t LOCK_PREFIX_TABLE_SIZE = 145;
-const uint16_t REP_PREFIX_TABLE_SIZE = 21;
-const uint16_t REPE_PREFIX_TABLE_SIZE = 9;
-const uint16_t LOCK_PREFIX_INDICES[] = {
-1,2,3,8,9,10,11,12,15,16,17,20,21,25,26,27,32,33,34,35,36,39,40,41,44,45,67,68,69,74,75,76,77,78,81,82,83,86,87,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,288,289,290,291,292,294,333,334,335,336,337,542,543,544,545,546,811,812,813,814,815,819,820,821,822,823,825,826,827,832,833,834,835,836,839,840,841,844,845,1233,1234,1235,1240,1241,1242,1243,1244,1247,1248,1249,1252,1253,1400,1401,1402,1407,1408,1409,1410,1411,1414,1415,1416,1419,1420,2155,2156,2157,2158,2159,2168,2170,2172,2174,2176,2184,2185,2186,2191,2192,2193,2194,2195,2198,2199,2200,2203,2204,};
-const uint16_t REP_PREFIX_INDICES[] = {
-549,550,552,650,651,652,653,771,772,773,774,775,778,782,854,855,856,1392,1393,1394,1395,};
-const uint16_t REPE_PREFIX_INDICES[] = {
-282,283,284,285,287,1254,1255,1256,1257,};
 #include <string.h>
 
 #define TOTAL_KEYWORDS 1258
@@ -2626,639 +2617,639 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2515 "gperf_input_nmemonic.dat"
+#line 2506 "gperf_input_nmemonic.dat"
     {"SS", TOK_SREG, 2},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2516 "gperf_input_nmemonic.dat"
+#line 2507 "gperf_input_nmemonic.dat"
     {"DS", TOK_SREG, 3},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3085 "gperf_input_nmemonic.dat"
+#line 3076 "gperf_input_nmemonic.dat"
     {"POP", TOK_INSTRUCTION, 993},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2563 "gperf_input_nmemonic.dat"
+#line 2554 "gperf_input_nmemonic.dat"
     {"DD", TOK_DD, TOK_DD},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2553 "gperf_input_nmemonic.dat"
+#line 2544 "gperf_input_nmemonic.dat"
     {".BSS", TOK_BSS, TOK_BSS},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2539 "gperf_input_nmemonic.dat"
+#line 2530 "gperf_input_nmemonic.dat"
     {"CR8", TOK_CREG, 8},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3241 "gperf_input_nmemonic.dat"
+#line 3232 "gperf_input_nmemonic.dat"
     {"SUB", TOK_INSTRUCTION, 1399},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2561 "gperf_input_nmemonic.dat"
+#line 2552 "gperf_input_nmemonic.dat"
     {"DB", TOK_DB, TOK_DB},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2540 "gperf_input_nmemonic.dat"
+#line 2531 "gperf_input_nmemonic.dat"
     {"DR0", TOK_DREG, 0},
-#line 2992 "gperf_input_nmemonic.dat"
+#line 2983 "gperf_input_nmemonic.dat"
     {"ORPS", TOK_INSTRUCTION, 847},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2513 "gperf_input_nmemonic.dat"
+#line 2504 "gperf_input_nmemonic.dat"
     {"ES", TOK_SREG, 0},
-#line 3167 "gperf_input_nmemonic.dat"
+#line 3158 "gperf_input_nmemonic.dat"
     {"SBB", TOK_INSTRUCTION, 1232},
-#line 2991 "gperf_input_nmemonic.dat"
+#line 2982 "gperf_input_nmemonic.dat"
     {"ORPD", TOK_INSTRUCTION, 846},
-#line 3005 "gperf_input_nmemonic.dat"
+#line 2996 "gperf_input_nmemonic.dat"
     {"PADDD", TOK_INSTRUCTION, 872},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3245 "gperf_input_nmemonic.dat"
+#line 3236 "gperf_input_nmemonic.dat"
     {"SUBSS", TOK_INSTRUCTION, 1424},
     {(char*)0},
-#line 2514 "gperf_input_nmemonic.dat"
+#line 2505 "gperf_input_nmemonic.dat"
     {"CS", TOK_SREG, 1},
-#line 2547 "gperf_input_nmemonic.dat"
+#line 2538 "gperf_input_nmemonic.dat"
     {"DR7", TOK_DREG, 7},
     {(char*)0},
-#line 2998 "gperf_input_nmemonic.dat"
+#line 2989 "gperf_input_nmemonic.dat"
     {"PABSD", TOK_INSTRUCTION, 859},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3244 "gperf_input_nmemonic.dat"
+#line 3235 "gperf_input_nmemonic.dat"
     {"SUBSD", TOK_INSTRUCTION, 1423},
-#line 3276 "gperf_input_nmemonic.dat"
+#line 3267 "gperf_input_nmemonic.dat"
     {"VADDSS", TOK_INSTRUCTION, 1474},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3243 "gperf_input_nmemonic.dat"
+#line 3234 "gperf_input_nmemonic.dat"
     {"SUBPS", TOK_INSTRUCTION, 1422},
     {(char*)0},
-#line 3009 "gperf_input_nmemonic.dat"
+#line 3000 "gperf_input_nmemonic.dat"
     {"PADDUSB", TOK_INSTRUCTION, 880},
     {(char*)0}, {(char*)0},
-#line 3004 "gperf_input_nmemonic.dat"
+#line 2995 "gperf_input_nmemonic.dat"
     {"PADDB", TOK_INSTRUCTION, 870},
-#line 3275 "gperf_input_nmemonic.dat"
+#line 3266 "gperf_input_nmemonic.dat"
     {"VADDSD", TOK_INSTRUCTION, 1473},
     {(char*)0},
-#line 2469 "gperf_input_nmemonic.dat"
+#line 2460 "gperf_input_nmemonic.dat"
     {"ESP", TOK_REG, 60},
     {(char*)0},
-#line 3242 "gperf_input_nmemonic.dat"
+#line 3233 "gperf_input_nmemonic.dat"
     {"SUBPD", TOK_INSTRUCTION, 1421},
-#line 3007 "gperf_input_nmemonic.dat"
+#line 2998 "gperf_input_nmemonic.dat"
     {"PADDSB", TOK_INSTRUCTION, 876},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2997 "gperf_input_nmemonic.dat"
+#line 2988 "gperf_input_nmemonic.dat"
     {"PABSB", TOK_INSTRUCTION, 857},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2470 "gperf_input_nmemonic.dat"
+#line 2461 "gperf_input_nmemonic.dat"
     {"EBP", TOK_REG, 61},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2531 "gperf_input_nmemonic.dat"
+#line 2522 "gperf_input_nmemonic.dat"
     {"CR0", TOK_CREG, 0},
-#line 3034 "gperf_input_nmemonic.dat"
+#line 3025 "gperf_input_nmemonic.dat"
     {"PDEP", TOK_INSTRUCTION, 919},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2988 "gperf_input_nmemonic.dat"
+#line 2979 "gperf_input_nmemonic.dat"
     {"NOP", TOK_INSTRUCTION, 816},
-#line 3013 "gperf_input_nmemonic.dat"
+#line 3004 "gperf_input_nmemonic.dat"
     {"PAND", TOK_INSTRUCTION, 888},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3599 "gperf_input_nmemonic.dat"
+#line 3590 "gperf_input_nmemonic.dat"
     {"VRCPSS", TOK_INSTRUCTION, 2094},
     {(char*)0},
-#line 2538 "gperf_input_nmemonic.dat"
+#line 2529 "gperf_input_nmemonic.dat"
     {"CR7", TOK_CREG, 7},
     {(char*)0},
-#line 3324 "gperf_input_nmemonic.dat"
+#line 3315 "gperf_input_nmemonic.dat"
     {"VDPPS", TOK_INSTRUCTION, 1558},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3323 "gperf_input_nmemonic.dat"
+#line 3314 "gperf_input_nmemonic.dat"
     {"VDPPD", TOK_INSTRUCTION, 1557},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3254 "gperf_input_nmemonic.dat"
+#line 3245 "gperf_input_nmemonic.dat"
     {"TDPBUSD", TOK_INSTRUCTION, 1435},
     {(char*)0},
-#line 2527 "gperf_input_nmemonic.dat"
+#line 2518 "gperf_input_nmemonic.dat"
     {"BND0", TOK_BNDREG, 0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3252 "gperf_input_nmemonic.dat"
+#line 3243 "gperf_input_nmemonic.dat"
     {"TDPBSSD", TOK_INSTRUCTION, 1433},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2754 "gperf_input_nmemonic.dat"
+#line 2745 "gperf_input_nmemonic.dat"
     {"FADD", TOK_INSTRUCTION, 360},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2697 "gperf_input_nmemonic.dat"
+#line 2688 "gperf_input_nmemonic.dat"
     {"CMP", TOK_INSTRUCTION, 258},
-#line 2753 "gperf_input_nmemonic.dat"
+#line 2744 "gperf_input_nmemonic.dat"
     {"FABS", TOK_INSTRUCTION, 359},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2993 "gperf_input_nmemonic.dat"
+#line 2984 "gperf_input_nmemonic.dat"
     {"OUT", TOK_INSTRUCTION, 848},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2517 "gperf_input_nmemonic.dat"
+#line 2508 "gperf_input_nmemonic.dat"
     {"FS", TOK_SREG, 4},
     {(char*)0},
-#line 3202 "gperf_input_nmemonic.dat"
+#line 3193 "gperf_input_nmemonic.dat"
     {"SETS", TOK_INSTRUCTION, 1316},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2995 "gperf_input_nmemonic.dat"
+#line 2986 "gperf_input_nmemonic.dat"
     {"OUTSD", TOK_INSTRUCTION, 855},
     {(char*)0}, {(char*)0},
-#line 2989 "gperf_input_nmemonic.dat"
+#line 2980 "gperf_input_nmemonic.dat"
     {"NOT", TOK_INSTRUCTION, 819},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2703 "gperf_input_nmemonic.dat"
+#line 2694 "gperf_input_nmemonic.dat"
     {"CMPSS", TOK_INSTRUCTION, 286},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3199 "gperf_input_nmemonic.dat"
+#line 3190 "gperf_input_nmemonic.dat"
     {"SETP", TOK_INSTRUCTION, 1310},
-#line 2994 "gperf_input_nmemonic.dat"
+#line 2985 "gperf_input_nmemonic.dat"
     {"OUTSB", TOK_INSTRUCTION, 854},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2771 "gperf_input_nmemonic.dat"
+#line 2762 "gperf_input_nmemonic.dat"
     {"FCOS", TOK_INSTRUCTION, 387},
-#line 2701 "gperf_input_nmemonic.dat"
+#line 2692 "gperf_input_nmemonic.dat"
     {"CMPSD", TOK_INSTRUCTION, 283},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3176 "gperf_input_nmemonic.dat"
+#line 3167 "gperf_input_nmemonic.dat"
     {"SETB", TOK_INSTRUCTION, 1264},
-#line 2699 "gperf_input_nmemonic.dat"
+#line 2690 "gperf_input_nmemonic.dat"
     {"CMPPS", TOK_INSTRUCTION, 281},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2698 "gperf_input_nmemonic.dat"
+#line 2689 "gperf_input_nmemonic.dat"
     {"CMPPD", TOK_INSTRUCTION, 280},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3286 "gperf_input_nmemonic.dat"
+#line 3277 "gperf_input_nmemonic.dat"
     {"VANDNPS", TOK_INSTRUCTION, 1491},
     {(char*)0},
-#line 2574 "gperf_input_nmemonic.dat"
+#line 2565 "gperf_input_nmemonic.dat"
     {"BYTE", TOK_BYTE, TOK_BYTE},
-#line 2700 "gperf_input_nmemonic.dat"
+#line 2691 "gperf_input_nmemonic.dat"
     {"CMPSB", TOK_INSTRUCTION, 282},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3086 "gperf_input_nmemonic.dat"
+#line 3077 "gperf_input_nmemonic.dat"
     {"POPCNT", TOK_INSTRUCTION, 1001},
-#line 3285 "gperf_input_nmemonic.dat"
+#line 3276 "gperf_input_nmemonic.dat"
     {"VANDNPD", TOK_INSTRUCTION, 1489},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2825 "gperf_input_nmemonic.dat"
+#line 2816 "gperf_input_nmemonic.dat"
     {"FSTP", TOK_INSTRUCTION, 474},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2735 "gperf_input_nmemonic.dat"
+#line 2726 "gperf_input_nmemonic.dat"
     {"DEC", TOK_INSTRUCTION, 333},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2666 "gperf_input_nmemonic.dat"
+#line 2657 "gperf_input_nmemonic.dat"
     {"CMC", TOK_INSTRUCTION, 167},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3418 "gperf_input_nmemonic.dat"
+#line 3409 "gperf_input_nmemonic.dat"
     {"VMOVAPS", TOK_INSTRUCTION, 1714},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2822 "gperf_input_nmemonic.dat"
+#line 2813 "gperf_input_nmemonic.dat"
     {"FST", TOK_INSTRUCTION, 469},
-#line 3256 "gperf_input_nmemonic.dat"
+#line 3247 "gperf_input_nmemonic.dat"
     {"TEST", TOK_INSTRUCTION, 1437},
     {(char*)0}, {(char*)0},
-#line 3417 "gperf_input_nmemonic.dat"
+#line 3408 "gperf_input_nmemonic.dat"
     {"VMOVAPD", TOK_INSTRUCTION, 1710},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3439 "gperf_input_nmemonic.dat"
+#line 3430 "gperf_input_nmemonic.dat"
     {"VMOVSS", TOK_INSTRUCTION, 1764},
     {(char*)0}, {(char*)0},
-#line 3179 "gperf_input_nmemonic.dat"
+#line 3170 "gperf_input_nmemonic.dat"
     {"SETE", TOK_INSTRUCTION, 1270},
-#line 3201 "gperf_input_nmemonic.dat"
+#line 3192 "gperf_input_nmemonic.dat"
     {"SETPO", TOK_INSTRUCTION, 1314},
     {(char*)0},
-#line 3441 "gperf_input_nmemonic.dat"
+#line 3432 "gperf_input_nmemonic.dat"
     {"VMOVUPS", TOK_INSTRUCTION, 1772},
     {(char*)0}, {(char*)0},
-#line 3419 "gperf_input_nmemonic.dat"
+#line 3410 "gperf_input_nmemonic.dat"
     {"VMOVD", TOK_INSTRUCTION, 1718},
-#line 3436 "gperf_input_nmemonic.dat"
+#line 3427 "gperf_input_nmemonic.dat"
     {"VMOVSD", TOK_INSTRUCTION, 1756},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3440 "gperf_input_nmemonic.dat"
+#line 3431 "gperf_input_nmemonic.dat"
     {"VMOVUPD", TOK_INSTRUCTION, 1768},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2546 "gperf_input_nmemonic.dat"
+#line 2537 "gperf_input_nmemonic.dat"
     {"DR6", TOK_DREG, 6},
-#line 3178 "gperf_input_nmemonic.dat"
+#line 3169 "gperf_input_nmemonic.dat"
     {"SETC", TOK_INSTRUCTION, 1268},
-#line 2695 "gperf_input_nmemonic.dat"
+#line 2686 "gperf_input_nmemonic.dat"
     {"CMOVS", TOK_INSTRUCTION, 252},
     {(char*)0},
-#line 3279 "gperf_input_nmemonic.dat"
+#line 3270 "gperf_input_nmemonic.dat"
     {"VAESDEC", TOK_INSTRUCTION, 1479},
     {(char*)0}, {(char*)0},
-#line 3014 "gperf_input_nmemonic.dat"
+#line 3005 "gperf_input_nmemonic.dat"
     {"PANDN", TOK_INSTRUCTION, 890},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2806 "gperf_input_nmemonic.dat"
+#line 2797 "gperf_input_nmemonic.dat"
     {"FNOP", TOK_INSTRUCTION, 452},
     {(char*)0}, {(char*)0},
-#line 2457 "gperf_input_nmemonic.dat"
+#line 2448 "gperf_input_nmemonic.dat"
     {"R8", TOK_REG, 48},
     {(char*)0}, {(char*)0},
-#line 2637 "gperf_input_nmemonic.dat"
+#line 2628 "gperf_input_nmemonic.dat"
     {"BNDCN", TOK_INSTRUCTION, 107},
     {(char*)0}, {(char*)0},
-#line 2473 "gperf_input_nmemonic.dat"
+#line 2464 "gperf_input_nmemonic.dat"
     {"R8D", TOK_REG, 64},
     {(char*)0},
-#line 2671 "gperf_input_nmemonic.dat"
+#line 2662 "gperf_input_nmemonic.dat"
     {"CMOVC", TOK_INSTRUCTION, 180},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2458 "gperf_input_nmemonic.dat"
+#line 2449 "gperf_input_nmemonic.dat"
     {"R9", TOK_REG, 49},
     {(char*)0},
-#line 3198 "gperf_input_nmemonic.dat"
+#line 3189 "gperf_input_nmemonic.dat"
     {"SETO", TOK_INSTRUCTION, 1308},
     {(char*)0},
-#line 2689 "gperf_input_nmemonic.dat"
+#line 2680 "gperf_input_nmemonic.dat"
     {"CMOVNS", TOK_INSTRUCTION, 234},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2669 "gperf_input_nmemonic.dat"
+#line 2660 "gperf_input_nmemonic.dat"
     {"CMOVB", TOK_INSTRUCTION, 174},
     {(char*)0}, {(char*)0},
-#line 2474 "gperf_input_nmemonic.dat"
+#line 2465 "gperf_input_nmemonic.dat"
     {"R9D", TOK_REG, 65},
-#line 3087 "gperf_input_nmemonic.dat"
+#line 3078 "gperf_input_nmemonic.dat"
     {"POPF", TOK_INSTRUCTION, 1004},
-#line 3196 "gperf_input_nmemonic.dat"
+#line 3187 "gperf_input_nmemonic.dat"
     {"SETNS", TOK_INSTRUCTION, 1304},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2691 "gperf_input_nmemonic.dat"
+#line 2682 "gperf_input_nmemonic.dat"
     {"CMOVO", TOK_INSTRUCTION, 240},
     {(char*)0}, {(char*)0},
-#line 2505 "gperf_input_nmemonic.dat"
+#line 2496 "gperf_input_nmemonic.dat"
     {"R8B", TOK_REG, 96},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2537 "gperf_input_nmemonic.dat"
+#line 2528 "gperf_input_nmemonic.dat"
     {"CR6", TOK_CREG, 6},
     {(char*)0},
-#line 3188 "gperf_input_nmemonic.dat"
+#line 3179 "gperf_input_nmemonic.dat"
     {"SETNC", TOK_INSTRUCTION, 1288},
-#line 2688 "gperf_input_nmemonic.dat"
+#line 2679 "gperf_input_nmemonic.dat"
     {"CMOVNP", TOK_INSTRUCTION, 231},
     {(char*)0},
-#line 2643 "gperf_input_nmemonic.dat"
+#line 2634 "gperf_input_nmemonic.dat"
     {"BSF", TOK_INSTRUCTION, 114},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2506 "gperf_input_nmemonic.dat"
+#line 2497 "gperf_input_nmemonic.dat"
     {"R9B", TOK_REG, 97},
     {(char*)0},
-#line 2696 "gperf_input_nmemonic.dat"
+#line 2687 "gperf_input_nmemonic.dat"
     {"CMOVZ", TOK_INSTRUCTION, 255},
-#line 2679 "gperf_input_nmemonic.dat"
+#line 2670 "gperf_input_nmemonic.dat"
     {"CMOVNB", TOK_INSTRUCTION, 204},
     {(char*)0},
-#line 3434 "gperf_input_nmemonic.dat"
+#line 3425 "gperf_input_nmemonic.dat"
     {"VMOVNTPS", TOK_INSTRUCTION, 1750},
     {(char*)0},
-#line 3186 "gperf_input_nmemonic.dat"
+#line 3177 "gperf_input_nmemonic.dat"
     {"SETNB", TOK_INSTRUCTION, 1284},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3204 "gperf_input_nmemonic.dat"
+#line 3195 "gperf_input_nmemonic.dat"
     {"SETZ", TOK_INSTRUCTION, 1319},
-#line 3138 "gperf_input_nmemonic.dat"
+#line 3129 "gperf_input_nmemonic.dat"
     {"RCPSS", TOK_INSTRUCTION, 1123},
-#line 2668 "gperf_input_nmemonic.dat"
+#line 2659 "gperf_input_nmemonic.dat"
     {"CMOVAE", TOK_INSTRUCTION, 171},
     {(char*)0},
-#line 3433 "gperf_input_nmemonic.dat"
+#line 3424 "gperf_input_nmemonic.dat"
     {"VMOVNTPD", TOK_INSTRUCTION, 1748},
     {(char*)0},
-#line 3194 "gperf_input_nmemonic.dat"
+#line 3185 "gperf_input_nmemonic.dat"
     {"SETNO", TOK_INSTRUCTION, 1300},
     {(char*)0},
-#line 2990 "gperf_input_nmemonic.dat"
+#line 2981 "gperf_input_nmemonic.dat"
     {"OR", TOK_INSTRUCTION, 824},
-#line 2453 "gperf_input_nmemonic.dat"
+#line 2444 "gperf_input_nmemonic.dat"
     {"RSP", TOK_REG, 44},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3137 "gperf_input_nmemonic.dat"
+#line 3128 "gperf_input_nmemonic.dat"
     {"RCPPS", TOK_INSTRUCTION, 1122},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2454 "gperf_input_nmemonic.dat"
+#line 2445 "gperf_input_nmemonic.dat"
     {"RBP", TOK_REG, 45},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3197 "gperf_input_nmemonic.dat"
+#line 3188 "gperf_input_nmemonic.dat"
     {"SETNZ", TOK_INSTRUCTION, 1306},
     {(char*)0},
-#line 2485 "gperf_input_nmemonic.dat"
+#line 2476 "gperf_input_nmemonic.dat"
     {"SP", TOK_REG, 76},
     {(char*)0}, {(char*)0},
-#line 3200 "gperf_input_nmemonic.dat"
+#line 3191 "gperf_input_nmemonic.dat"
     {"SETPE", TOK_INSTRUCTION, 1312},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2742 "gperf_input_nmemonic.dat"
+#line 2733 "gperf_input_nmemonic.dat"
     {"DPPS", TOK_INSTRUCTION, 348},
-#line 3177 "gperf_input_nmemonic.dat"
+#line 3168 "gperf_input_nmemonic.dat"
     {"SETBE", TOK_INSTRUCTION, 1266},
-#line 3185 "gperf_input_nmemonic.dat"
+#line 3176 "gperf_input_nmemonic.dat"
     {"SETNAE", TOK_INSTRUCTION, 1282},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2670 "gperf_input_nmemonic.dat"
+#line 2661 "gperf_input_nmemonic.dat"
     {"CMOVBE", TOK_INSTRUCTION, 177},
-#line 2772 "gperf_input_nmemonic.dat"
+#line 2763 "gperf_input_nmemonic.dat"
     {"FDECSTP", TOK_INSTRUCTION, 388},
     {(char*)0},
-#line 2741 "gperf_input_nmemonic.dat"
+#line 2732 "gperf_input_nmemonic.dat"
     {"DPPD", TOK_INSTRUCTION, 347},
-#line 3448 "gperf_input_nmemonic.dat"
+#line 3439 "gperf_input_nmemonic.dat"
     {"VORPS", TOK_INSTRUCTION, 1786},
     {(char*)0},
-#line 2486 "gperf_input_nmemonic.dat"
+#line 2477 "gperf_input_nmemonic.dat"
     {"BP", TOK_REG, 77},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2824 "gperf_input_nmemonic.dat"
+#line 2815 "gperf_input_nmemonic.dat"
     {"FSTENV", TOK_INSTRUCTION, 473},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3447 "gperf_input_nmemonic.dat"
+#line 3438 "gperf_input_nmemonic.dat"
     {"VORPD", TOK_INSTRUCTION, 1784},
-#line 2682 "gperf_input_nmemonic.dat"
+#line 2673 "gperf_input_nmemonic.dat"
     {"CMOVNE", TOK_INSTRUCTION, 213},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3151 "gperf_input_nmemonic.dat"
+#line 3142 "gperf_input_nmemonic.dat"
     {"RDTSCP", TOK_INSTRUCTION, 1156},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2833 "gperf_input_nmemonic.dat"
+#line 2824 "gperf_input_nmemonic.dat"
     {"FUCOMP", TOK_INSTRUCTION, 495},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2681 "gperf_input_nmemonic.dat"
+#line 2672 "gperf_input_nmemonic.dat"
     {"CMOVNC", TOK_INSTRUCTION, 210},
-#line 2680 "gperf_input_nmemonic.dat"
+#line 2671 "gperf_input_nmemonic.dat"
     {"CMOVNBE", TOK_INSTRUCTION, 207},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3187 "gperf_input_nmemonic.dat"
+#line 3178 "gperf_input_nmemonic.dat"
     {"SETNBE", TOK_INSTRUCTION, 1286},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3274 "gperf_input_nmemonic.dat"
+#line 3265 "gperf_input_nmemonic.dat"
     {"VADDPS", TOK_INSTRUCTION, 1471},
-#line 2834 "gperf_input_nmemonic.dat"
+#line 2825 "gperf_input_nmemonic.dat"
     {"FUCOMPP", TOK_INSTRUCTION, 497},
-#line 3231 "gperf_input_nmemonic.dat"
+#line 3222 "gperf_input_nmemonic.dat"
     {"STD", TOK_INSTRUCTION, 1389},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2672 "gperf_input_nmemonic.dat"
+#line 2663 "gperf_input_nmemonic.dat"
     {"CMOVE", TOK_INSTRUCTION, 183},
-#line 3273 "gperf_input_nmemonic.dat"
+#line 3264 "gperf_input_nmemonic.dat"
     {"VADDPD", TOK_INSTRUCTION, 1469},
     {(char*)0},
-#line 2649 "gperf_input_nmemonic.dat"
+#line 2640 "gperf_input_nmemonic.dat"
     {"BTS", TOK_INSTRUCTION, 140},
     {(char*)0},
-#line 3150 "gperf_input_nmemonic.dat"
+#line 3141 "gperf_input_nmemonic.dat"
     {"RDTSC", TOK_INSTRUCTION, 1155},
     {(char*)0},
-#line 3281 "gperf_input_nmemonic.dat"
+#line 3272 "gperf_input_nmemonic.dat"
     {"VAESENC", TOK_INSTRUCTION, 1483},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2687 "gperf_input_nmemonic.dat"
+#line 2678 "gperf_input_nmemonic.dat"
     {"CMOVNO", TOK_INSTRUCTION, 228},
     {(char*)0},
-#line 3605 "gperf_input_nmemonic.dat"
+#line 3596 "gperf_input_nmemonic.dat"
     {"VRSQRTSS", TOK_INSTRUCTION, 2103},
-#line 2556 "gperf_input_nmemonic.dat"
+#line 2547 "gperf_input_nmemonic.dat"
     {"RESD", TOK_RESD, TOK_RESD},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3604 "gperf_input_nmemonic.dat"
+#line 3595 "gperf_input_nmemonic.dat"
     {"VRSQRTPS", TOK_INSTRUCTION, 2101},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2582 "gperf_input_nmemonic.dat"
+#line 2573 "gperf_input_nmemonic.dat"
     {"REP", TOK_REP, TOK_REP},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2565 "gperf_input_nmemonic.dat"
+#line 2556 "gperf_input_nmemonic.dat"
     {"DT", TOK_DT, TOK_DT},
     {(char*)0}, {(char*)0},
-#line 3189 "gperf_input_nmemonic.dat"
+#line 3180 "gperf_input_nmemonic.dat"
     {"SETNE", TOK_INSTRUCTION, 1290},
-#line 3598 "gperf_input_nmemonic.dat"
+#line 3589 "gperf_input_nmemonic.dat"
     {"VRCPPS", TOK_INSTRUCTION, 2092},
     {(char*)0},
-#line 3162 "gperf_input_nmemonic.dat"
+#line 3153 "gperf_input_nmemonic.dat"
     {"RSTORSSP", TOK_INSTRUCTION, 1198},
-#line 2554 "gperf_input_nmemonic.dat"
+#line 2545 "gperf_input_nmemonic.dat"
     {"RESB", TOK_RESB, TOK_RESB},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2646 "gperf_input_nmemonic.dat"
+#line 2637 "gperf_input_nmemonic.dat"
     {"BT", TOK_INSTRUCTION, 122},
-#line 2711 "gperf_input_nmemonic.dat"
+#line 2702 "gperf_input_nmemonic.dat"
     {"CQO", TOK_INSTRUCTION, 298},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2690 "gperf_input_nmemonic.dat"
+#line 2681 "gperf_input_nmemonic.dat"
     {"CMOVNZ", TOK_INSTRUCTION, 237},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2750 "gperf_input_nmemonic.dat"
+#line 2741 "gperf_input_nmemonic.dat"
     {"ENTER", TOK_INSTRUCTION, 356},
     {(char*)0}, {(char*)0},
-#line 2566 "gperf_input_nmemonic.dat"
+#line 2557 "gperf_input_nmemonic.dat"
     {"ST0", TOK_ST0, TOK_ST0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2573 "gperf_input_nmemonic.dat"
+#line 2564 "gperf_input_nmemonic.dat"
     {"ST7", TOK_ST7, TOK_ST7},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2543 "gperf_input_nmemonic.dat"
+#line 2534 "gperf_input_nmemonic.dat"
     {"DR3", TOK_DREG, 3},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3152 "gperf_input_nmemonic.dat"
+#line 3143 "gperf_input_nmemonic.dat"
     {"RET", TOK_INSTRUCTION, 1157},
-#line 2558 "gperf_input_nmemonic.dat"
+#line 2549 "gperf_input_nmemonic.dat"
     {"REST", TOK_REST, TOK_REST},
     {(char*)0},
-#line 3288 "gperf_input_nmemonic.dat"
+#line 3279 "gperf_input_nmemonic.dat"
     {"VANDPS", TOK_INSTRUCTION, 1495},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3230 "gperf_input_nmemonic.dat"
+#line 3221 "gperf_input_nmemonic.dat"
     {"STC", TOK_INSTRUCTION, 1388},
     {(char*)0}, {(char*)0},
-#line 3287 "gperf_input_nmemonic.dat"
+#line 3278 "gperf_input_nmemonic.dat"
     {"VANDPD", TOK_INSTRUCTION, 1493},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3235 "gperf_input_nmemonic.dat"
+#line 3226 "gperf_input_nmemonic.dat"
     {"STOSD", TOK_INSTRUCTION, 1393},
-#line 3147 "gperf_input_nmemonic.dat"
+#line 3138 "gperf_input_nmemonic.dat"
     {"RDSEED", TOK_INSTRUCTION, 1150},
     {(char*)0},
-#line 3263 "gperf_input_nmemonic.dat"
+#line 3254 "gperf_input_nmemonic.dat"
     {"UD0", TOK_INSTRUCTION, 1459},
-#line 2583 "gperf_input_nmemonic.dat"
+#line 2574 "gperf_input_nmemonic.dat"
     {"REPE", TOK_REPE, TOK_REPE},
-#line 3115 "gperf_input_nmemonic.dat"
+#line 3106 "gperf_input_nmemonic.dat"
     {"PSUBD", TOK_INSTRUCTION, 1063},
     {(char*)0}, {(char*)0},
-#line 2647 "gperf_input_nmemonic.dat"
+#line 2638 "gperf_input_nmemonic.dat"
     {"BTC", TOK_INSTRUCTION, 128},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2755 "gperf_input_nmemonic.dat"
+#line 2746 "gperf_input_nmemonic.dat"
     {"FADDP", TOK_INSTRUCTION, 364},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3616 "gperf_input_nmemonic.dat"
+#line 3607 "gperf_input_nmemonic.dat"
     {"VSUBSS", TOK_INSTRUCTION, 2120},
-#line 2809 "gperf_input_nmemonic.dat"
+#line 2800 "gperf_input_nmemonic.dat"
     {"FNSTENV", TOK_INSTRUCTION, 455},
     {(char*)0},
-#line 2654 "gperf_input_nmemonic.dat"
+#line 2645 "gperf_input_nmemonic.dat"
     {"CDQE", TOK_INSTRUCTION, 155},
-#line 3234 "gperf_input_nmemonic.dat"
+#line 3225 "gperf_input_nmemonic.dat"
     {"STOSB", TOK_INSTRUCTION, 1392},
     {(char*)0},
-#line 3119 "gperf_input_nmemonic.dat"
+#line 3110 "gperf_input_nmemonic.dat"
     {"PSUBUSB", TOK_INSTRUCTION, 1071},
     {(char*)0}, {(char*)0},
-#line 3114 "gperf_input_nmemonic.dat"
+#line 3105 "gperf_input_nmemonic.dat"
     {"PSUBB", TOK_INSTRUCTION, 1061},
-#line 3615 "gperf_input_nmemonic.dat"
+#line 3606 "gperf_input_nmemonic.dat"
     {"VSUBSD", TOK_INSTRUCTION, 2119},
     {(char*)0},
-#line 2534 "gperf_input_nmemonic.dat"
+#line 2525 "gperf_input_nmemonic.dat"
     {"CR3", TOK_CREG, 3},
     {(char*)0}, {(char*)0},
-#line 3117 "gperf_input_nmemonic.dat"
+#line 3108 "gperf_input_nmemonic.dat"
     {"PSUBSB", TOK_INSTRUCTION, 1067},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3255 "gperf_input_nmemonic.dat"
+#line 3246 "gperf_input_nmemonic.dat"
     {"TDPBUUD", TOK_INSTRUCTION, 1436},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3253 "gperf_input_nmemonic.dat"
+#line 3244 "gperf_input_nmemonic.dat"
     {"TDPBSUD", TOK_INSTRUCTION, 1434},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3603 "gperf_input_nmemonic.dat"
+#line 3594 "gperf_input_nmemonic.dat"
     {"VROUNDSS", TOK_INSTRUCTION, 2100},
-#line 3278 "gperf_input_nmemonic.dat"
+#line 3269 "gperf_input_nmemonic.dat"
     {"VADDSUBPS", TOK_INSTRUCTION, 1477},
-#line 2638 "gperf_input_nmemonic.dat"
+#line 2629 "gperf_input_nmemonic.dat"
     {"BNDCU", TOK_INSTRUCTION, 108},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2530 "gperf_input_nmemonic.dat"
+#line 2521 "gperf_input_nmemonic.dat"
     {"BND3", TOK_BNDREG, 3},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3602 "gperf_input_nmemonic.dat"
+#line 3593 "gperf_input_nmemonic.dat"
     {"VROUNDSD", TOK_INSTRUCTION, 2099},
-#line 3277 "gperf_input_nmemonic.dat"
+#line 3268 "gperf_input_nmemonic.dat"
     {"VADDSUBPD", TOK_INSTRUCTION, 1475},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3601 "gperf_input_nmemonic.dat"
+#line 3592 "gperf_input_nmemonic.dat"
     {"VROUNDPS", TOK_INSTRUCTION, 2097},
     {(char*)0}, {(char*)0},
-#line 3250 "gperf_input_nmemonic.dat"
+#line 3241 "gperf_input_nmemonic.dat"
     {"SYSRET", TOK_INSTRUCTION, 1430},
     {(char*)0},
-#line 3164 "gperf_input_nmemonic.dat"
+#line 3155 "gperf_input_nmemonic.dat"
     {"SAR", TOK_INSTRUCTION, 1214},
     {(char*)0}, {(char*)0},
-#line 3588 "gperf_input_nmemonic.dat"
+#line 3579 "gperf_input_nmemonic.dat"
     {"VPTEST", TOK_INSTRUCTION, 2072},
     {(char*)0},
-#line 3600 "gperf_input_nmemonic.dat"
+#line 3591 "gperf_input_nmemonic.dat"
     {"VROUNDPD", TOK_INSTRUCTION, 2095},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3089 "gperf_input_nmemonic.dat"
+#line 3080 "gperf_input_nmemonic.dat"
     {"POR", TOK_INSTRUCTION, 1006},
     {(char*)0},
-#line 2757 "gperf_input_nmemonic.dat"
+#line 2748 "gperf_input_nmemonic.dat"
     {"FBSTP", TOK_INSTRUCTION, 367},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2584 "gperf_input_nmemonic.dat"
+#line 2575 "gperf_input_nmemonic.dat"
     {"REPZ", TOK_REPZ, TOK_REPZ},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2692 "gperf_input_nmemonic.dat"
+#line 2683 "gperf_input_nmemonic.dat"
     {"CMOVP", TOK_INSTRUCTION, 243},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2749 "gperf_input_nmemonic.dat"
+#line 2740 "gperf_input_nmemonic.dat"
     {"ENQCMDS", TOK_INSTRUCTION, 355},
-#line 2545 "gperf_input_nmemonic.dat"
+#line 2536 "gperf_input_nmemonic.dat"
     {"DR5", TOK_DREG, 5},
-#line 2827 "gperf_input_nmemonic.dat"
+#line 2818 "gperf_input_nmemonic.dat"
     {"FSUB", TOK_INSTRUCTION, 480},
-#line 3015 "gperf_input_nmemonic.dat"
+#line 3006 "gperf_input_nmemonic.dat"
     {"PAUSE", TOK_INSTRUCTION, 892},
-#line 2748 "gperf_input_nmemonic.dat"
+#line 2739 "gperf_input_nmemonic.dat"
     {"ENQCMD", TOK_INSTRUCTION, 354},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2831 "gperf_input_nmemonic.dat"
+#line 2822 "gperf_input_nmemonic.dat"
     {"FTST", TOK_INSTRUCTION, 492},
-#line 2586 "gperf_input_nmemonic.dat"
+#line 2577 "gperf_input_nmemonic.dat"
     {"REPNZ", TOK_REPNZ, TOK_REPNZ},
-#line 2830 "gperf_input_nmemonic.dat"
+#line 2821 "gperf_input_nmemonic.dat"
     {"FSUBRP", TOK_INSTRUCTION, 490},
     {(char*)0},
-#line 2644 "gperf_input_nmemonic.dat"
+#line 2635 "gperf_input_nmemonic.dat"
     {"BSR", TOK_INSTRUCTION, 117},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3195 "gperf_input_nmemonic.dat"
+#line 3186 "gperf_input_nmemonic.dat"
     {"SETNP", TOK_INSTRUCTION, 1302},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3260 "gperf_input_nmemonic.dat"
+#line 3251 "gperf_input_nmemonic.dat"
     {"TZCNT", TOK_INSTRUCTION, 1454},
     {(char*)0},
-#line 2564 "gperf_input_nmemonic.dat"
+#line 2555 "gperf_input_nmemonic.dat"
     {"DQ", TOK_DQ, TOK_DQ},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3228 "gperf_input_nmemonic.dat"
+#line 3219 "gperf_input_nmemonic.dat"
     {"SQRTSS", TOK_INSTRUCTION, 1386},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3227 "gperf_input_nmemonic.dat"
+#line 3218 "gperf_input_nmemonic.dat"
     {"SQRTSD", TOK_INSTRUCTION, 1385},
     {(char*)0},
-#line 2536 "gperf_input_nmemonic.dat"
+#line 2527 "gperf_input_nmemonic.dat"
     {"CR5", TOK_CREG, 5},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -3266,41 +3257,41 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3006 "gperf_input_nmemonic.dat"
+#line 2997 "gperf_input_nmemonic.dat"
     {"PADDQ", TOK_INSTRUCTION, 874},
     {(char*)0}, {(char*)0},
-#line 2572 "gperf_input_nmemonic.dat"
+#line 2563 "gperf_input_nmemonic.dat"
     {"ST6", TOK_ST6, TOK_ST6},
     {(char*)0}, {(char*)0},
-#line 2693 "gperf_input_nmemonic.dat"
+#line 2684 "gperf_input_nmemonic.dat"
     {"CMOVPE", TOK_INSTRUCTION, 246},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3148 "gperf_input_nmemonic.dat"
+#line 3139 "gperf_input_nmemonic.dat"
     {"RDSSPD", TOK_INSTRUCTION, 1153},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3571 "gperf_input_nmemonic.dat"
+#line 3562 "gperf_input_nmemonic.dat"
     {"VPSRAD", TOK_INSTRUCTION, 2028},
     {(char*)0},
-#line 3420 "gperf_input_nmemonic.dat"
+#line 3411 "gperf_input_nmemonic.dat"
     {"VMOVDDUP", TOK_INSTRUCTION, 1720},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2585 "gperf_input_nmemonic.dat"
+#line 2576 "gperf_input_nmemonic.dat"
     {"REPNE", TOK_REPNE, TOK_REPNE},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2694 "gperf_input_nmemonic.dat"
+#line 2685 "gperf_input_nmemonic.dat"
     {"CMOVPO", TOK_INSTRUCTION, 249},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3572 "gperf_input_nmemonic.dat"
+#line 3563 "gperf_input_nmemonic.dat"
     {"VPSRAVD", TOK_INSTRUCTION, 2032},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -3312,215 +3303,215 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2816 "gperf_input_nmemonic.dat"
+#line 2807 "gperf_input_nmemonic.dat"
     {"FRSTOR", TOK_INSTRUCTION, 463},
     {(char*)0}, {(char*)0},
-#line 2944 "gperf_input_nmemonic.dat"
+#line 2935 "gperf_input_nmemonic.dat"
     {"MOVD", TOK_INSTRUCTION, 730},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2657 "gperf_input_nmemonic.dat"
+#line 2648 "gperf_input_nmemonic.dat"
     {"CLD", TOK_INSTRUCTION, 158},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2940 "gperf_input_nmemonic.dat"
+#line 2931 "gperf_input_nmemonic.dat"
     {"MOV", TOK_INSTRUCTION, 679},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3223 "gperf_input_nmemonic.dat"
+#line 3214 "gperf_input_nmemonic.dat"
     {"SLDT", TOK_INSTRUCTION, 1379},
-#line 2972 "gperf_input_nmemonic.dat"
+#line 2963 "gperf_input_nmemonic.dat"
     {"MOVSS", TOK_INSTRUCTION, 779},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2702 "gperf_input_nmemonic.dat"
+#line 2693 "gperf_input_nmemonic.dat"
     {"CMPSQ", TOK_INSTRUCTION, 285},
-#line 3300 "gperf_input_nmemonic.dat"
+#line 3291 "gperf_input_nmemonic.dat"
     {"VCMPSS", TOK_INSTRUCTION, 1518},
     {(char*)0}, {(char*)0},
-#line 2663 "gperf_input_nmemonic.dat"
+#line 2654 "gperf_input_nmemonic.dat"
     {"CLTS", TOK_INSTRUCTION, 164},
-#line 2968 "gperf_input_nmemonic.dat"
+#line 2959 "gperf_input_nmemonic.dat"
     {"MOVSD", TOK_INSTRUCTION, 772},
     {(char*)0}, {(char*)0},
-#line 2653 "gperf_input_nmemonic.dat"
+#line 2644 "gperf_input_nmemonic.dat"
     {"CDQ", TOK_INSTRUCTION, 154},
     {(char*)0}, {(char*)0},
-#line 3299 "gperf_input_nmemonic.dat"
+#line 3290 "gperf_input_nmemonic.dat"
     {"VCMPSD", TOK_INSTRUCTION, 1517},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3088 "gperf_input_nmemonic.dat"
+#line 3079 "gperf_input_nmemonic.dat"
     {"POPFQ", TOK_INSTRUCTION, 1005},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3495 "gperf_input_nmemonic.dat"
+#line 3486 "gperf_input_nmemonic.dat"
     {"VPERMD", TOK_INSTRUCTION, 1874},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2967 "gperf_input_nmemonic.dat"
+#line 2958 "gperf_input_nmemonic.dat"
     {"MOVSB", TOK_INSTRUCTION, 771},
     {(char*)0},
-#line 3499 "gperf_input_nmemonic.dat"
+#line 3490 "gperf_input_nmemonic.dat"
     {"VPERMPS", TOK_INSTRUCTION, 1884},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3498 "gperf_input_nmemonic.dat"
+#line 3489 "gperf_input_nmemonic.dat"
     {"VPERMPD", TOK_INSTRUCTION, 1883},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2594 "gperf_input_nmemonic.dat"
+#line 2585 "gperf_input_nmemonic.dat"
     {"ELSE", TOK_ELSE, TOK_ELSE},
     {(char*)0}, {(char*)0},
-#line 3158 "gperf_input_nmemonic.dat"
+#line 3149 "gperf_input_nmemonic.dat"
     {"ROUNDSS", TOK_INSTRUCTION, 1194},
-#line 3248 "gperf_input_nmemonic.dat"
+#line 3239 "gperf_input_nmemonic.dat"
     {"SYSENTER", TOK_INSTRUCTION, 1427},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2743 "gperf_input_nmemonic.dat"
+#line 2734 "gperf_input_nmemonic.dat"
     {"EMMS", TOK_INSTRUCTION, 349},
     {(char*)0},
-#line 3614 "gperf_input_nmemonic.dat"
+#line 3605 "gperf_input_nmemonic.dat"
     {"VSUBPS", TOK_INSTRUCTION, 2117},
-#line 3157 "gperf_input_nmemonic.dat"
+#line 3148 "gperf_input_nmemonic.dat"
     {"ROUNDSD", TOK_INSTRUCTION, 1193},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3581 "gperf_input_nmemonic.dat"
+#line 3572 "gperf_input_nmemonic.dat"
     {"VPSUBD", TOK_INSTRUCTION, 2058},
-#line 3156 "gperf_input_nmemonic.dat"
+#line 3147 "gperf_input_nmemonic.dat"
     {"ROUNDPS", TOK_INSTRUCTION, 1192},
-#line 2792 "gperf_input_nmemonic.dat"
+#line 2783 "gperf_input_nmemonic.dat"
     {"FLD", TOK_INSTRUCTION, 431},
     {(char*)0}, {(char*)0},
-#line 3613 "gperf_input_nmemonic.dat"
+#line 3604 "gperf_input_nmemonic.dat"
     {"VSUBPD", TOK_INSTRUCTION, 2115},
     {(char*)0},
-#line 3139 "gperf_input_nmemonic.dat"
+#line 3130 "gperf_input_nmemonic.dat"
     {"RCR", TOK_INSTRUCTION, 1124},
     {(char*)0},
-#line 3435 "gperf_input_nmemonic.dat"
+#line 3426 "gperf_input_nmemonic.dat"
     {"VMOVQ", TOK_INSTRUCTION, 1752},
     {(char*)0},
-#line 3155 "gperf_input_nmemonic.dat"
+#line 3146 "gperf_input_nmemonic.dat"
     {"ROUNDPD", TOK_INSTRUCTION, 1191},
-#line 2656 "gperf_input_nmemonic.dat"
+#line 2647 "gperf_input_nmemonic.dat"
     {"CLC", TOK_INSTRUCTION, 157},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3154 "gperf_input_nmemonic.dat"
+#line 3145 "gperf_input_nmemonic.dat"
     {"ROR", TOK_INSTRUCTION, 1176},
     {(char*)0}, {(char*)0},
-#line 2641 "gperf_input_nmemonic.dat"
+#line 2632 "gperf_input_nmemonic.dat"
     {"BNDMOV", TOK_INSTRUCTION, 111},
     {(char*)0},
-#line 3489 "gperf_input_nmemonic.dat"
+#line 3480 "gperf_input_nmemonic.dat"
     {"VPDPBUSD", TOK_INSTRUCTION, 1864},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2441 "gperf_input_nmemonic.dat"
+#line 2432 "gperf_input_nmemonic.dat"
     {"MM0", TOK_REG, 32},
     {(char*)0}, {(char*)0},
-#line 3580 "gperf_input_nmemonic.dat"
+#line 3571 "gperf_input_nmemonic.dat"
     {"VPSUBB", TOK_INSTRUCTION, 2056},
-#line 3583 "gperf_input_nmemonic.dat"
+#line 3574 "gperf_input_nmemonic.dat"
     {"VPSUBSB", TOK_INSTRUCTION, 2062},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2829 "gperf_input_nmemonic.dat"
+#line 2820 "gperf_input_nmemonic.dat"
     {"FSUBR", TOK_INSTRUCTION, 486},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2448 "gperf_input_nmemonic.dat"
+#line 2439 "gperf_input_nmemonic.dat"
     {"MM7", TOK_REG, 39},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2569 "gperf_input_nmemonic.dat"
+#line 2560 "gperf_input_nmemonic.dat"
     {"ST3", TOK_ST3, TOK_ST3},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3618 "gperf_input_nmemonic.dat"
+#line 3609 "gperf_input_nmemonic.dat"
     {"VTESTPS", TOK_INSTRUCTION, 2123},
-#line 2544 "gperf_input_nmemonic.dat"
+#line 2535 "gperf_input_nmemonic.dat"
     {"DR4", TOK_DREG, 4},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3490 "gperf_input_nmemonic.dat"
+#line 3481 "gperf_input_nmemonic.dat"
     {"VPDPBUSDS", TOK_INSTRUCTION, 1866},
-#line 3122 "gperf_input_nmemonic.dat"
+#line 3113 "gperf_input_nmemonic.dat"
     {"PTEST", TOK_INSTRUCTION, 1077},
     {(char*)0},
-#line 3617 "gperf_input_nmemonic.dat"
+#line 3608 "gperf_input_nmemonic.dat"
     {"VTESTPD", TOK_INSTRUCTION, 2121},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2519 "gperf_input_nmemonic.dat"
+#line 2510 "gperf_input_nmemonic.dat"
     {"TMM0", TOK_TREG, 0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2630 "gperf_input_nmemonic.dat"
+#line 2621 "gperf_input_nmemonic.dat"
     {"BLENDPS", TOK_INSTRUCTION, 97},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2629 "gperf_input_nmemonic.dat"
+#line 2620 "gperf_input_nmemonic.dat"
     {"BLENDPD", TOK_INSTRUCTION, 96},
-#line 2925 "gperf_input_nmemonic.dat"
+#line 2916 "gperf_input_nmemonic.dat"
     {"LSS", TOK_INSTRUCTION, 660},
-#line 2526 "gperf_input_nmemonic.dat"
+#line 2517 "gperf_input_nmemonic.dat"
     {"TMM7", TOK_TREG, 7},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3428 "gperf_input_nmemonic.dat"
+#line 3419 "gperf_input_nmemonic.dat"
     {"VMOVLPS", TOK_INSTRUCTION, 1738},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2535 "gperf_input_nmemonic.dat"
+#line 2526 "gperf_input_nmemonic.dat"
     {"CR4", TOK_CREG, 4},
     {(char*)0},
-#line 2943 "gperf_input_nmemonic.dat"
+#line 2934 "gperf_input_nmemonic.dat"
     {"MOVBE", TOK_INSTRUCTION, 724},
     {(char*)0},
-#line 3427 "gperf_input_nmemonic.dat"
+#line 3418 "gperf_input_nmemonic.dat"
     {"VMOVLPD", TOK_INSTRUCTION, 1736},
-#line 2632 "gperf_input_nmemonic.dat"
+#line 2623 "gperf_input_nmemonic.dat"
     {"BLENDVPS", TOK_INSTRUCTION, 99},
-#line 2518 "gperf_input_nmemonic.dat"
+#line 2509 "gperf_input_nmemonic.dat"
     {"GS", TOK_SREG, 5},
-#line 2918 "gperf_input_nmemonic.dat"
+#line 2909 "gperf_input_nmemonic.dat"
     {"LODSD", TOK_INSTRUCTION, 651},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2631 "gperf_input_nmemonic.dat"
+#line 2622 "gperf_input_nmemonic.dat"
     {"BLENDVPD", TOK_INSTRUCTION, 98},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2828 "gperf_input_nmemonic.dat"
+#line 2819 "gperf_input_nmemonic.dat"
     {"FSUBP", TOK_INSTRUCTION, 484},
-#line 3226 "gperf_input_nmemonic.dat"
+#line 3217 "gperf_input_nmemonic.dat"
     {"SQRTPS", TOK_INSTRUCTION, 1384},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2917 "gperf_input_nmemonic.dat"
+#line 2908 "gperf_input_nmemonic.dat"
     {"LODSB", TOK_INSTRUCTION, 650},
-#line 3225 "gperf_input_nmemonic.dat"
+#line 3216 "gperf_input_nmemonic.dat"
     {"SQRTPD", TOK_INSTRUCTION, 1383},
     {(char*)0},
-#line 3238 "gperf_input_nmemonic.dat"
+#line 3229 "gperf_input_nmemonic.dat"
     {"STR", TOK_INSTRUCTION, 1396},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2921 "gperf_input_nmemonic.dat"
+#line 2912 "gperf_input_nmemonic.dat"
     {"LOOP", TOK_INSTRUCTION, 654},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2648 "gperf_input_nmemonic.dat"
+#line 2639 "gperf_input_nmemonic.dat"
     {"BTR", TOK_INSTRUCTION, 134},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -3530,30 +3521,30 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2571 "gperf_input_nmemonic.dat"
+#line 2562 "gperf_input_nmemonic.dat"
     {"ST5", TOK_ST5, TOK_ST5},
-#line 2801 "gperf_input_nmemonic.dat"
+#line 2792 "gperf_input_nmemonic.dat"
     {"FLDZ", TOK_INSTRUCTION, 443},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3556 "gperf_input_nmemonic.dat"
+#line 3547 "gperf_input_nmemonic.dat"
     {"VPOR", TOK_INSTRUCTION, 1992},
     {(char*)0},
-#line 2795 "gperf_input_nmemonic.dat"
+#line 2786 "gperf_input_nmemonic.dat"
     {"FLDENV", TOK_INSTRUCTION, 437},
     {(char*)0}, {(char*)0},
-#line 3325 "gperf_input_nmemonic.dat"
+#line 3316 "gperf_input_nmemonic.dat"
     {"VERR", TOK_INSTRUCTION, 1560},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2676 "gperf_input_nmemonic.dat"
+#line 2667 "gperf_input_nmemonic.dat"
     {"CMOVLE", TOK_INSTRUCTION, 195},
     {(char*)0},
-#line 3431 "gperf_input_nmemonic.dat"
+#line 3422 "gperf_input_nmemonic.dat"
     {"VMOVNTDQ", TOK_INSTRUCTION, 1744},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3016 "gperf_input_nmemonic.dat"
+#line 3007 "gperf_input_nmemonic.dat"
     {"PAVGB", TOK_INSTRUCTION, 893},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -3563,561 +3554,561 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2559 "gperf_input_nmemonic.dat"
+#line 2550 "gperf_input_nmemonic.dat"
     {"RESDQ", TOK_RESDQ, TOK_RESDQ},
-#line 3193 "gperf_input_nmemonic.dat"
+#line 3184 "gperf_input_nmemonic.dat"
     {"SETNLE", TOK_INSTRUCTION, 1298},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2447 "gperf_input_nmemonic.dat"
+#line 2438 "gperf_input_nmemonic.dat"
     {"MM6", TOK_REG, 38},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2756 "gperf_input_nmemonic.dat"
+#line 2747 "gperf_input_nmemonic.dat"
     {"FBLD", TOK_INSTRUCTION, 366},
-#line 2832 "gperf_input_nmemonic.dat"
+#line 2823 "gperf_input_nmemonic.dat"
     {"FUCOM", TOK_INSTRUCTION, 493},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2658 "gperf_input_nmemonic.dat"
+#line 2649 "gperf_input_nmemonic.dat"
     {"CLDEMOTE", TOK_INSTRUCTION, 159},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3290 "gperf_input_nmemonic.dat"
+#line 3281 "gperf_input_nmemonic.dat"
     {"VBLENDPS", TOK_INSTRUCTION, 1499},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3289 "gperf_input_nmemonic.dat"
+#line 3280 "gperf_input_nmemonic.dat"
     {"VBLENDPD", TOK_INSTRUCTION, 1497},
     {(char*)0},
-#line 3145 "gperf_input_nmemonic.dat"
+#line 3136 "gperf_input_nmemonic.dat"
     {"RDPMC", TOK_INSTRUCTION, 1146},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3236 "gperf_input_nmemonic.dat"
+#line 3227 "gperf_input_nmemonic.dat"
     {"STOSQ", TOK_INSTRUCTION, 1394},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3116 "gperf_input_nmemonic.dat"
+#line 3107 "gperf_input_nmemonic.dat"
     {"PSUBQ", TOK_INSTRUCTION, 1065},
-#line 3298 "gperf_input_nmemonic.dat"
+#line 3289 "gperf_input_nmemonic.dat"
     {"VCMPPS", TOK_INSTRUCTION, 1515},
     {(char*)0}, {(char*)0},
-#line 2525 "gperf_input_nmemonic.dat"
+#line 2516 "gperf_input_nmemonic.dat"
     {"TMM6", TOK_TREG, 6},
     {(char*)0}, {(char*)0},
-#line 3611 "gperf_input_nmemonic.dat"
+#line 3602 "gperf_input_nmemonic.dat"
     {"VSQRTSS", TOK_INSTRUCTION, 2113},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3297 "gperf_input_nmemonic.dat"
+#line 3288 "gperf_input_nmemonic.dat"
     {"VCMPPD", TOK_INSTRUCTION, 1513},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2923 "gperf_input_nmemonic.dat"
+#line 2914 "gperf_input_nmemonic.dat"
     {"LOOPNE", TOK_INSTRUCTION, 656},
-#line 3610 "gperf_input_nmemonic.dat"
+#line 3601 "gperf_input_nmemonic.dat"
     {"VSQRTSD", TOK_INSTRUCTION, 2112},
-#line 3018 "gperf_input_nmemonic.dat"
+#line 3009 "gperf_input_nmemonic.dat"
     {"PBLENDVB", TOK_INSTRUCTION, 897},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3609 "gperf_input_nmemonic.dat"
+#line 3600 "gperf_input_nmemonic.dat"
     {"VSQRTPS", TOK_INSTRUCTION, 2110},
     {(char*)0},
-#line 2557 "gperf_input_nmemonic.dat"
+#line 2548 "gperf_input_nmemonic.dat"
     {"RESQ", TOK_RESQ, TOK_RESQ},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2597 "gperf_input_nmemonic.dat"
+#line 2588 "gperf_input_nmemonic.dat"
     {"MACRO", TOK_MACRO, TOK_MACRO},
     {(char*)0},
-#line 3608 "gperf_input_nmemonic.dat"
+#line 3599 "gperf_input_nmemonic.dat"
     {"VSQRTPD", TOK_INSTRUCTION, 2108},
     {(char*)0},
-#line 2861 "gperf_input_nmemonic.dat"
+#line 2852 "gperf_input_nmemonic.dat"
     {"INSD", TOK_INSTRUCTION, 550},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3205 "gperf_input_nmemonic.dat"
+#line 3196 "gperf_input_nmemonic.dat"
     {"SFENCE", TOK_INSTRUCTION, 1321},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2922 "gperf_input_nmemonic.dat"
+#line 2913 "gperf_input_nmemonic.dat"
     {"LOOPE", TOK_INSTRUCTION, 655},
     {(char*)0},
-#line 2588 "gperf_input_nmemonic.dat"
+#line 2579 "gperf_input_nmemonic.dat"
     {"MOFFSET", TOK_MOFFSET, TOK_MOFFSET},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2747 "gperf_input_nmemonic.dat"
+#line 2738 "gperf_input_nmemonic.dat"
     {"ENDBR64", TOK_INSTRUCTION, 353},
     {(char*)0},
-#line 2860 "gperf_input_nmemonic.dat"
+#line 2851 "gperf_input_nmemonic.dat"
     {"INSB", TOK_INSTRUCTION, 549},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3641 "gperf_input_nmemonic.dat"
+#line 3632 "gperf_input_nmemonic.dat"
     {"XADD", TOK_INSTRUCTION, 2155},
-#line 3292 "gperf_input_nmemonic.dat"
+#line 3283 "gperf_input_nmemonic.dat"
     {"VBLENDVPS", TOK_INSTRUCTION, 1503},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2864 "gperf_input_nmemonic.dat"
+#line 2855 "gperf_input_nmemonic.dat"
     {"INVD", TOK_INSTRUCTION, 553},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3291 "gperf_input_nmemonic.dat"
+#line 3282 "gperf_input_nmemonic.dat"
     {"VBLENDVPD", TOK_INSTRUCTION, 1501},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3636 "gperf_input_nmemonic.dat"
+#line 3627 "gperf_input_nmemonic.dat"
     {"WRSSD", TOK_INSTRUCTION, 2150},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2867 "gperf_input_nmemonic.dat"
+#line 2858 "gperf_input_nmemonic.dat"
     {"IRET", TOK_INSTRUCTION, 556},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2733 "gperf_input_nmemonic.dat"
+#line 2724 "gperf_input_nmemonic.dat"
     {"CWD", TOK_INSTRUCTION, 331},
     {(char*)0}, {(char*)0},
-#line 2868 "gperf_input_nmemonic.dat"
+#line 2859 "gperf_input_nmemonic.dat"
     {"IRETD", TOK_INSTRUCTION, 557},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3322 "gperf_input_nmemonic.dat"
+#line 3313 "gperf_input_nmemonic.dat"
     {"VDIVSS", TOK_INSTRUCTION, 1556},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3321 "gperf_input_nmemonic.dat"
+#line 3312 "gperf_input_nmemonic.dat"
     {"VDIVSD", TOK_INSTRUCTION, 1555},
-#line 2856 "gperf_input_nmemonic.dat"
+#line 2847 "gperf_input_nmemonic.dat"
     {"IN", TOK_INSTRUCTION, 536},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2862 "gperf_input_nmemonic.dat"
+#line 2853 "gperf_input_nmemonic.dat"
     {"INSERTPS", TOK_INSTRUCTION, 551},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2945 "gperf_input_nmemonic.dat"
+#line 2936 "gperf_input_nmemonic.dat"
     {"MOVDDUP", TOK_INSTRUCTION, 734},
-#line 2857 "gperf_input_nmemonic.dat"
+#line 2848 "gperf_input_nmemonic.dat"
     {"INC", TOK_INSTRUCTION, 542},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3022 "gperf_input_nmemonic.dat"
+#line 3013 "gperf_input_nmemonic.dat"
     {"PCMPEQD", TOK_INSTRUCTION, 902},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2858 "gperf_input_nmemonic.dat"
+#line 2849 "gperf_input_nmemonic.dat"
     {"INCSSPD", TOK_INSTRUCTION, 547},
     {(char*)0}, {(char*)0},
-#line 3183 "gperf_input_nmemonic.dat"
+#line 3174 "gperf_input_nmemonic.dat"
     {"SETLE", TOK_INSTRUCTION, 1278},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2821 "gperf_input_nmemonic.dat"
+#line 2812 "gperf_input_nmemonic.dat"
     {"FSQRT", TOK_INSTRUCTION, 468},
     {(char*)0},
-#line 3021 "gperf_input_nmemonic.dat"
+#line 3012 "gperf_input_nmemonic.dat"
     {"PCMPEQB", TOK_INSTRUCTION, 900},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2963 "gperf_input_nmemonic.dat"
+#line 2954 "gperf_input_nmemonic.dat"
     {"MOVNTPS", TOK_INSTRUCTION, 760},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3181 "gperf_input_nmemonic.dat"
+#line 3172 "gperf_input_nmemonic.dat"
     {"SETGE", TOK_INSTRUCTION, 1274},
     {(char*)0}, {(char*)0},
-#line 3110 "gperf_input_nmemonic.dat"
+#line 3101 "gperf_input_nmemonic.dat"
     {"PSRLD", TOK_INSTRUCTION, 1048},
     {(char*)0},
-#line 2962 "gperf_input_nmemonic.dat"
+#line 2953 "gperf_input_nmemonic.dat"
     {"MOVNTPD", TOK_INSTRUCTION, 759},
     {(char*)0}, {(char*)0},
-#line 3628 "gperf_input_nmemonic.dat"
+#line 3619 "gperf_input_nmemonic.dat"
     {"VZEROUPPER", TOK_INSTRUCTION, 2140},
-#line 3166 "gperf_input_nmemonic.dat"
+#line 3157 "gperf_input_nmemonic.dat"
     {"SAVEPREVSSP", TOK_INSTRUCTION, 1231},
-#line 2686 "gperf_input_nmemonic.dat"
+#line 2677 "gperf_input_nmemonic.dat"
     {"CMOVNLE", TOK_INSTRUCTION, 225},
-#line 2734 "gperf_input_nmemonic.dat"
+#line 2725 "gperf_input_nmemonic.dat"
     {"CWDE", TOK_INSTRUCTION, 332},
     {(char*)0},
-#line 2769 "gperf_input_nmemonic.dat"
+#line 2760 "gperf_input_nmemonic.dat"
     {"FCOMP", TOK_INSTRUCTION, 382},
     {(char*)0}, {(char*)0},
-#line 3585 "gperf_input_nmemonic.dat"
+#line 3576 "gperf_input_nmemonic.dat"
     {"VPSUBUSB", TOK_INSTRUCTION, 2066},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2770 "gperf_input_nmemonic.dat"
+#line 2761 "gperf_input_nmemonic.dat"
     {"FCOMPP", TOK_INSTRUCTION, 386},
     {(char*)0},
-#line 2444 "gperf_input_nmemonic.dat"
+#line 2435 "gperf_input_nmemonic.dat"
     {"MM3", TOK_REG, 35},
-#line 2635 "gperf_input_nmemonic.dat"
+#line 2626 "gperf_input_nmemonic.dat"
     {"BLSR", TOK_INSTRUCTION, 104},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2598 "gperf_input_nmemonic.dat"
+#line 2589 "gperf_input_nmemonic.dat"
     {"ENDMACRO", TOK_ENDMACRO, TOK_ENDMACRO},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3425 "gperf_input_nmemonic.dat"
+#line 3416 "gperf_input_nmemonic.dat"
     {"VMOVHPS", TOK_INSTRUCTION, 1733},
-#line 2570 "gperf_input_nmemonic.dat"
+#line 2561 "gperf_input_nmemonic.dat"
     {"ST4", TOK_ST4, TOK_ST4},
-#line 2684 "gperf_input_nmemonic.dat"
+#line 2675 "gperf_input_nmemonic.dat"
     {"CMOVNGE", TOK_INSTRUCTION, 219},
     {(char*)0},
-#line 2776 "gperf_input_nmemonic.dat"
+#line 2767 "gperf_input_nmemonic.dat"
     {"FDIVRP", TOK_INSTRUCTION, 399},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3063 "gperf_input_nmemonic.dat"
+#line 3054 "gperf_input_nmemonic.dat"
     {"PMINUD", TOK_INSTRUCTION, 965},
-#line 3424 "gperf_input_nmemonic.dat"
+#line 3415 "gperf_input_nmemonic.dat"
     {"VMOVHPD", TOK_INSTRUCTION, 1731},
     {(char*)0},
-#line 2773 "gperf_input_nmemonic.dat"
+#line 2764 "gperf_input_nmemonic.dat"
     {"FDIV", TOK_INSTRUCTION, 389},
-#line 3640 "gperf_input_nmemonic.dat"
+#line 3631 "gperf_input_nmemonic.dat"
     {"XABORT", TOK_INSTRUCTION, 2154},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3060 "gperf_input_nmemonic.dat"
+#line 3051 "gperf_input_nmemonic.dat"
     {"PMINSD", TOK_INSTRUCTION, 960},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3142 "gperf_input_nmemonic.dat"
+#line 3133 "gperf_input_nmemonic.dat"
     {"RDMSR", TOK_INSTRUCTION, 1143},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3416 "gperf_input_nmemonic.dat"
+#line 3407 "gperf_input_nmemonic.dat"
     {"VMINSS", TOK_INSTRUCTION, 1709},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3062 "gperf_input_nmemonic.dat"
+#line 3053 "gperf_input_nmemonic.dat"
     {"PMINUB", TOK_INSTRUCTION, 963},
     {(char*)0}, {(char*)0},
-#line 2522 "gperf_input_nmemonic.dat"
+#line 2513 "gperf_input_nmemonic.dat"
     {"TMM3", TOK_TREG, 3},
-#line 3037 "gperf_input_nmemonic.dat"
+#line 3028 "gperf_input_nmemonic.dat"
     {"PEXTRD", TOK_INSTRUCTION, 924},
-#line 3415 "gperf_input_nmemonic.dat"
+#line 3406 "gperf_input_nmemonic.dat"
     {"VMINSD", TOK_INSTRUCTION, 1708},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3059 "gperf_input_nmemonic.dat"
+#line 3050 "gperf_input_nmemonic.dat"
     {"PMINSB", TOK_INSTRUCTION, 959},
     {(char*)0},
-#line 3620 "gperf_input_nmemonic.dat"
+#line 3611 "gperf_input_nmemonic.dat"
     {"VUCOMISS", TOK_INSTRUCTION, 2126},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3619 "gperf_input_nmemonic.dat"
+#line 3610 "gperf_input_nmemonic.dat"
     {"VUCOMISD", TOK_INSTRUCTION, 2125},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3036 "gperf_input_nmemonic.dat"
+#line 3027 "gperf_input_nmemonic.dat"
     {"PEXTRB", TOK_INSTRUCTION, 923},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3218 "gperf_input_nmemonic.dat"
+#line 3209 "gperf_input_nmemonic.dat"
     {"SHRD", TOK_INSTRUCTION, 1368},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3035 "gperf_input_nmemonic.dat"
+#line 3026 "gperf_input_nmemonic.dat"
     {"PEXT", TOK_INSTRUCTION, 921},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3161 "gperf_input_nmemonic.dat"
+#line 3152 "gperf_input_nmemonic.dat"
     {"RSQRTSS", TOK_INSTRUCTION, 1197},
     {(char*)0}, {(char*)0},
-#line 3664 "gperf_input_nmemonic.dat"
+#line 3655 "gperf_input_nmemonic.dat"
     {"XSETBV", TOK_INSTRUCTION, 2220},
     {(char*)0},
-#line 3072 "gperf_input_nmemonic.dat"
+#line 3063 "gperf_input_nmemonic.dat"
     {"PMOVZXBD", TOK_INSTRUCTION, 975},
-#line 3644 "gperf_input_nmemonic.dat"
+#line 3635 "gperf_input_nmemonic.dat"
     {"XEND", TOK_INSTRUCTION, 2178},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3206 "gperf_input_nmemonic.dat"
+#line 3197 "gperf_input_nmemonic.dat"
     {"SGDT", TOK_INSTRUCTION, 1322},
     {(char*)0}, {(char*)0},
-#line 3160 "gperf_input_nmemonic.dat"
+#line 3151 "gperf_input_nmemonic.dat"
     {"RSQRTPS", TOK_INSTRUCTION, 1196},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3574 "gperf_input_nmemonic.dat"
+#line 3565 "gperf_input_nmemonic.dat"
     {"VPSRLD", TOK_INSTRUCTION, 2038},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2971 "gperf_input_nmemonic.dat"
+#line 2962 "gperf_input_nmemonic.dat"
     {"MOVSQ", TOK_INSTRUCTION, 778},
-#line 3149 "gperf_input_nmemonic.dat"
+#line 3140 "gperf_input_nmemonic.dat"
     {"RDSSPQ", TOK_INSTRUCTION, 1154},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3066 "gperf_input_nmemonic.dat"
+#line 3057 "gperf_input_nmemonic.dat"
     {"PMOVSXBD", TOK_INSTRUCTION, 969},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2820 "gperf_input_nmemonic.dat"
+#line 2811 "gperf_input_nmemonic.dat"
     {"FSINCOS", TOK_INSTRUCTION, 467},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2446 "gperf_input_nmemonic.dat"
+#line 2437 "gperf_input_nmemonic.dat"
     {"MM5", TOK_REG, 37},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3577 "gperf_input_nmemonic.dat"
+#line 3568 "gperf_input_nmemonic.dat"
     {"VPSRLVD", TOK_INSTRUCTION, 2048},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3422 "gperf_input_nmemonic.dat"
+#line 3413 "gperf_input_nmemonic.dat"
     {"VMOVDQU", TOK_INSTRUCTION, 1726},
     {(char*)0},
-#line 2819 "gperf_input_nmemonic.dat"
+#line 2810 "gperf_input_nmemonic.dat"
     {"FSIN", TOK_INSTRUCTION, 466},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2758 "gperf_input_nmemonic.dat"
+#line 2749 "gperf_input_nmemonic.dat"
     {"FCHS", TOK_INSTRUCTION, 368},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2575 "gperf_input_nmemonic.dat"
+#line 2566 "gperf_input_nmemonic.dat"
     {"WORD", TOK_WORD, TOK_WORD},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2524 "gperf_input_nmemonic.dat"
+#line 2515 "gperf_input_nmemonic.dat"
     {"TMM5", TOK_TREG, 5},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3143 "gperf_input_nmemonic.dat"
+#line 3134 "gperf_input_nmemonic.dat"
     {"RDPID", TOK_INSTRUCTION, 1144},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3446 "gperf_input_nmemonic.dat"
+#line 3437 "gperf_input_nmemonic.dat"
     {"VMULSS", TOK_INSTRUCTION, 1783},
     {(char*)0}, {(char*)0},
-#line 2965 "gperf_input_nmemonic.dat"
+#line 2956 "gperf_input_nmemonic.dat"
     {"MOVQ", TOK_INSTRUCTION, 762},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3445 "gperf_input_nmemonic.dat"
+#line 3436 "gperf_input_nmemonic.dat"
     {"VMULSD", TOK_INSTRUCTION, 1782},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2903 "gperf_input_nmemonic.dat"
+#line 2894 "gperf_input_nmemonic.dat"
     {"LAR", TOK_INSTRUCTION, 628},
     {(char*)0}, {(char*)0},
-#line 3654 "gperf_input_nmemonic.dat"
+#line 3645 "gperf_input_nmemonic.dat"
     {"XRSTORS", TOK_INSTRUCTION, 2210},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3650 "gperf_input_nmemonic.dat"
+#line 3641 "gperf_input_nmemonic.dat"
     {"XORPS", TOK_INSTRUCTION, 2206},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2927 "gperf_input_nmemonic.dat"
+#line 2918 "gperf_input_nmemonic.dat"
     {"LZCNT", TOK_INSTRUCTION, 664},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3649 "gperf_input_nmemonic.dat"
+#line 3640 "gperf_input_nmemonic.dat"
     {"XORPD", TOK_INSTRUCTION, 2205},
     {(char*)0},
-#line 2590 "gperf_input_nmemonic.dat"
+#line 2581 "gperf_input_nmemonic.dat"
     {"DEFINE", TOK_DEFINE, TOK_DEFINE},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2579 "gperf_input_nmemonic.dat"
+#line 2570 "gperf_input_nmemonic.dat"
     {"DQWORD", TOK_DQWORD, TOK_DQWORD},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2977 "gperf_input_nmemonic.dat"
+#line 2968 "gperf_input_nmemonic.dat"
     {"MOVUPS", TOK_INSTRUCTION, 791},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3500 "gperf_input_nmemonic.dat"
+#line 3491 "gperf_input_nmemonic.dat"
     {"VPERMQ", TOK_INSTRUCTION, 1885},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2976 "gperf_input_nmemonic.dat"
+#line 2967 "gperf_input_nmemonic.dat"
     {"MOVUPD", TOK_INSTRUCTION, 789},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3320 "gperf_input_nmemonic.dat"
+#line 3311 "gperf_input_nmemonic.dat"
     {"VDIVPS", TOK_INSTRUCTION, 1553},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3469 "gperf_input_nmemonic.dat"
+#line 3460 "gperf_input_nmemonic.dat"
     {"VPBLENDD", TOK_INSTRUCTION, 1828},
-#line 2576 "gperf_input_nmemonic.dat"
+#line 2567 "gperf_input_nmemonic.dat"
     {"DWORD", TOK_DWORD, TOK_DWORD},
     {(char*)0},
-#line 3319 "gperf_input_nmemonic.dat"
+#line 3310 "gperf_input_nmemonic.dat"
     {"VDIVPD", TOK_INSTRUCTION, 1551},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2919 "gperf_input_nmemonic.dat"
+#line 2910 "gperf_input_nmemonic.dat"
     {"LODSQ", TOK_INSTRUCTION, 652},
-#line 3044 "gperf_input_nmemonic.dat"
+#line 3035 "gperf_input_nmemonic.dat"
     {"PHSUBD", TOK_INSTRUCTION, 936},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3491 "gperf_input_nmemonic.dat"
+#line 3482 "gperf_input_nmemonic.dat"
     {"VPDPWSSD", TOK_INSTRUCTION, 1868},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3582 "gperf_input_nmemonic.dat"
+#line 3573 "gperf_input_nmemonic.dat"
     {"VPSUBQ", TOK_INSTRUCTION, 2060},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2851 "gperf_input_nmemonic.dat"
+#line 2842 "gperf_input_nmemonic.dat"
     {"HRESET", TOK_INSTRUCTION, 515},
-#line 2777 "gperf_input_nmemonic.dat"
+#line 2768 "gperf_input_nmemonic.dat"
     {"FFREE", TOK_INSTRUCTION, 401},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2775 "gperf_input_nmemonic.dat"
+#line 2766 "gperf_input_nmemonic.dat"
     {"FDIVR", TOK_INSTRUCTION, 395},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3400 "gperf_input_nmemonic.dat"
+#line 3391 "gperf_input_nmemonic.dat"
     {"VHSUBPS", TOK_INSTRUCTION, 1681},
     {(char*)0},
-#line 2578 "gperf_input_nmemonic.dat"
+#line 2569 "gperf_input_nmemonic.dat"
     {"TWORD", TOK_TWORD, TOK_TWORD},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3399 "gperf_input_nmemonic.dat"
+#line 3390 "gperf_input_nmemonic.dat"
     {"VHSUBPD", TOK_INSTRUCTION, 1679},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3492 "gperf_input_nmemonic.dat"
+#line 3483 "gperf_input_nmemonic.dat"
     {"VPDPWSSDS", TOK_INSTRUCTION, 1870},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3638 "gperf_input_nmemonic.dat"
+#line 3629 "gperf_input_nmemonic.dat"
     {"WRUSSD", TOK_INSTRUCTION, 2152},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2499 "gperf_input_nmemonic.dat"
+#line 2490 "gperf_input_nmemonic.dat"
     {"DL", TOK_REG, 90},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2500 "gperf_input_nmemonic.dat"
+#line 2491 "gperf_input_nmemonic.dat"
     {"BL", TOK_REG, 91},
     {(char*)0},
-#line 2628 "gperf_input_nmemonic.dat"
+#line 2619 "gperf_input_nmemonic.dat"
     {"BEXTR", TOK_INSTRUCTION, 94},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3280 "gperf_input_nmemonic.dat"
+#line 3271 "gperf_input_nmemonic.dat"
     {"VAESDECLAST", TOK_INSTRUCTION, 1481},
     {(char*)0}, {(char*)0},
-#line 2768 "gperf_input_nmemonic.dat"
+#line 2759 "gperf_input_nmemonic.dat"
     {"FCOM", TOK_INSTRUCTION, 378},
-#line 2812 "gperf_input_nmemonic.dat"
+#line 2803 "gperf_input_nmemonic.dat"
     {"FPREM", TOK_INSTRUCTION, 459},
-#line 2674 "gperf_input_nmemonic.dat"
+#line 2665 "gperf_input_nmemonic.dat"
     {"CMOVGE", TOK_INSTRUCTION, 189},
     {(char*)0}, {(char*)0},
-#line 3470 "gperf_input_nmemonic.dat"
+#line 3461 "gperf_input_nmemonic.dat"
     {"VPBLENDVB", TOK_INSTRUCTION, 1830},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3217 "gperf_input_nmemonic.dat"
+#line 3208 "gperf_input_nmemonic.dat"
     {"SHR", TOK_INSTRUCTION, 1353},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3310 "gperf_input_nmemonic.dat"
+#line 3301 "gperf_input_nmemonic.dat"
     {"VCVTSD2SS", TOK_INSTRUCTION, 1535},
     {(char*)0},
-#line 3414 "gperf_input_nmemonic.dat"
+#line 3405 "gperf_input_nmemonic.dat"
     {"VMINPS", TOK_INSTRUCTION, 1706},
     {(char*)0}, {(char*)0},
-#line 3313 "gperf_input_nmemonic.dat"
+#line 3304 "gperf_input_nmemonic.dat"
     {"VCVTSS2SD", TOK_INSTRUCTION, 1540},
-#line 2774 "gperf_input_nmemonic.dat"
+#line 2765 "gperf_input_nmemonic.dat"
     {"FDIVP", TOK_INSTRUCTION, 393},
     {(char*)0},
-#line 2498 "gperf_input_nmemonic.dat"
+#line 2489 "gperf_input_nmemonic.dat"
     {"CL", TOK_REG, 89},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3413 "gperf_input_nmemonic.dat"
+#line 3404 "gperf_input_nmemonic.dat"
     {"VMINPD", TOK_INSTRUCTION, 1704},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3191 "gperf_input_nmemonic.dat"
+#line 3182 "gperf_input_nmemonic.dat"
     {"SETNGE", TOK_INSTRUCTION, 1294},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3065 "gperf_input_nmemonic.dat"
+#line 3056 "gperf_input_nmemonic.dat"
     {"PMOVMSKB", TOK_INSTRUCTION, 967},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2984 "gperf_input_nmemonic.dat"
+#line 2975 "gperf_input_nmemonic.dat"
     {"MULSS", TOK_INSTRUCTION, 807},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2983 "gperf_input_nmemonic.dat"
+#line 2974 "gperf_input_nmemonic.dat"
     {"MULSD", TOK_INSTRUCTION, 806},
-#line 2849 "gperf_input_nmemonic.dat"
+#line 2840 "gperf_input_nmemonic.dat"
     {"HADDPS", TOK_INSTRUCTION, 513},
     {(char*)0}, {(char*)0},
-#line 2914 "gperf_input_nmemonic.dat"
+#line 2905 "gperf_input_nmemonic.dat"
     {"LLDT", TOK_INSTRUCTION, 647},
-#line 2982 "gperf_input_nmemonic.dat"
+#line 2973 "gperf_input_nmemonic.dat"
     {"MULPS", TOK_INSTRUCTION, 805},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2848 "gperf_input_nmemonic.dat"
+#line 2839 "gperf_input_nmemonic.dat"
     {"HADDPD", TOK_INSTRUCTION, 512},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2981 "gperf_input_nmemonic.dat"
+#line 2972 "gperf_input_nmemonic.dat"
     {"MULPD", TOK_INSTRUCTION, 804},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2445 "gperf_input_nmemonic.dat"
+#line 2436 "gperf_input_nmemonic.dat"
     {"MM4", TOK_REG, 36},
-#line 3430 "gperf_input_nmemonic.dat"
+#line 3421 "gperf_input_nmemonic.dat"
     {"VMOVMSKPS", TOK_INSTRUCTION, 1742},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3429 "gperf_input_nmemonic.dat"
+#line 3420 "gperf_input_nmemonic.dat"
     {"VMOVMSKPD", TOK_INSTRUCTION, 1740},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3648 "gperf_input_nmemonic.dat"
+#line 3639 "gperf_input_nmemonic.dat"
     {"XOR", TOK_INSTRUCTION, 2183},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2904 "gperf_input_nmemonic.dat"
+#line 2895 "gperf_input_nmemonic.dat"
     {"LDDQU", TOK_INSTRUCTION, 630},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2636 "gperf_input_nmemonic.dat"
+#line 2627 "gperf_input_nmemonic.dat"
     {"BNDCL", TOK_INSTRUCTION, 106},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2523 "gperf_input_nmemonic.dat"
+#line 2514 "gperf_input_nmemonic.dat"
     {"TMM4", TOK_TREG, 4},
     {(char*)0}, {(char*)0},
-#line 3513 "gperf_input_nmemonic.dat"
+#line 3504 "gperf_input_nmemonic.dat"
     {"VPHSUBD", TOK_INSTRUCTION, 1906},
-#line 3159 "gperf_input_nmemonic.dat"
+#line 3150 "gperf_input_nmemonic.dat"
     {"RSM", TOK_INSTRUCTION, 1195},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -4125,395 +4116,395 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3652 "gperf_input_nmemonic.dat"
+#line 3643 "gperf_input_nmemonic.dat"
     {"XRSTOR", TOK_INSTRUCTION, 2208},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3282 "gperf_input_nmemonic.dat"
+#line 3273 "gperf_input_nmemonic.dat"
     {"VAESENCLAST", TOK_INSTRUCTION, 1485},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3444 "gperf_input_nmemonic.dat"
+#line 3435 "gperf_input_nmemonic.dat"
     {"VMULPS", TOK_INSTRUCTION, 1780},
     {(char*)0}, {(char*)0},
-#line 2475 "gperf_input_nmemonic.dat"
+#line 2466 "gperf_input_nmemonic.dat"
     {"R10D", TOK_REG, 66},
-#line 3637 "gperf_input_nmemonic.dat"
+#line 3628 "gperf_input_nmemonic.dat"
     {"WRSSQ", TOK_INSTRUCTION, 2151},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3443 "gperf_input_nmemonic.dat"
+#line 3434 "gperf_input_nmemonic.dat"
     {"VMULPD", TOK_INSTRUCTION, 1778},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2869 "gperf_input_nmemonic.dat"
+#line 2860 "gperf_input_nmemonic.dat"
     {"IRETQ", TOK_INSTRUCTION, 558},
     {(char*)0}, {(char*)0},
-#line 3163 "gperf_input_nmemonic.dat"
+#line 3154 "gperf_input_nmemonic.dat"
     {"SAL", TOK_INSTRUCTION, 1199},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2507 "gperf_input_nmemonic.dat"
+#line 2498 "gperf_input_nmemonic.dat"
     {"R10B", TOK_REG, 98},
-#line 2910 "gperf_input_nmemonic.dat"
+#line 2901 "gperf_input_nmemonic.dat"
     {"LFS", TOK_INSTRUCTION, 639},
     {(char*)0}, {(char*)0},
-#line 2459 "gperf_input_nmemonic.dat"
+#line 2450 "gperf_input_nmemonic.dat"
     {"R10", TOK_REG, 50},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2601 "gperf_input_nmemonic.dat"
+#line 2592 "gperf_input_nmemonic.dat"
     {"ADD", TOK_INSTRUCTION, 24},
     {(char*)0},
-#line 3169 "gperf_input_nmemonic.dat"
+#line 3160 "gperf_input_nmemonic.dat"
     {"SCASD", TOK_INSTRUCTION, 1255},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2549 "gperf_input_nmemonic.dat"
+#line 2540 "gperf_input_nmemonic.dat"
     {"EXTERN", TOK_EXTERN, TOK_EXTERN},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2622 "gperf_input_nmemonic.dat"
+#line 2613 "gperf_input_nmemonic.dat"
     {"AND", TOK_INSTRUCTION, 66},
     {(char*)0},
-#line 3168 "gperf_input_nmemonic.dat"
+#line 3159 "gperf_input_nmemonic.dat"
     {"SCASB", TOK_INSTRUCTION, 1254},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2675 "gperf_input_nmemonic.dat"
+#line 2666 "gperf_input_nmemonic.dat"
     {"CMOVL", TOK_INSTRUCTION, 192},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3404 "gperf_input_nmemonic.dat"
+#line 3395 "gperf_input_nmemonic.dat"
     {"VLDDQU", TOK_INSTRUCTION, 1686},
     {(char*)0},
-#line 2605 "gperf_input_nmemonic.dat"
+#line 2596 "gperf_input_nmemonic.dat"
     {"ADDSS", TOK_INSTRUCTION, 49},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2934 "gperf_input_nmemonic.dat"
+#line 2925 "gperf_input_nmemonic.dat"
     {"MFENCE", TOK_INSTRUCTION, 673},
     {(char*)0}, {(char*)0},
-#line 2950 "gperf_input_nmemonic.dat"
+#line 2941 "gperf_input_nmemonic.dat"
     {"MOVDQU", TOK_INSTRUCTION, 741},
     {(char*)0},
-#line 2604 "gperf_input_nmemonic.dat"
+#line 2595 "gperf_input_nmemonic.dat"
     {"ADDSD", TOK_INSTRUCTION, 48},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2603 "gperf_input_nmemonic.dat"
+#line 2594 "gperf_input_nmemonic.dat"
     {"ADDPS", TOK_INSTRUCTION, 47},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3559 "gperf_input_nmemonic.dat"
+#line 3550 "gperf_input_nmemonic.dat"
     {"VPSHUFD", TOK_INSTRUCTION, 1998},
-#line 2926 "gperf_input_nmemonic.dat"
+#line 2917 "gperf_input_nmemonic.dat"
     {"LTR", TOK_INSTRUCTION, 663},
     {(char*)0},
-#line 3112 "gperf_input_nmemonic.dat"
+#line 3103 "gperf_input_nmemonic.dat"
     {"PSRLQ", TOK_INSTRUCTION, 1053},
     {(char*)0}, {(char*)0},
-#line 2602 "gperf_input_nmemonic.dat"
+#line 2593 "gperf_input_nmemonic.dat"
     {"ADDPD", TOK_INSTRUCTION, 46},
     {(char*)0},
-#line 3192 "gperf_input_nmemonic.dat"
+#line 3183 "gperf_input_nmemonic.dat"
     {"SETNL", TOK_INSTRUCTION, 1296},
-#line 2607 "gperf_input_nmemonic.dat"
+#line 2598 "gperf_input_nmemonic.dat"
     {"ADDSUBPS", TOK_INSTRUCTION, 51},
     {(char*)0}, {(char*)0},
-#line 3597 "gperf_input_nmemonic.dat"
+#line 3588 "gperf_input_nmemonic.dat"
     {"VPXOR", TOK_INSTRUCTION, 2090},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3104 "gperf_input_nmemonic.dat"
+#line 3095 "gperf_input_nmemonic.dat"
     {"PSLLD", TOK_INSTRUCTION, 1027},
-#line 2606 "gperf_input_nmemonic.dat"
+#line 2597 "gperf_input_nmemonic.dat"
     {"ADDSUBPD", TOK_INSTRUCTION, 50},
     {(char*)0},
-#line 2627 "gperf_input_nmemonic.dat"
+#line 2618 "gperf_input_nmemonic.dat"
     {"ANDPS", TOK_INSTRUCTION, 93},
     {(char*)0}, {(char*)0},
-#line 2709 "gperf_input_nmemonic.dat"
+#line 2700 "gperf_input_nmemonic.dat"
     {"COMISS", TOK_INSTRUCTION, 296},
-#line 3517 "gperf_input_nmemonic.dat"
+#line 3508 "gperf_input_nmemonic.dat"
     {"VPINSRD", TOK_INSTRUCTION, 1913},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3558 "gperf_input_nmemonic.dat"
+#line 3549 "gperf_input_nmemonic.dat"
     {"VPSHUFB", TOK_INSTRUCTION, 1996},
-#line 2626 "gperf_input_nmemonic.dat"
+#line 2617 "gperf_input_nmemonic.dat"
     {"ANDPD", TOK_INSTRUCTION, 92},
-#line 2577 "gperf_input_nmemonic.dat"
+#line 2568 "gperf_input_nmemonic.dat"
     {"QWORD", TOK_QWORD, TOK_QWORD},
     {(char*)0},
-#line 2708 "gperf_input_nmemonic.dat"
+#line 2699 "gperf_input_nmemonic.dat"
     {"COMISD", TOK_INSTRUCTION, 295},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2803 "gperf_input_nmemonic.dat"
+#line 2794 "gperf_input_nmemonic.dat"
     {"FMULP", TOK_INSTRUCTION, 448},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2970 "gperf_input_nmemonic.dat"
+#line 2961 "gperf_input_nmemonic.dat"
     {"MOVSLDUP", TOK_INSTRUCTION, 777},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2933 "gperf_input_nmemonic.dat"
+#line 2924 "gperf_input_nmemonic.dat"
     {"MAXSS", TOK_INSTRUCTION, 672},
     {(char*)0},
-#line 2599 "gperf_input_nmemonic.dat"
+#line 2590 "gperf_input_nmemonic.dat"
     {"ADC", TOK_INSTRUCTION, 0},
-#line 3516 "gperf_input_nmemonic.dat"
+#line 3507 "gperf_input_nmemonic.dat"
     {"VPINSRB", TOK_INSTRUCTION, 1912},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3478 "gperf_input_nmemonic.dat"
+#line 3469 "gperf_input_nmemonic.dat"
     {"VPCMPEQD", TOK_INSTRUCTION, 1846},
-#line 2932 "gperf_input_nmemonic.dat"
+#line 2923 "gperf_input_nmemonic.dat"
     {"MAXSD", TOK_INSTRUCTION, 671},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2931 "gperf_input_nmemonic.dat"
+#line 2922 "gperf_input_nmemonic.dat"
     {"MAXPS", TOK_INSTRUCTION, 670},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2930 "gperf_input_nmemonic.dat"
+#line 2921 "gperf_input_nmemonic.dat"
     {"MAXPD", TOK_INSTRUCTION, 669},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3438 "gperf_input_nmemonic.dat"
+#line 3429 "gperf_input_nmemonic.dat"
     {"VMOVSLDUP", TOK_INSTRUCTION, 1762},
-#line 2710 "gperf_input_nmemonic.dat"
+#line 2701 "gperf_input_nmemonic.dat"
     {"CPUID", TOK_INSTRUCTION, 297},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2665 "gperf_input_nmemonic.dat"
+#line 2656 "gperf_input_nmemonic.dat"
     {"CLWB", TOK_INSTRUCTION, 166},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3477 "gperf_input_nmemonic.dat"
+#line 3468 "gperf_input_nmemonic.dat"
     {"VPCMPEQB", TOK_INSTRUCTION, 1844},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3023 "gperf_input_nmemonic.dat"
+#line 3014 "gperf_input_nmemonic.dat"
     {"PCMPEQQ", TOK_INSTRUCTION, 904},
-#line 2434 "gperf_input_nmemonic.dat"
+#line 2425 "gperf_input_nmemonic.dat"
     {"XMM9", TOK_REG, 25},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2859 "gperf_input_nmemonic.dat"
+#line 2850 "gperf_input_nmemonic.dat"
     {"INCSSPQ", TOK_INSTRUCTION, 548},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2433 "gperf_input_nmemonic.dat"
+#line 2424 "gperf_input_nmemonic.dat"
     {"XMM8", TOK_REG, 24},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3182 "gperf_input_nmemonic.dat"
+#line 3173 "gperf_input_nmemonic.dat"
     {"SETL", TOK_INSTRUCTION, 1276},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2964 "gperf_input_nmemonic.dat"
+#line 2955 "gperf_input_nmemonic.dat"
     {"MOVNTQ", TOK_INSTRUCTION, 761},
     {(char*)0}, {(char*)0},
-#line 3215 "gperf_input_nmemonic.dat"
+#line 3206 "gperf_input_nmemonic.dat"
     {"SHLD", TOK_INSTRUCTION, 1345},
     {(char*)0},
-#line 3221 "gperf_input_nmemonic.dat"
+#line 3212 "gperf_input_nmemonic.dat"
     {"SHUFPS", TOK_INSTRUCTION, 1377},
-#line 2959 "gperf_input_nmemonic.dat"
+#line 2950 "gperf_input_nmemonic.dat"
     {"MOVNTDQ", TOK_INSTRUCTION, 755},
     {(char*)0},
-#line 3304 "gperf_input_nmemonic.dat"
+#line 3295 "gperf_input_nmemonic.dat"
     {"VCVTPD2PS", TOK_INSTRUCTION, 1523},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3307 "gperf_input_nmemonic.dat"
+#line 3298 "gperf_input_nmemonic.dat"
     {"VCVTPS2PD", TOK_INSTRUCTION, 1529},
     {(char*)0},
-#line 3220 "gperf_input_nmemonic.dat"
+#line 3211 "gperf_input_nmemonic.dat"
     {"SHUFPD", TOK_INSTRUCTION, 1376},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3111 "gperf_input_nmemonic.dat"
+#line 3102 "gperf_input_nmemonic.dat"
     {"PSRLDQ", TOK_INSTRUCTION, 1052},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2478 "gperf_input_nmemonic.dat"
+#line 2469 "gperf_input_nmemonic.dat"
     {"R13D", TOK_REG, 69},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3565 "gperf_input_nmemonic.dat"
+#line 3556 "gperf_input_nmemonic.dat"
     {"VPSLLD", TOK_INSTRUCTION, 2010},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2956 "gperf_input_nmemonic.dat"
+#line 2947 "gperf_input_nmemonic.dat"
     {"MOVLPS", TOK_INSTRUCTION, 751},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3180 "gperf_input_nmemonic.dat"
+#line 3171 "gperf_input_nmemonic.dat"
     {"SETG", TOK_INSTRUCTION, 1272},
-#line 3026 "gperf_input_nmemonic.dat"
+#line 3017 "gperf_input_nmemonic.dat"
     {"PCMPESTRM", TOK_INSTRUCTION, 908},
     {(char*)0},
-#line 2955 "gperf_input_nmemonic.dat"
+#line 2946 "gperf_input_nmemonic.dat"
     {"MOVLPD", TOK_INSTRUCTION, 749},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2425 "gperf_input_nmemonic.dat"
+#line 2416 "gperf_input_nmemonic.dat"
     {"XMM0", TOK_REG, 16},
-#line 2510 "gperf_input_nmemonic.dat"
+#line 2501 "gperf_input_nmemonic.dat"
     {"R13B", TOK_REG, 101},
     {(char*)0}, {(char*)0},
-#line 2623 "gperf_input_nmemonic.dat"
+#line 2614 "gperf_input_nmemonic.dat"
     {"ANDN", TOK_INSTRUCTION, 88},
-#line 2667 "gperf_input_nmemonic.dat"
+#line 2658 "gperf_input_nmemonic.dat"
     {"CMOVA", TOK_INSTRUCTION, 168},
-#line 3303 "gperf_input_nmemonic.dat"
+#line 3294 "gperf_input_nmemonic.dat"
     {"VCVTDQ2PD", TOK_INSTRUCTION, 1521},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3568 "gperf_input_nmemonic.dat"
+#line 3559 "gperf_input_nmemonic.dat"
     {"VPSLLVD", TOK_INSTRUCTION, 2020},
-#line 2432 "gperf_input_nmemonic.dat"
+#line 2423 "gperf_input_nmemonic.dat"
     {"XMM7", TOK_REG, 23},
     {(char*)0}, {(char*)0},
-#line 2751 "gperf_input_nmemonic.dat"
+#line 2742 "gperf_input_nmemonic.dat"
     {"EXTRACTPS", TOK_INSTRUCTION, 357},
     {(char*)0},
-#line 2909 "gperf_input_nmemonic.dat"
+#line 2900 "gperf_input_nmemonic.dat"
     {"LFENCE", TOK_INSTRUCTION, 638},
-#line 3666 "gperf_input_nmemonic.dat"
+#line 3657 "gperf_input_nmemonic.dat"
     {"XTEST", TOK_INSTRUCTION, 2222},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2551 "gperf_input_nmemonic.dat"
+#line 2542 "gperf_input_nmemonic.dat"
     {".TEXT", TOK_TEXT, TOK_TEXT},
-#line 3038 "gperf_input_nmemonic.dat"
+#line 3029 "gperf_input_nmemonic.dat"
     {"PEXTRQ", TOK_INSTRUCTION, 925},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2712 "gperf_input_nmemonic.dat"
+#line 2703 "gperf_input_nmemonic.dat"
     {"CRC32", TOK_INSTRUCTION, 299},
     {(char*)0}, {(char*)0},
-#line 3184 "gperf_input_nmemonic.dat"
+#line 3175 "gperf_input_nmemonic.dat"
     {"SETNA", TOK_INSTRUCTION, 1280},
-#line 2480 "gperf_input_nmemonic.dat"
+#line 2471 "gperf_input_nmemonic.dat"
     {"R15D", TOK_REG, 71},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2987 "gperf_input_nmemonic.dat"
+#line 2978 "gperf_input_nmemonic.dat"
     {"NEG", TOK_INSTRUCTION, 811},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2797 "gperf_input_nmemonic.dat"
+#line 2788 "gperf_input_nmemonic.dat"
     {"FLDL2T", TOK_INSTRUCTION, 439},
-#line 3075 "gperf_input_nmemonic.dat"
+#line 3066 "gperf_input_nmemonic.dat"
     {"PMOVZXDQ", TOK_INSTRUCTION, 978},
-#line 3136 "gperf_input_nmemonic.dat"
+#line 3127 "gperf_input_nmemonic.dat"
     {"RCL", TOK_INSTRUCTION, 1107},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2966 "gperf_input_nmemonic.dat"
+#line 2957 "gperf_input_nmemonic.dat"
     {"MOVQ2DQ", TOK_INSTRUCTION, 770},
     {(char*)0},
-#line 2512 "gperf_input_nmemonic.dat"
+#line 2503 "gperf_input_nmemonic.dat"
     {"R15B", TOK_REG, 103},
     {(char*)0},
-#line 2796 "gperf_input_nmemonic.dat"
+#line 2787 "gperf_input_nmemonic.dat"
     {"FLDL2E", TOK_INSTRUCTION, 438},
     {(char*)0},
-#line 3153 "gperf_input_nmemonic.dat"
+#line 3144 "gperf_input_nmemonic.dat"
     {"ROL", TOK_INSTRUCTION, 1161},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3073 "gperf_input_nmemonic.dat"
+#line 3064 "gperf_input_nmemonic.dat"
     {"PMOVZXBQ", TOK_INSTRUCTION, 976},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2685 "gperf_input_nmemonic.dat"
+#line 2676 "gperf_input_nmemonic.dat"
     {"CMOVNL", TOK_INSTRUCTION, 222},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2760 "gperf_input_nmemonic.dat"
+#line 2751 "gperf_input_nmemonic.dat"
     {"FCMOVB", TOK_INSTRUCTION, 370},
-#line 3028 "gperf_input_nmemonic.dat"
+#line 3019 "gperf_input_nmemonic.dat"
     {"PCMPGTD", TOK_INSTRUCTION, 911},
-#line 2850 "gperf_input_nmemonic.dat"
+#line 2841 "gperf_input_nmemonic.dat"
     {"HLT", TOK_INSTRUCTION, 514},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3576 "gperf_input_nmemonic.dat"
+#line 3567 "gperf_input_nmemonic.dat"
     {"VPSRLQ", TOK_INSTRUCTION, 2044},
-#line 3069 "gperf_input_nmemonic.dat"
+#line 3060 "gperf_input_nmemonic.dat"
     {"PMOVSXDQ", TOK_INSTRUCTION, 972},
     {(char*)0},
-#line 2595 "gperf_input_nmemonic.dat"
+#line 2586 "gperf_input_nmemonic.dat"
     {"ELIF", TOK_ELIF, TOK_ELIF},
     {(char*)0}, {(char*)0},
-#line 3575 "gperf_input_nmemonic.dat"
+#line 3566 "gperf_input_nmemonic.dat"
     {"VPSRLDQ", TOK_INSTRUCTION, 2042},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3067 "gperf_input_nmemonic.dat"
+#line 3058 "gperf_input_nmemonic.dat"
     {"PMOVSXBQ", TOK_INSTRUCTION, 970},
-#line 3102 "gperf_input_nmemonic.dat"
+#line 3093 "gperf_input_nmemonic.dat"
     {"PSIGND", TOK_INSTRUCTION, 1023},
-#line 2614 "gperf_input_nmemonic.dat"
+#line 2605 "gperf_input_nmemonic.dat"
     {"AESENC", TOK_INSTRUCTION, 58},
     {(char*)0}, {(char*)0},
-#line 3027 "gperf_input_nmemonic.dat"
+#line 3018 "gperf_input_nmemonic.dat"
     {"PCMPGTB", TOK_INSTRUCTION, 909},
     {(char*)0},
-#line 2842 "gperf_input_nmemonic.dat"
+#line 2833 "gperf_input_nmemonic.dat"
     {"FXTRACT", TOK_INSTRUCTION, 506},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2853 "gperf_input_nmemonic.dat"
+#line 2844 "gperf_input_nmemonic.dat"
     {"HSUBPS", TOK_INSTRUCTION, 517},
     {(char*)0},
-#line 3175 "gperf_input_nmemonic.dat"
+#line 3166 "gperf_input_nmemonic.dat"
     {"SETAE", TOK_INSTRUCTION, 1262},
-#line 2591 "gperf_input_nmemonic.dat"
+#line 2582 "gperf_input_nmemonic.dat"
     {"IF", TOK_IF, TOK_IF},
     {(char*)0},
-#line 3082 "gperf_input_nmemonic.dat"
+#line 3073 "gperf_input_nmemonic.dat"
     {"PMULLD", TOK_INSTRUCTION, 988},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2852 "gperf_input_nmemonic.dat"
+#line 2843 "gperf_input_nmemonic.dat"
     {"HSUBPD", TOK_INSTRUCTION, 516},
-#line 3578 "gperf_input_nmemonic.dat"
+#line 3569 "gperf_input_nmemonic.dat"
     {"VPSRLVQ", TOK_INSTRUCTION, 2050},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3101 "gperf_input_nmemonic.dat"
+#line 3092 "gperf_input_nmemonic.dat"
     {"PSIGNB", TOK_INSTRUCTION, 1021},
     {(char*)0},
-#line 2683 "gperf_input_nmemonic.dat"
+#line 2674 "gperf_input_nmemonic.dat"
     {"CMOVNG", TOK_INSTRUCTION, 216},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3634 "gperf_input_nmemonic.dat"
+#line 3625 "gperf_input_nmemonic.dat"
     {"WRMSR", TOK_INSTRUCTION, 2148},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2762 "gperf_input_nmemonic.dat"
+#line 2753 "gperf_input_nmemonic.dat"
     {"FCMOVE", TOK_INSTRUCTION, 372},
     {(char*)0}, {(char*)0},
-#line 2608 "gperf_input_nmemonic.dat"
+#line 2599 "gperf_input_nmemonic.dat"
     {"AESDEC", TOK_INSTRUCTION, 52},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3108 "gperf_input_nmemonic.dat"
+#line 3099 "gperf_input_nmemonic.dat"
     {"PSRAD", TOK_INSTRUCTION, 1040},
     {(char*)0}, {(char*)0},
-#line 3135 "gperf_input_nmemonic.dat"
+#line 3126 "gperf_input_nmemonic.dat"
     {"PXOR", TOK_INSTRUCTION, 1105},
-#line 3084 "gperf_input_nmemonic.dat"
+#line 3075 "gperf_input_nmemonic.dat"
     {"PMULUDQ", TOK_INSTRUCTION, 991},
-#line 2817 "gperf_input_nmemonic.dat"
+#line 2808 "gperf_input_nmemonic.dat"
     {"FSAVE", TOK_INSTRUCTION, 464},
     {(char*)0},
-#line 2678 "gperf_input_nmemonic.dat"
+#line 2669 "gperf_input_nmemonic.dat"
     {"CMOVNAE", TOK_INSTRUCTION, 201},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3078 "gperf_input_nmemonic.dat"
+#line 3069 "gperf_input_nmemonic.dat"
     {"PMULDQ", TOK_INSTRUCTION, 981},
-#line 2761 "gperf_input_nmemonic.dat"
+#line 2752 "gperf_input_nmemonic.dat"
     {"FCMOVBE", TOK_INSTRUCTION, 371},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -4523,597 +4514,597 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2763 "gperf_input_nmemonic.dat"
+#line 2754 "gperf_input_nmemonic.dat"
     {"FCMOVNB", TOK_INSTRUCTION, 373},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2912 "gperf_input_nmemonic.dat"
+#line 2903 "gperf_input_nmemonic.dat"
     {"LGS", TOK_INSTRUCTION, 643},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3423 "gperf_input_nmemonic.dat"
+#line 3414 "gperf_input_nmemonic.dat"
     {"VMOVHLPS", TOK_INSTRUCTION, 1730},
-#line 2479 "gperf_input_nmemonic.dat"
+#line 2470 "gperf_input_nmemonic.dat"
     {"R14D", TOK_REG, 70},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2589 "gperf_input_nmemonic.dat"
+#line 2580 "gperf_input_nmemonic.dat"
     {"REL", TOK_REL, TOK_REL},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3457 "gperf_input_nmemonic.dat"
+#line 3448 "gperf_input_nmemonic.dat"
     {"VPADDD", TOK_INSTRUCTION, 1804},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3450 "gperf_input_nmemonic.dat"
+#line 3441 "gperf_input_nmemonic.dat"
     {"VPABSD", TOK_INSTRUCTION, 1790},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2431 "gperf_input_nmemonic.dat"
+#line 2422 "gperf_input_nmemonic.dat"
     {"XMM6", TOK_REG, 22},
-#line 2511 "gperf_input_nmemonic.dat"
+#line 2502 "gperf_input_nmemonic.dat"
     {"R14B", TOK_REG, 102},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2471 "gperf_input_nmemonic.dat"
+#line 2462 "gperf_input_nmemonic.dat"
     {"ESI", TOK_REG, 62},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2472 "gperf_input_nmemonic.dat"
+#line 2463 "gperf_input_nmemonic.dat"
     {"EDI", TOK_REG, 63},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2462 "gperf_input_nmemonic.dat"
+#line 2453 "gperf_input_nmemonic.dat"
     {"R13", TOK_REG, 53},
-#line 3456 "gperf_input_nmemonic.dat"
+#line 3447 "gperf_input_nmemonic.dat"
     {"VPADDB", TOK_INSTRUCTION, 1802},
-#line 3459 "gperf_input_nmemonic.dat"
+#line 3450 "gperf_input_nmemonic.dat"
     {"VPADDSB", TOK_INSTRUCTION, 1808},
     {(char*)0},
-#line 2596 "gperf_input_nmemonic.dat"
+#line 2587 "gperf_input_nmemonic.dat"
     {"ENDIF", TOK_ENDIF, TOK_ENDIF},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2765 "gperf_input_nmemonic.dat"
+#line 2756 "gperf_input_nmemonic.dat"
     {"FCMOVNE", TOK_INSTRUCTION, 375},
     {(char*)0},
-#line 3449 "gperf_input_nmemonic.dat"
+#line 3440 "gperf_input_nmemonic.dat"
     {"VPABSB", TOK_INSTRUCTION, 1788},
     {(char*)0}, {(char*)0},
-#line 3531 "gperf_input_nmemonic.dat"
+#line 3522 "gperf_input_nmemonic.dat"
     {"VPMINSD", TOK_INSTRUCTION, 1942},
-#line 3626 "gperf_input_nmemonic.dat"
+#line 3617 "gperf_input_nmemonic.dat"
     {"VXORPS", TOK_INSTRUCTION, 2137},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3426 "gperf_input_nmemonic.dat"
+#line 3417 "gperf_input_nmemonic.dat"
     {"VMOVLHPS", TOK_INSTRUCTION, 1735},
-#line 2854 "gperf_input_nmemonic.dat"
+#line 2845 "gperf_input_nmemonic.dat"
     {"IDIV", TOK_INSTRUCTION, 518},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3625 "gperf_input_nmemonic.dat"
+#line 3616 "gperf_input_nmemonic.dat"
     {"VXORPD", TOK_INSTRUCTION, 2135},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2764 "gperf_input_nmemonic.dat"
+#line 2755 "gperf_input_nmemonic.dat"
     {"FCMOVNBE", TOK_INSTRUCTION, 374},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2866 "gperf_input_nmemonic.dat"
+#line 2857 "gperf_input_nmemonic.dat"
     {"INVPCID", TOK_INSTRUCTION, 555},
-#line 2969 "gperf_input_nmemonic.dat"
+#line 2960 "gperf_input_nmemonic.dat"
     {"MOVSHDUP", TOK_INSTRUCTION, 776},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3530 "gperf_input_nmemonic.dat"
+#line 3521 "gperf_input_nmemonic.dat"
     {"VPMINSB", TOK_INSTRUCTION, 1940},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2975 "gperf_input_nmemonic.dat"
+#line 2966 "gperf_input_nmemonic.dat"
     {"MOVSXD", TOK_INSTRUCTION, 788},
     {(char*)0}, {(char*)0},
-#line 3502 "gperf_input_nmemonic.dat"
+#line 3493 "gperf_input_nmemonic.dat"
     {"VPEXTRD", TOK_INSTRUCTION, 1887},
-#line 3229 "gperf_input_nmemonic.dat"
+#line 3220 "gperf_input_nmemonic.dat"
     {"STAC", TOK_INSTRUCTION, 1387},
     {(char*)0},
-#line 2911 "gperf_input_nmemonic.dat"
+#line 2902 "gperf_input_nmemonic.dat"
     {"LGDT", TOK_INSTRUCTION, 642},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2625 "gperf_input_nmemonic.dat"
+#line 2616 "gperf_input_nmemonic.dat"
     {"ANDNPS", TOK_INSTRUCTION, 91},
     {(char*)0},
-#line 2562 "gperf_input_nmemonic.dat"
+#line 2553 "gperf_input_nmemonic.dat"
     {"DW", TOK_DW, TOK_DW},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2624 "gperf_input_nmemonic.dat"
+#line 2615 "gperf_input_nmemonic.dat"
     {"ANDNPD", TOK_INSTRUCTION, 90},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3465 "gperf_input_nmemonic.dat"
+#line 3456 "gperf_input_nmemonic.dat"
     {"VPAND", TOK_INSTRUCTION, 1820},
     {(char*)0}, {(char*)0},
-#line 3501 "gperf_input_nmemonic.dat"
+#line 3492 "gperf_input_nmemonic.dat"
     {"VPEXTRB", TOK_INSTRUCTION, 1886},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3639 "gperf_input_nmemonic.dat"
+#line 3630 "gperf_input_nmemonic.dat"
     {"WRUSSQ", TOK_INSTRUCTION, 2153},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3629 "gperf_input_nmemonic.dat"
+#line 3620 "gperf_input_nmemonic.dat"
     {"WAIT", TOK_INSTRUCTION, 2141},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2418 "gperf_input_nmemonic.dat"
+#line 2409 "gperf_input_nmemonic.dat"
     {"YMM9", TOK_REG, 9},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3011 "gperf_input_nmemonic.dat"
+#line 3002 "gperf_input_nmemonic.dat"
     {"PADDW", TOK_INSTRUCTION, 884},
     {(char*)0},
-#line 2417 "gperf_input_nmemonic.dat"
+#line 2408 "gperf_input_nmemonic.dat"
     {"YMM8", TOK_REG, 8},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2999 "gperf_input_nmemonic.dat"
+#line 2990 "gperf_input_nmemonic.dat"
     {"PABSW", TOK_INSTRUCTION, 861},
     {(char*)0},
-#line 2466 "gperf_input_nmemonic.dat"
+#line 2457 "gperf_input_nmemonic.dat"
     {"ECX", TOK_REG, 57},
     {(char*)0},
-#line 3272 "gperf_input_nmemonic.dat"
+#line 3263 "gperf_input_nmemonic.dat"
     {"UNPCKLPS", TOK_INSTRUCTION, 1468},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3271 "gperf_input_nmemonic.dat"
+#line 3262 "gperf_input_nmemonic.dat"
     {"UNPCKLPD", TOK_INSTRUCTION, 1467},
     {(char*)0}, {(char*)0},
-#line 2465 "gperf_input_nmemonic.dat"
+#line 2456 "gperf_input_nmemonic.dat"
     {"EAX", TOK_REG, 56},
     {(char*)0}, {(char*)0},
-#line 3437 "gperf_input_nmemonic.dat"
+#line 3428 "gperf_input_nmemonic.dat"
     {"VMOVSHDUP", TOK_INSTRUCTION, 1760},
-#line 3296 "gperf_input_nmemonic.dat"
+#line 3287 "gperf_input_nmemonic.dat"
     {"VBROADCASTSS", TOK_INSTRUCTION, 1509},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3295 "gperf_input_nmemonic.dat"
+#line 3286 "gperf_input_nmemonic.dat"
     {"VBROADCASTSD", TOK_INSTRUCTION, 1507},
     {(char*)0}, {(char*)0},
-#line 2464 "gperf_input_nmemonic.dat"
+#line 2455 "gperf_input_nmemonic.dat"
     {"R15", TOK_REG, 55},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3010 "gperf_input_nmemonic.dat"
+#line 3001 "gperf_input_nmemonic.dat"
     {"PADDUSW", TOK_INSTRUCTION, 882},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3008 "gperf_input_nmemonic.dat"
+#line 2999 "gperf_input_nmemonic.dat"
     {"PADDSW", TOK_INSTRUCTION, 878},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3482 "gperf_input_nmemonic.dat"
+#line 3473 "gperf_input_nmemonic.dat"
     {"VPCMPESTRM", TOK_INSTRUCTION, 1853},
-#line 2467 "gperf_input_nmemonic.dat"
+#line 2458 "gperf_input_nmemonic.dat"
     {"EDX", TOK_REG, 58},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3140 "gperf_input_nmemonic.dat"
+#line 3131 "gperf_input_nmemonic.dat"
     {"RDFSBASE", TOK_INSTRUCTION, 1139},
     {(char*)0},
-#line 3655 "gperf_input_nmemonic.dat"
+#line 3646 "gperf_input_nmemonic.dat"
     {"XRSTORS64", TOK_INSTRUCTION, 2211},
     {(char*)0}, {(char*)0},
-#line 2468 "gperf_input_nmemonic.dat"
+#line 2459 "gperf_input_nmemonic.dat"
     {"EBX", TOK_REG, 59},
-#line 2503 "gperf_input_nmemonic.dat"
+#line 2494 "gperf_input_nmemonic.dat"
     {"DH", TOK_REG, 94},
     {(char*)0},
-#line 3224 "gperf_input_nmemonic.dat"
+#line 3215 "gperf_input_nmemonic.dat"
     {"SMSW", TOK_INSTRUCTION, 1380},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2541 "gperf_input_nmemonic.dat"
+#line 2532 "gperf_input_nmemonic.dat"
     {"DR1", TOK_DREG, 1},
     {(char*)0},
-#line 3316 "gperf_input_nmemonic.dat"
+#line 3307 "gperf_input_nmemonic.dat"
     {"VCVTTPS2DQ", TOK_INSTRUCTION, 1545},
-#line 2409 "gperf_input_nmemonic.dat"
+#line 2400 "gperf_input_nmemonic.dat"
     {"YMM0", TOK_REG, 0},
     {(char*)0},
-#line 2652 "gperf_input_nmemonic.dat"
+#line 2643 "gperf_input_nmemonic.dat"
     {"CBW", TOK_INSTRUCTION, 153},
     {(char*)0},
-#line 3315 "gperf_input_nmemonic.dat"
+#line 3306 "gperf_input_nmemonic.dat"
     {"VCVTTPD2DQ", TOK_INSTRUCTION, 1543},
     {(char*)0},
-#line 2504 "gperf_input_nmemonic.dat"
+#line 2495 "gperf_input_nmemonic.dat"
     {"BH", TOK_REG, 95},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3257 "gperf_input_nmemonic.dat"
+#line 3248 "gperf_input_nmemonic.dat"
     {"TESTUI", TOK_INSTRUCTION, 1451},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2416 "gperf_input_nmemonic.dat"
+#line 2407 "gperf_input_nmemonic.dat"
     {"YMM7", TOK_REG, 7},
-#line 3133 "gperf_input_nmemonic.dat"
+#line 3124 "gperf_input_nmemonic.dat"
     {"PUSHF", TOK_INSTRUCTION, 1103},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3251 "gperf_input_nmemonic.dat"
+#line 3242 "gperf_input_nmemonic.dat"
     {"TDPBF16PS", TOK_INSTRUCTION, 1432},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3170 "gperf_input_nmemonic.dat"
+#line 3161 "gperf_input_nmemonic.dat"
     {"SCASQ", TOK_INSTRUCTION, 1256},
     {(char*)0}, {(char*)0},
-#line 2953 "gperf_input_nmemonic.dat"
+#line 2944 "gperf_input_nmemonic.dat"
     {"MOVHPS", TOK_INSTRUCTION, 746},
     {(char*)0}, {(char*)0},
-#line 2996 "gperf_input_nmemonic.dat"
+#line 2987 "gperf_input_nmemonic.dat"
     {"OUTSW", TOK_INSTRUCTION, 856},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2802 "gperf_input_nmemonic.dat"
+#line 2793 "gperf_input_nmemonic.dat"
     {"FMUL", TOK_INSTRUCTION, 444},
     {(char*)0},
-#line 2952 "gperf_input_nmemonic.dat"
+#line 2943 "gperf_input_nmemonic.dat"
     {"MOVHPD", TOK_INSTRUCTION, 744},
-#line 2502 "gperf_input_nmemonic.dat"
+#line 2493 "gperf_input_nmemonic.dat"
     {"CH", TOK_REG, 93},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2532 "gperf_input_nmemonic.dat"
+#line 2523 "gperf_input_nmemonic.dat"
     {"CR1", TOK_CREG, 1},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2428 "gperf_input_nmemonic.dat"
+#line 2419 "gperf_input_nmemonic.dat"
     {"XMM3", TOK_REG, 19},
-#line 2704 "gperf_input_nmemonic.dat"
+#line 2695 "gperf_input_nmemonic.dat"
     {"CMPSW", TOK_INSTRUCTION, 287},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3146 "gperf_input_nmemonic.dat"
+#line 3137 "gperf_input_nmemonic.dat"
     {"RDRAND", TOK_INSTRUCTION, 1147},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2814 "gperf_input_nmemonic.dat"
+#line 2805 "gperf_input_nmemonic.dat"
     {"FPTAN", TOK_INSTRUCTION, 461},
-#line 3624 "gperf_input_nmemonic.dat"
+#line 3615 "gperf_input_nmemonic.dat"
     {"VUNPCKLPS", TOK_INSTRUCTION, 2133},
     {(char*)0}, {(char*)0},
-#line 2673 "gperf_input_nmemonic.dat"
+#line 2664 "gperf_input_nmemonic.dat"
     {"CMOVG", TOK_INSTRUCTION, 186},
-#line 3442 "gperf_input_nmemonic.dat"
+#line 3433 "gperf_input_nmemonic.dat"
     {"VMPSADBW", TOK_INSTRUCTION, 1776},
-#line 2528 "gperf_input_nmemonic.dat"
+#line 2519 "gperf_input_nmemonic.dat"
     {"BND1", TOK_BNDREG, 1},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3623 "gperf_input_nmemonic.dat"
+#line 3614 "gperf_input_nmemonic.dat"
     {"VUNPCKLPD", TOK_INSTRUCTION, 2131},
     {(char*)0}, {(char*)0},
-#line 3432 "gperf_input_nmemonic.dat"
+#line 3423 "gperf_input_nmemonic.dat"
     {"VMOVNTDQA", TOK_INSTRUCTION, 1746},
-#line 2455 "gperf_input_nmemonic.dat"
+#line 2446 "gperf_input_nmemonic.dat"
     {"RSI", TOK_REG, 46},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2456 "gperf_input_nmemonic.dat"
+#line 2447 "gperf_input_nmemonic.dat"
     {"RDI", TOK_REG, 47},
     {(char*)0},
-#line 3484 "gperf_input_nmemonic.dat"
+#line 3475 "gperf_input_nmemonic.dat"
     {"VPCMPGTD", TOK_INSTRUCTION, 1856},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3106 "gperf_input_nmemonic.dat"
+#line 3097 "gperf_input_nmemonic.dat"
     {"PSLLQ", TOK_INSTRUCTION, 1032},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3466 "gperf_input_nmemonic.dat"
+#line 3457 "gperf_input_nmemonic.dat"
     {"VPANDN", TOK_INSTRUCTION, 1822},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3293 "gperf_input_nmemonic.dat"
+#line 3284 "gperf_input_nmemonic.dat"
     {"VBROADCASTF128", TOK_INSTRUCTION, 1505},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3190 "gperf_input_nmemonic.dat"
+#line 3181 "gperf_input_nmemonic.dat"
     {"SETNG", TOK_INSTRUCTION, 1292},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3144 "gperf_input_nmemonic.dat"
+#line 3135 "gperf_input_nmemonic.dat"
     {"RDPKRU", TOK_INSTRUCTION, 1145},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3483 "gperf_input_nmemonic.dat"
+#line 3474 "gperf_input_nmemonic.dat"
     {"VPCMPGTB", TOK_INSTRUCTION, 1854},
     {(char*)0}, {(char*)0},
-#line 2592 "gperf_input_nmemonic.dat"
+#line 2583 "gperf_input_nmemonic.dat"
     {"IFNDEF", TOK_IFNDEF, TOK_IFNDEF},
-#line 2826 "gperf_input_nmemonic.dat"
+#line 2817 "gperf_input_nmemonic.dat"
     {"FSTSW", TOK_INSTRUCTION, 478},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2811 "gperf_input_nmemonic.dat"
+#line 2802 "gperf_input_nmemonic.dat"
     {"FPATAN", TOK_INSTRUCTION, 458},
     {(char*)0}, {(char*)0},
-#line 3076 "gperf_input_nmemonic.dat"
+#line 3067 "gperf_input_nmemonic.dat"
     {"PMOVZXWD", TOK_INSTRUCTION, 979},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3653 "gperf_input_nmemonic.dat"
+#line 3644 "gperf_input_nmemonic.dat"
     {"XRSTOR64", TOK_INSTRUCTION, 2209},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2980 "gperf_input_nmemonic.dat"
+#line 2971 "gperf_input_nmemonic.dat"
     {"MUL", TOK_INSTRUCTION, 799},
     {(char*)0}, {(char*)0},
-#line 2808 "gperf_input_nmemonic.dat"
+#line 2799 "gperf_input_nmemonic.dat"
     {"FNSTCW", TOK_INSTRUCTION, 454},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3070 "gperf_input_nmemonic.dat"
+#line 3061 "gperf_input_nmemonic.dat"
     {"PMOVSXWD", TOK_INSTRUCTION, 973},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3232 "gperf_input_nmemonic.dat"
+#line 3223 "gperf_input_nmemonic.dat"
     {"STI", TOK_INSTRUCTION, 1390},
-#line 2823 "gperf_input_nmemonic.dat"
+#line 2814 "gperf_input_nmemonic.dat"
     {"FSTCW", TOK_INSTRUCTION, 472},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2430 "gperf_input_nmemonic.dat"
+#line 2421 "gperf_input_nmemonic.dat"
     {"XMM5", TOK_REG, 21},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2810 "gperf_input_nmemonic.dat"
+#line 2801 "gperf_input_nmemonic.dat"
     {"FNSTSW", TOK_INSTRUCTION, 456},
     {(char*)0}, {(char*)0},
-#line 3306 "gperf_input_nmemonic.dat"
+#line 3297 "gperf_input_nmemonic.dat"
     {"VCVTPS2DQ", TOK_INSTRUCTION, 1527},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2489 "gperf_input_nmemonic.dat"
+#line 2480 "gperf_input_nmemonic.dat"
     {"R8W", TOK_REG, 80},
     {(char*)0}, {(char*)0},
-#line 2450 "gperf_input_nmemonic.dat"
+#line 2441 "gperf_input_nmemonic.dat"
     {"RCX", TOK_REG, 41},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2449 "gperf_input_nmemonic.dat"
+#line 2440 "gperf_input_nmemonic.dat"
     {"RAX", TOK_REG, 40},
-#line 3165 "gperf_input_nmemonic.dat"
+#line 3156 "gperf_input_nmemonic.dat"
     {"SARX", TOK_INSTRUCTION, 1229},
-#line 2490 "gperf_input_nmemonic.dat"
+#line 2481 "gperf_input_nmemonic.dat"
     {"R9W", TOK_REG, 81},
     {(char*)0}, {(char*)0},
-#line 2415 "gperf_input_nmemonic.dat"
+#line 2406 "gperf_input_nmemonic.dat"
     {"YMM6", TOK_REG, 6},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3105 "gperf_input_nmemonic.dat"
+#line 3096 "gperf_input_nmemonic.dat"
     {"PSLLDQ", TOK_INSTRUCTION, 1031},
-#line 3518 "gperf_input_nmemonic.dat"
+#line 3509 "gperf_input_nmemonic.dat"
     {"VPINSRQ", TOK_INSTRUCTION, 1914},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2901 "gperf_input_nmemonic.dat"
+#line 2892 "gperf_input_nmemonic.dat"
     {"JS", TOK_INSTRUCTION, 623},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2451 "gperf_input_nmemonic.dat"
+#line 2442 "gperf_input_nmemonic.dat"
     {"RDX", TOK_REG, 42},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2874 "gperf_input_nmemonic.dat"
+#line 2865 "gperf_input_nmemonic.dat"
     {"JC", TOK_INSTRUCTION, 567},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2452 "gperf_input_nmemonic.dat"
+#line 2443 "gperf_input_nmemonic.dat"
     {"RBX", TOK_REG, 43},
     {(char*)0},
-#line 3479 "gperf_input_nmemonic.dat"
+#line 3470 "gperf_input_nmemonic.dat"
     {"VPCMPEQQ", TOK_INSTRUCTION, 1848},
     {(char*)0}, {(char*)0},
-#line 2894 "gperf_input_nmemonic.dat"
+#line 2885 "gperf_input_nmemonic.dat"
     {"JNS", TOK_INSTRUCTION, 610},
     {(char*)0},
-#line 3003 "gperf_input_nmemonic.dat"
+#line 2994 "gperf_input_nmemonic.dat"
     {"PACKUSWB", TOK_INSTRUCTION, 868},
     {(char*)0},
-#line 2872 "gperf_input_nmemonic.dat"
+#line 2863 "gperf_input_nmemonic.dat"
     {"JB", TOK_INSTRUCTION, 563},
-#line 2736 "gperf_input_nmemonic.dat"
+#line 2727 "gperf_input_nmemonic.dat"
     {"DIV", TOK_INSTRUCTION, 338},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2655 "gperf_input_nmemonic.dat"
+#line 2646 "gperf_input_nmemonic.dat"
     {"CLAC", TOK_INSTRUCTION, 156},
-#line 3001 "gperf_input_nmemonic.dat"
+#line 2992 "gperf_input_nmemonic.dat"
     {"PACKSSWB", TOK_INSTRUCTION, 865},
     {(char*)0},
-#line 2896 "gperf_input_nmemonic.dat"
+#line 2887 "gperf_input_nmemonic.dat"
     {"JO", TOK_INSTRUCTION, 614},
     {(char*)0}, {(char*)0},
-#line 2740 "gperf_input_nmemonic.dat"
+#line 2731 "gperf_input_nmemonic.dat"
     {"DIVSS", TOK_INSTRUCTION, 346},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2463 "gperf_input_nmemonic.dat"
+#line 2454 "gperf_input_nmemonic.dat"
     {"R14", TOK_REG, 54},
     {(char*)0},
-#line 3645 "gperf_input_nmemonic.dat"
+#line 3636 "gperf_input_nmemonic.dat"
     {"XGETBV", TOK_INSTRUCTION, 2179},
-#line 3461 "gperf_input_nmemonic.dat"
+#line 3452 "gperf_input_nmemonic.dat"
     {"VPADDUSB", TOK_INSTRUCTION, 1812},
-#line 3222 "gperf_input_nmemonic.dat"
+#line 3213 "gperf_input_nmemonic.dat"
     {"SIDT", TOK_INSTRUCTION, 1378},
-#line 2739 "gperf_input_nmemonic.dat"
+#line 2730 "gperf_input_nmemonic.dat"
     {"DIVSD", TOK_INSTRUCTION, 345},
     {(char*)0}, {(char*)0},
-#line 2893 "gperf_input_nmemonic.dat"
+#line 2884 "gperf_input_nmemonic.dat"
     {"JNP", TOK_INSTRUCTION, 608},
     {(char*)0},
-#line 2738 "gperf_input_nmemonic.dat"
+#line 2729 "gperf_input_nmemonic.dat"
     {"DIVPS", TOK_INSTRUCTION, 344},
-#line 3132 "gperf_input_nmemonic.dat"
+#line 3123 "gperf_input_nmemonic.dat"
     {"PUSH", TOK_INSTRUCTION, 1094},
     {(char*)0}, {(char*)0},
-#line 3534 "gperf_input_nmemonic.dat"
+#line 3525 "gperf_input_nmemonic.dat"
     {"VPMINUD", TOK_INSTRUCTION, 1948},
-#line 2483 "gperf_input_nmemonic.dat"
+#line 2474 "gperf_input_nmemonic.dat"
     {"DX", TOK_REG, 74},
     {(char*)0},
-#line 2902 "gperf_input_nmemonic.dat"
+#line 2893 "gperf_input_nmemonic.dat"
     {"JZ", TOK_INSTRUCTION, 625},
-#line 2884 "gperf_input_nmemonic.dat"
+#line 2875 "gperf_input_nmemonic.dat"
     {"JNB", TOK_INSTRUCTION, 590},
     {(char*)0},
-#line 2737 "gperf_input_nmemonic.dat"
+#line 2728 "gperf_input_nmemonic.dat"
     {"DIVPD", TOK_INSTRUCTION, 343},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2871 "gperf_input_nmemonic.dat"
+#line 2862 "gperf_input_nmemonic.dat"
     {"JAE", TOK_INSTRUCTION, 561},
     {(char*)0},
-#line 2484 "gperf_input_nmemonic.dat"
+#line 2475 "gperf_input_nmemonic.dat"
     {"BX", TOK_REG, 75},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2745 "gperf_input_nmemonic.dat"
+#line 2736 "gperf_input_nmemonic.dat"
     {"ENCODEKEY256", TOK_INSTRUCTION, 351},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3533 "gperf_input_nmemonic.dat"
+#line 3524 "gperf_input_nmemonic.dat"
     {"VPMINUB", TOK_INSTRUCTION, 1946},
     {(char*)0},
-#line 3048 "gperf_input_nmemonic.dat"
+#line 3039 "gperf_input_nmemonic.dat"
     {"PINSRD", TOK_INSTRUCTION, 943},
     {(char*)0},
-#line 2881 "gperf_input_nmemonic.dat"
+#line 2872 "gperf_input_nmemonic.dat"
     {"JMP", TOK_INSTRUCTION, 580},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3097 "gperf_input_nmemonic.dat"
+#line 3088 "gperf_input_nmemonic.dat"
     {"PSHUFD", TOK_INSTRUCTION, 1017},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3259 "gperf_input_nmemonic.dat"
+#line 3250 "gperf_input_nmemonic.dat"
     {"TPAUSE", TOK_INSTRUCTION, 1453},
     {(char*)0},
-#line 2873 "gperf_input_nmemonic.dat"
+#line 2864 "gperf_input_nmemonic.dat"
     {"JBE", TOK_INSTRUCTION, 565},
     {(char*)0},
-#line 2482 "gperf_input_nmemonic.dat"
+#line 2473 "gperf_input_nmemonic.dat"
     {"CX", TOK_REG, 73},
-#line 3047 "gperf_input_nmemonic.dat"
+#line 3038 "gperf_input_nmemonic.dat"
     {"PINSRB", TOK_INSTRUCTION, 942},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3567 "gperf_input_nmemonic.dat"
+#line 3558 "gperf_input_nmemonic.dat"
     {"VPSLLQ", TOK_INSTRUCTION, 2016},
     {(char*)0}, {(char*)0},
-#line 2555 "gperf_input_nmemonic.dat"
+#line 2546 "gperf_input_nmemonic.dat"
     {"RESW", TOK_RESW, TOK_RESW},
     {(char*)0},
-#line 2887 "gperf_input_nmemonic.dat"
+#line 2878 "gperf_input_nmemonic.dat"
     {"JNE", TOK_INSTRUCTION, 596},
-#line 3566 "gperf_input_nmemonic.dat"
+#line 3557 "gperf_input_nmemonic.dat"
     {"VPSLLDQ", TOK_INSTRUCTION, 2014},
-#line 3096 "gperf_input_nmemonic.dat"
+#line 3087 "gperf_input_nmemonic.dat"
     {"PSHUFB", TOK_INSTRUCTION, 1015},
-#line 3607 "gperf_input_nmemonic.dat"
+#line 3598 "gperf_input_nmemonic.dat"
     {"VSHUFPS", TOK_INSTRUCTION, 2106},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2924 "gperf_input_nmemonic.dat"
+#line 2915 "gperf_input_nmemonic.dat"
     {"LSL", TOK_INSTRUCTION, 657},
-#line 3312 "gperf_input_nmemonic.dat"
+#line 3303 "gperf_input_nmemonic.dat"
     {"VCVTSI2SS", TOK_INSTRUCTION, 1538},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3606 "gperf_input_nmemonic.dat"
+#line 3597 "gperf_input_nmemonic.dat"
     {"VSHUFPD", TOK_INSTRUCTION, 2104},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3311 "gperf_input_nmemonic.dat"
+#line 3302 "gperf_input_nmemonic.dat"
     {"VCVTSI2SD", TOK_INSTRUCTION, 1536},
     {(char*)0},
-#line 2886 "gperf_input_nmemonic.dat"
+#line 2877 "gperf_input_nmemonic.dat"
     {"JNC", TOK_INSTRUCTION, 594},
-#line 2885 "gperf_input_nmemonic.dat"
+#line 2876 "gperf_input_nmemonic.dat"
     {"JNBE", TOK_INSTRUCTION, 592},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2954 "gperf_input_nmemonic.dat"
+#line 2945 "gperf_input_nmemonic.dat"
     {"MOVLHPS", TOK_INSTRUCTION, 748},
-#line 2722 "gperf_input_nmemonic.dat"
+#line 2713 "gperf_input_nmemonic.dat"
     {"CVTSD2SS", TOK_INSTRUCTION, 315},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3569 "gperf_input_nmemonic.dat"
+#line 3560 "gperf_input_nmemonic.dat"
     {"VPSLLVQ", TOK_INSTRUCTION, 2022},
-#line 2725 "gperf_input_nmemonic.dat"
+#line 2716 "gperf_input_nmemonic.dat"
     {"CVTSS2SD", TOK_INSTRUCTION, 320},
-#line 3326 "gperf_input_nmemonic.dat"
+#line 3317 "gperf_input_nmemonic.dat"
     {"VERW", TOK_INSTRUCTION, 1561},
-#line 2875 "gperf_input_nmemonic.dat"
+#line 2866 "gperf_input_nmemonic.dat"
     {"JE", TOK_INSTRUCTION, 569},
     {(char*)0}, {(char*)0},
-#line 3270 "gperf_input_nmemonic.dat"
+#line 3261 "gperf_input_nmemonic.dat"
     {"UNPCKHPS", TOK_INSTRUCTION, 1466},
-#line 2651 "gperf_input_nmemonic.dat"
+#line 2642 "gperf_input_nmemonic.dat"
     {"CALL", TOK_INSTRUCTION, 148},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2892 "gperf_input_nmemonic.dat"
+#line 2883 "gperf_input_nmemonic.dat"
     {"JNO", TOK_INSTRUCTION, 606},
     {(char*)0},
-#line 3269 "gperf_input_nmemonic.dat"
+#line 3260 "gperf_input_nmemonic.dat"
     {"UNPCKHPD", TOK_INSTRUCTION, 1465},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3237 "gperf_input_nmemonic.dat"
+#line 3228 "gperf_input_nmemonic.dat"
     {"STOSW", TOK_INSTRUCTION, 1395},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2715 "gperf_input_nmemonic.dat"
+#line 2706 "gperf_input_nmemonic.dat"
     {"CVTPD2PS", TOK_INSTRUCTION, 307},
-#line 3121 "gperf_input_nmemonic.dat"
+#line 3112 "gperf_input_nmemonic.dat"
     {"PSUBW", TOK_INSTRUCTION, 1075},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2719 "gperf_input_nmemonic.dat"
+#line 2710 "gperf_input_nmemonic.dat"
     {"CVTPS2PD", TOK_INSTRUCTION, 311},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2642 "gperf_input_nmemonic.dat"
+#line 2633 "gperf_input_nmemonic.dat"
     {"BNDSTX", TOK_INSTRUCTION, 113},
     {(char*)0}, {(char*)0},
-#line 2787 "gperf_input_nmemonic.dat"
+#line 2778 "gperf_input_nmemonic.dat"
     {"FIST", TOK_INSTRUCTION, 419},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2951 "gperf_input_nmemonic.dat"
+#line 2942 "gperf_input_nmemonic.dat"
     {"MOVHLPS", TOK_INSTRUCTION, 743},
-#line 2567 "gperf_input_nmemonic.dat"
+#line 2558 "gperf_input_nmemonic.dat"
     {"ST1", TOK_ST1, TOK_ST1},
-#line 3249 "gperf_input_nmemonic.dat"
+#line 3240 "gperf_input_nmemonic.dat"
     {"SYSEXIT", TOK_INSTRUCTION, 1428},
     {(char*)0},
-#line 2895 "gperf_input_nmemonic.dat"
+#line 2886 "gperf_input_nmemonic.dat"
     {"JNZ", TOK_INSTRUCTION, 612},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3120 "gperf_input_nmemonic.dat"
+#line 3111 "gperf_input_nmemonic.dat"
     {"PSUBUSW", TOK_INSTRUCTION, 1073},
     {(char*)0},
-#line 2818 "gperf_input_nmemonic.dat"
+#line 2809 "gperf_input_nmemonic.dat"
     {"FSCALE", TOK_INSTRUCTION, 465},
     {(char*)0}, {(char*)0},
-#line 3029 "gperf_input_nmemonic.dat"
+#line 3020 "gperf_input_nmemonic.dat"
     {"PCMPGTQ", TOK_INSTRUCTION, 913},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3118 "gperf_input_nmemonic.dat"
+#line 3109 "gperf_input_nmemonic.dat"
     {"PSUBSW", TOK_INSTRUCTION, 1069},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2412 "gperf_input_nmemonic.dat"
+#line 2403 "gperf_input_nmemonic.dat"
     {"YMM3", TOK_REG, 3},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -5122,160 +5113,160 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3247 "gperf_input_nmemonic.dat"
+#line 3238 "gperf_input_nmemonic.dat"
     {"SYSCALL", TOK_INSTRUCTION, 1426},
-#line 3264 "gperf_input_nmemonic.dat"
+#line 3255 "gperf_input_nmemonic.dat"
     {"UD1", TOK_INSTRUCTION, 1460},
-#line 3497 "gperf_input_nmemonic.dat"
+#line 3488 "gperf_input_nmemonic.dat"
     {"VPERMILPS", TOK_INSTRUCTION, 1879},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3496 "gperf_input_nmemonic.dat"
+#line 3487 "gperf_input_nmemonic.dat"
     {"VPERMILPD", TOK_INSTRUCTION, 1875},
     {(char*)0},
-#line 3233 "gperf_input_nmemonic.dat"
+#line 3224 "gperf_input_nmemonic.dat"
     {"STMXCSR", TOK_INSTRUCTION, 1391},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2429 "gperf_input_nmemonic.dat"
+#line 2420 "gperf_input_nmemonic.dat"
     {"XMM4", TOK_REG, 20},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3214 "gperf_input_nmemonic.dat"
+#line 3205 "gperf_input_nmemonic.dat"
     {"SHL", TOK_INSTRUCTION, 1330},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2958 "gperf_input_nmemonic.dat"
+#line 2949 "gperf_input_nmemonic.dat"
     {"MOVMSKPS", TOK_INSTRUCTION, 754},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3563 "gperf_input_nmemonic.dat"
+#line 3554 "gperf_input_nmemonic.dat"
     {"VPSIGND", TOK_INSTRUCTION, 2006},
-#line 2957 "gperf_input_nmemonic.dat"
+#line 2948 "gperf_input_nmemonic.dat"
     {"MOVMSKPD", TOK_INSTRUCTION, 753},
-#line 3622 "gperf_input_nmemonic.dat"
+#line 3613 "gperf_input_nmemonic.dat"
     {"VUNPCKHPS", TOK_INSTRUCTION, 2129},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2633 "gperf_input_nmemonic.dat"
+#line 2624 "gperf_input_nmemonic.dat"
     {"BLSI", TOK_INSTRUCTION, 100},
     {(char*)0},
-#line 2767 "gperf_input_nmemonic.dat"
+#line 2758 "gperf_input_nmemonic.dat"
     {"FCMOVU", TOK_INSTRUCTION, 377},
     {(char*)0}, {(char*)0},
-#line 3621 "gperf_input_nmemonic.dat"
+#line 3612 "gperf_input_nmemonic.dat"
     {"VUNPCKHPD", TOK_INSTRUCTION, 2127},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2942 "gperf_input_nmemonic.dat"
+#line 2933 "gperf_input_nmemonic.dat"
     {"MOVAPS", TOK_INSTRUCTION, 722},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2941 "gperf_input_nmemonic.dat"
+#line 2932 "gperf_input_nmemonic.dat"
     {"MOVAPD", TOK_INSTRUCTION, 720},
     {(char*)0}, {(char*)0},
-#line 3562 "gperf_input_nmemonic.dat"
+#line 3553 "gperf_input_nmemonic.dat"
     {"VPSIGNB", TOK_INSTRUCTION, 2004},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2661 "gperf_input_nmemonic.dat"
+#line 2652 "gperf_input_nmemonic.dat"
     {"CLI", TOK_INSTRUCTION, 162},
-#line 3040 "gperf_input_nmemonic.dat"
+#line 3031 "gperf_input_nmemonic.dat"
     {"PHADDD", TOK_INSTRUCTION, 929},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2542 "gperf_input_nmemonic.dat"
+#line 2533 "gperf_input_nmemonic.dat"
     {"DR2", TOK_DREG, 2},
-#line 3458 "gperf_input_nmemonic.dat"
+#line 3449 "gperf_input_nmemonic.dat"
     {"VPADDQ", TOK_INSTRUCTION, 1806},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2414 "gperf_input_nmemonic.dat"
+#line 2405 "gperf_input_nmemonic.dat"
     {"YMM5", TOK_REG, 5},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2897 "gperf_input_nmemonic.dat"
+#line 2888 "gperf_input_nmemonic.dat"
     {"JP", TOK_INSTRUCTION, 616},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2780 "gperf_input_nmemonic.dat"
+#line 2771 "gperf_input_nmemonic.dat"
     {"FICOMP", TOK_INSTRUCTION, 406},
-#line 3398 "gperf_input_nmemonic.dat"
+#line 3389 "gperf_input_nmemonic.dat"
     {"VHADDPS", TOK_INSTRUCTION, 1677},
     {(char*)0},
-#line 2939 "gperf_input_nmemonic.dat"
+#line 2930 "gperf_input_nmemonic.dat"
     {"MONITOR", TOK_INSTRUCTION, 678},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3549 "gperf_input_nmemonic.dat"
+#line 3540 "gperf_input_nmemonic.dat"
     {"VPMULDQ", TOK_INSTRUCTION, 1978},
     {(char*)0},
-#line 2476 "gperf_input_nmemonic.dat"
+#line 2467 "gperf_input_nmemonic.dat"
     {"R11D", TOK_REG, 67},
-#line 3397 "gperf_input_nmemonic.dat"
+#line 3388 "gperf_input_nmemonic.dat"
     {"VHADDPD", TOK_INSTRUCTION, 1675},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2785 "gperf_input_nmemonic.dat"
+#line 2776 "gperf_input_nmemonic.dat"
     {"FINCSTP", TOK_INSTRUCTION, 417},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3612 "gperf_input_nmemonic.dat"
+#line 3603 "gperf_input_nmemonic.dat"
     {"VSTMXCSR", TOK_INSTRUCTION, 2114},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3240 "gperf_input_nmemonic.dat"
+#line 3231 "gperf_input_nmemonic.dat"
     {"STUI", TOK_INSTRUCTION, 1398},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2533 "gperf_input_nmemonic.dat"
+#line 2524 "gperf_input_nmemonic.dat"
     {"CR2", TOK_CREG, 2},
-#line 2508 "gperf_input_nmemonic.dat"
+#line 2499 "gperf_input_nmemonic.dat"
     {"R11B", TOK_REG, 99},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2766 "gperf_input_nmemonic.dat"
+#line 2757 "gperf_input_nmemonic.dat"
     {"FCMOVNU", TOK_INSTRUCTION, 376},
-#line 2929 "gperf_input_nmemonic.dat"
+#line 2920 "gperf_input_nmemonic.dat"
     {"MASKMOVQ", TOK_INSTRUCTION, 668},
     {(char*)0},
-#line 2815 "gperf_input_nmemonic.dat"
+#line 2806 "gperf_input_nmemonic.dat"
     {"FRNDINT", TOK_INSTRUCTION, 462},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2838 "gperf_input_nmemonic.dat"
+#line 2829 "gperf_input_nmemonic.dat"
     {"FXRSTOR", TOK_INSTRUCTION, 502},
     {(char*)0},
-#line 3573 "gperf_input_nmemonic.dat"
+#line 3564 "gperf_input_nmemonic.dat"
     {"VPSRAW", TOK_INSTRUCTION, 2034},
     {(char*)0},
-#line 3134 "gperf_input_nmemonic.dat"
+#line 3125 "gperf_input_nmemonic.dat"
     {"PUSHFQ", TOK_INSTRUCTION, 1104},
     {(char*)0}, {(char*)0},
-#line 3503 "gperf_input_nmemonic.dat"
+#line 3494 "gperf_input_nmemonic.dat"
     {"VPEXTRQ", TOK_INSTRUCTION, 1888},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2529 "gperf_input_nmemonic.dat"
+#line 2520 "gperf_input_nmemonic.dat"
     {"BND2", TOK_BNDREG, 2},
-#line 3473 "gperf_input_nmemonic.dat"
+#line 3464 "gperf_input_nmemonic.dat"
     {"VPBROADCASTD", TOK_INSTRUCTION, 1836},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2713 "gperf_input_nmemonic.dat"
+#line 2704 "gperf_input_nmemonic.dat"
     {"CVTDQ2PD", TOK_INSTRUCTION, 305},
     {(char*)0}, {(char*)0},
-#line 2898 "gperf_input_nmemonic.dat"
+#line 2889 "gperf_input_nmemonic.dat"
     {"JPE", TOK_INSTRUCTION, 618},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3472 "gperf_input_nmemonic.dat"
+#line 3463 "gperf_input_nmemonic.dat"
     {"VPBROADCASTB", TOK_INSTRUCTION, 1834},
     {(char*)0}, {(char*)0},
-#line 2908 "gperf_input_nmemonic.dat"
+#line 2899 "gperf_input_nmemonic.dat"
     {"LEAVE", TOK_INSTRUCTION, 636},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -5283,526 +5274,526 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2640 "gperf_input_nmemonic.dat"
+#line 2631 "gperf_input_nmemonic.dat"
     {"BNDMK", TOK_INSTRUCTION, 110},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3129 "gperf_input_nmemonic.dat"
+#line 3120 "gperf_input_nmemonic.dat"
     {"PUNPCKLDQ", TOK_INSTRUCTION, 1089},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2973 "gperf_input_nmemonic.dat"
+#line 2964 "gperf_input_nmemonic.dat"
     {"MOVSW", TOK_INSTRUCTION, 782},
-#line 2550 "gperf_input_nmemonic.dat"
+#line 2541 "gperf_input_nmemonic.dat"
     {"SECTION", TOK_SECTION, TOK_SECTION},
-#line 2899 "gperf_input_nmemonic.dat"
+#line 2890 "gperf_input_nmemonic.dat"
     {"JPO", TOK_INSTRUCTION, 620},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2580 "gperf_input_nmemonic.dat"
+#line 2571 "gperf_input_nmemonic.dat"
     {"YWORD", TOK_YWORD, TOK_YWORD},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3057 "gperf_input_nmemonic.dat"
+#line 3048 "gperf_input_nmemonic.dat"
     {"PMAXUD", TOK_INSTRUCTION, 957},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3054 "gperf_input_nmemonic.dat"
+#line 3045 "gperf_input_nmemonic.dat"
     {"PMAXSD", TOK_INSTRUCTION, 952},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3052 "gperf_input_nmemonic.dat"
+#line 3043 "gperf_input_nmemonic.dat"
     {"PMADDWD", TOK_INSTRUCTION, 949},
     {(char*)0}, {(char*)0},
-#line 3412 "gperf_input_nmemonic.dat"
+#line 3403 "gperf_input_nmemonic.dat"
     {"VMAXSS", TOK_INSTRUCTION, 1703},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3056 "gperf_input_nmemonic.dat"
+#line 3047 "gperf_input_nmemonic.dat"
     {"PMAXUB", TOK_INSTRUCTION, 955},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3411 "gperf_input_nmemonic.dat"
+#line 3402 "gperf_input_nmemonic.dat"
     {"VMAXSD", TOK_INSTRUCTION, 1702},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3053 "gperf_input_nmemonic.dat"
+#line 3044 "gperf_input_nmemonic.dat"
     {"PMAXSB", TOK_INSTRUCTION, 951},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2593 "gperf_input_nmemonic.dat"
+#line 2584 "gperf_input_nmemonic.dat"
     {"IFDEF", TOK_IFDEF, TOK_IFDEF},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2788 "gperf_input_nmemonic.dat"
+#line 2779 "gperf_input_nmemonic.dat"
     {"FISTP", TOK_INSTRUCTION, 421},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3662 "gperf_input_nmemonic.dat"
+#line 3653 "gperf_input_nmemonic.dat"
     {"XSAVES", TOK_INSTRUCTION, 2218},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3553 "gperf_input_nmemonic.dat"
+#line 3544 "gperf_input_nmemonic.dat"
     {"VPMULLD", TOK_INSTRUCTION, 1986},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3587 "gperf_input_nmemonic.dat"
+#line 3578 "gperf_input_nmemonic.dat"
     {"VPSUBW", TOK_INSTRUCTION, 2070},
-#line 3584 "gperf_input_nmemonic.dat"
+#line 3575 "gperf_input_nmemonic.dat"
     {"VPSUBSW", TOK_INSTRUCTION, 2064},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3130 "gperf_input_nmemonic.dat"
+#line 3121 "gperf_input_nmemonic.dat"
     {"PUNPCKLQDQ", TOK_INSTRUCTION, 1091},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3141 "gperf_input_nmemonic.dat"
+#line 3132 "gperf_input_nmemonic.dat"
     {"RDGSBASE", TOK_INSTRUCTION, 1141},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3656 "gperf_input_nmemonic.dat"
+#line 3647 "gperf_input_nmemonic.dat"
     {"XSAVE", TOK_INSTRUCTION, 2212},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2789 "gperf_input_nmemonic.dat"
+#line 2780 "gperf_input_nmemonic.dat"
     {"FISTTP", TOK_INSTRUCTION, 424},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2790 "gperf_input_nmemonic.dat"
+#line 2781 "gperf_input_nmemonic.dat"
     {"FISUB", TOK_INSTRUCTION, 427},
-#line 2620 "gperf_input_nmemonic.dat"
+#line 2611 "gperf_input_nmemonic.dat"
     {"AESIMC", TOK_INSTRUCTION, 64},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3485 "gperf_input_nmemonic.dat"
+#line 3476 "gperf_input_nmemonic.dat"
     {"VPCMPGTQ", TOK_INSTRUCTION, 1858},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2442 "gperf_input_nmemonic.dat"
+#line 2433 "gperf_input_nmemonic.dat"
     {"MM1", TOK_REG, 33},
     {(char*)0}, {(char*)0},
-#line 3632 "gperf_input_nmemonic.dat"
+#line 3623 "gperf_input_nmemonic.dat"
     {"WRFSBASE", TOK_INSTRUCTION, 2144},
     {(char*)0}, {(char*)0},
-#line 2794 "gperf_input_nmemonic.dat"
+#line 2785 "gperf_input_nmemonic.dat"
     {"FLDCW", TOK_INSTRUCTION, 436},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2920 "gperf_input_nmemonic.dat"
+#line 2911 "gperf_input_nmemonic.dat"
     {"LODSW", TOK_INSTRUCTION, 653},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2807 "gperf_input_nmemonic.dat"
+#line 2798 "gperf_input_nmemonic.dat"
     {"FNSAVE", TOK_INSTRUCTION, 453},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3403 "gperf_input_nmemonic.dat"
+#line 3394 "gperf_input_nmemonic.dat"
     {"VINSERTPS", TOK_INSTRUCTION, 1685},
     {(char*)0},
-#line 2477 "gperf_input_nmemonic.dat"
+#line 2468 "gperf_input_nmemonic.dat"
     {"R12D", TOK_REG, 68},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3077 "gperf_input_nmemonic.dat"
+#line 3068 "gperf_input_nmemonic.dat"
     {"PMOVZXWQ", TOK_INSTRUCTION, 980},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2413 "gperf_input_nmemonic.dat"
+#line 2404 "gperf_input_nmemonic.dat"
     {"YMM4", TOK_REG, 4},
-#line 2948 "gperf_input_nmemonic.dat"
+#line 2939 "gperf_input_nmemonic.dat"
     {"MOVDQ2Q", TOK_INSTRUCTION, 738},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3658 "gperf_input_nmemonic.dat"
+#line 3649 "gperf_input_nmemonic.dat"
     {"XSAVEC", TOK_INSTRUCTION, 2214},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2520 "gperf_input_nmemonic.dat"
+#line 2511 "gperf_input_nmemonic.dat"
     {"TMM1", TOK_TREG, 1},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2509 "gperf_input_nmemonic.dat"
+#line 2500 "gperf_input_nmemonic.dat"
     {"R12B", TOK_REG, 100},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2793 "gperf_input_nmemonic.dat"
+#line 2784 "gperf_input_nmemonic.dat"
     {"FLD1", TOK_INSTRUCTION, 435},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3071 "gperf_input_nmemonic.dat"
+#line 3062 "gperf_input_nmemonic.dat"
     {"PMOVSXWQ", TOK_INSTRUCTION, 974},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3203 "gperf_input_nmemonic.dat"
+#line 3194 "gperf_input_nmemonic.dat"
     {"SETSSBSY", TOK_INSTRUCTION, 1318},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3017 "gperf_input_nmemonic.dat"
+#line 3008 "gperf_input_nmemonic.dat"
     {"PAVGW", TOK_INSTRUCTION, 895},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2915 "gperf_input_nmemonic.dat"
+#line 2906 "gperf_input_nmemonic.dat"
     {"LMSW", TOK_INSTRUCTION, 648},
-#line 3660 "gperf_input_nmemonic.dat"
+#line 3651 "gperf_input_nmemonic.dat"
     {"XSAVEOPT", TOK_INSTRUCTION, 2216},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3305 "gperf_input_nmemonic.dat"
+#line 3296 "gperf_input_nmemonic.dat"
     {"VCVTPH2PS", TOK_INSTRUCTION, 1525},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2746 "gperf_input_nmemonic.dat"
+#line 2737 "gperf_input_nmemonic.dat"
     {"ENDBR32", TOK_INSTRUCTION, 352},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2813 "gperf_input_nmemonic.dat"
+#line 2804 "gperf_input_nmemonic.dat"
     {"FPREM1", TOK_INSTRUCTION, 460},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2639 "gperf_input_nmemonic.dat"
+#line 2630 "gperf_input_nmemonic.dat"
     {"BNDLDX", TOK_INSTRUCTION, 109},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3635 "gperf_input_nmemonic.dat"
+#line 3626 "gperf_input_nmemonic.dat"
     {"WRPKRU", TOK_INSTRUCTION, 2149},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2664 "gperf_input_nmemonic.dat"
+#line 2655 "gperf_input_nmemonic.dat"
     {"CLUI", TOK_INSTRUCTION, 165},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2568 "gperf_input_nmemonic.dat"
+#line 2559 "gperf_input_nmemonic.dat"
     {"ST2", TOK_ST2, TOK_ST2},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2645 "gperf_input_nmemonic.dat"
+#line 2636 "gperf_input_nmemonic.dat"
     {"BSWAP", TOK_INSTRUCTION, 120},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3555 "gperf_input_nmemonic.dat"
+#line 3546 "gperf_input_nmemonic.dat"
     {"VPMULUDQ", TOK_INSTRUCTION, 1990},
     {(char*)0},
-#line 3474 "gperf_input_nmemonic.dat"
+#line 3465 "gperf_input_nmemonic.dat"
     {"VPBROADCASTQ", TOK_INSTRUCTION, 1838},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3019 "gperf_input_nmemonic.dat"
+#line 3010 "gperf_input_nmemonic.dat"
     {"PBLENDW", TOK_INSTRUCTION, 898},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2855 "gperf_input_nmemonic.dat"
+#line 2846 "gperf_input_nmemonic.dat"
     {"IMUL", TOK_INSTRUCTION, 523},
     {(char*)0},
-#line 2880 "gperf_input_nmemonic.dat"
+#line 2871 "gperf_input_nmemonic.dat"
     {"JLE", TOK_INSTRUCTION, 578},
     {(char*)0},
-#line 3265 "gperf_input_nmemonic.dat"
+#line 3256 "gperf_input_nmemonic.dat"
     {"UD2", TOK_INSTRUCTION, 1461},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2905 "gperf_input_nmemonic.dat"
+#line 2896 "gperf_input_nmemonic.dat"
     {"LDMXCSR", TOK_INSTRUCTION, 631},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2497 "gperf_input_nmemonic.dat"
+#line 2488 "gperf_input_nmemonic.dat"
     {"AL", TOK_REG, 88},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3302 "gperf_input_nmemonic.dat"
+#line 3293 "gperf_input_nmemonic.dat"
     {"VCOMISS", TOK_INSTRUCTION, 1520},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3049 "gperf_input_nmemonic.dat"
+#line 3040 "gperf_input_nmemonic.dat"
     {"PINSRQ", TOK_INSTRUCTION, 944},
-#line 3301 "gperf_input_nmemonic.dat"
+#line 3292 "gperf_input_nmemonic.dat"
     {"VCOMISD", TOK_INSTRUCTION, 1519},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3410 "gperf_input_nmemonic.dat"
+#line 3401 "gperf_input_nmemonic.dat"
     {"VMAXPS", TOK_INSTRUCTION, 1700},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2587 "gperf_input_nmemonic.dat"
+#line 2578 "gperf_input_nmemonic.dat"
     {"TIMES", TOK_TIMES, TOK_TIMES},
     {(char*)0},
-#line 3488 "gperf_input_nmemonic.dat"
+#line 3479 "gperf_input_nmemonic.dat"
     {"VPCMPISTRM", TOK_INSTRUCTION, 1863},
     {(char*)0}, {(char*)0},
-#line 3409 "gperf_input_nmemonic.dat"
+#line 3400 "gperf_input_nmemonic.dat"
     {"VMAXPD", TOK_INSTRUCTION, 1698},
     {(char*)0}, {(char*)0},
-#line 2961 "gperf_input_nmemonic.dat"
+#line 2952 "gperf_input_nmemonic.dat"
     {"MOVNTI", TOK_INSTRUCTION, 757},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2974 "gperf_input_nmemonic.dat"
+#line 2965 "gperf_input_nmemonic.dat"
     {"MOVSX", TOK_INSTRUCTION, 783},
     {(char*)0},
-#line 2938 "gperf_input_nmemonic.dat"
+#line 2929 "gperf_input_nmemonic.dat"
     {"MINSS", TOK_INSTRUCTION, 677},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2937 "gperf_input_nmemonic.dat"
+#line 2928 "gperf_input_nmemonic.dat"
     {"MINSD", TOK_INSTRUCTION, 676},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2936 "gperf_input_nmemonic.dat"
+#line 2927 "gperf_input_nmemonic.dat"
     {"MINPS", TOK_INSTRUCTION, 675},
-#line 2863 "gperf_input_nmemonic.dat"
+#line 2854 "gperf_input_nmemonic.dat"
     {"INSW", TOK_INSTRUCTION, 552},
     {(char*)0}, {(char*)0},
-#line 3294 "gperf_input_nmemonic.dat"
+#line 3285 "gperf_input_nmemonic.dat"
     {"VBROADCASTI128", TOK_INSTRUCTION, 1506},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2935 "gperf_input_nmemonic.dat"
+#line 2926 "gperf_input_nmemonic.dat"
     {"MINPD", TOK_INSTRUCTION, 674},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2560 "gperf_input_nmemonic.dat"
+#line 2551 "gperf_input_nmemonic.dat"
     {"RESY", TOK_RESY, TOK_RESY},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3125 "gperf_input_nmemonic.dat"
+#line 3116 "gperf_input_nmemonic.dat"
     {"PUNPCKHDQ", TOK_INSTRUCTION, 1082},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2718 "gperf_input_nmemonic.dat"
+#line 2709 "gperf_input_nmemonic.dat"
     {"CVTPS2DQ", TOK_INSTRUCTION, 310},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3283 "gperf_input_nmemonic.dat"
+#line 3274 "gperf_input_nmemonic.dat"
     {"VAESIMC", TOK_INSTRUCTION, 1487},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2650 "gperf_input_nmemonic.dat"
+#line 2641 "gperf_input_nmemonic.dat"
     {"BZHI", TOK_INSTRUCTION, 146},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2744 "gperf_input_nmemonic.dat"
+#line 2735 "gperf_input_nmemonic.dat"
     {"ENCODEKEY128", TOK_INSTRUCTION, 350},
     {(char*)0}, {(char*)0},
-#line 3476 "gperf_input_nmemonic.dat"
+#line 3467 "gperf_input_nmemonic.dat"
     {"VPCLMULQDQ", TOK_INSTRUCTION, 1842},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2978 "gperf_input_nmemonic.dat"
+#line 2969 "gperf_input_nmemonic.dat"
     {"MOVZX", TOK_INSTRUCTION, 793},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3172 "gperf_input_nmemonic.dat"
+#line 3163 "gperf_input_nmemonic.dat"
     {"SENDUIPI", TOK_INSTRUCTION, 1258},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2548 "gperf_input_nmemonic.dat"
+#line 2539 "gperf_input_nmemonic.dat"
     {"GLOBAL", TOK_GLOBAL, TOK_GLOBAL},
     {(char*)0}, {(char*)0},
-#line 3630 "gperf_input_nmemonic.dat"
+#line 3621 "gperf_input_nmemonic.dat"
     {"WBINVD", TOK_INSTRUCTION, 2142},
     {(char*)0},
-#line 3537 "gperf_input_nmemonic.dat"
+#line 3528 "gperf_input_nmemonic.dat"
     {"VPMOVSXBD", TOK_INSTRUCTION, 1954},
-#line 3113 "gperf_input_nmemonic.dat"
+#line 3104 "gperf_input_nmemonic.dat"
     {"PSRLW", TOK_INSTRUCTION, 1057},
-#line 3509 "gperf_input_nmemonic.dat"
+#line 3500 "gperf_input_nmemonic.dat"
     {"VPHADDD", TOK_INSTRUCTION, 1899},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3024 "gperf_input_nmemonic.dat"
+#line 3015 "gperf_input_nmemonic.dat"
     {"PCMPEQW", TOK_INSTRUCTION, 905},
     {(char*)0},
-#line 3467 "gperf_input_nmemonic.dat"
+#line 3458 "gperf_input_nmemonic.dat"
     {"VPAVGB", TOK_INSTRUCTION, 1824},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2913 "gperf_input_nmemonic.dat"
+#line 2904 "gperf_input_nmemonic.dat"
     {"LIDT", TOK_INSTRUCTION, 646},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3586 "gperf_input_nmemonic.dat"
+#line 3577 "gperf_input_nmemonic.dat"
     {"VPSUBUSW", TOK_INSTRUCTION, 2068},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3020 "gperf_input_nmemonic.dat"
+#line 3011 "gperf_input_nmemonic.dat"
     {"PCLMULQDQ", TOK_INSTRUCTION, 899},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3126 "gperf_input_nmemonic.dat"
+#line 3117 "gperf_input_nmemonic.dat"
     {"PUNPCKHQDQ", TOK_INSTRUCTION, 1084},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2804 "gperf_input_nmemonic.dat"
+#line 2795 "gperf_input_nmemonic.dat"
     {"FNCLEX", TOK_INSTRUCTION, 450},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3092 "gperf_input_nmemonic.dat"
+#line 3083 "gperf_input_nmemonic.dat"
     {"PREFETCHT1", TOK_INSTRUCTION, 1010},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3131 "gperf_input_nmemonic.dat"
+#line 3122 "gperf_input_nmemonic.dat"
     {"PUNPCKLWD", TOK_INSTRUCTION, 1092},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2440 "gperf_input_nmemonic.dat"
+#line 2431 "gperf_input_nmemonic.dat"
     {"XMM15", TOK_REG, 31},
     {(char*)0},
-#line 2839 "gperf_input_nmemonic.dat"
+#line 2830 "gperf_input_nmemonic.dat"
     {"FXRSTOR64", TOK_INSTRUCTION, 503},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3064 "gperf_input_nmemonic.dat"
+#line 3055 "gperf_input_nmemonic.dat"
     {"PMINUW", TOK_INSTRUCTION, 966},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3405 "gperf_input_nmemonic.dat"
+#line 3396 "gperf_input_nmemonic.dat"
     {"VLDMXCSR", TOK_INSTRUCTION, 1688},
     {(char*)0}, {(char*)0},
-#line 3543 "gperf_input_nmemonic.dat"
+#line 3534 "gperf_input_nmemonic.dat"
     {"VPMOVZXBD", TOK_INSTRUCTION, 1966},
     {(char*)0},
-#line 2707 "gperf_input_nmemonic.dat"
+#line 2698 "gperf_input_nmemonic.dat"
     {"CMPXCHG8B", TOK_INSTRUCTION, 294},
-#line 3061 "gperf_input_nmemonic.dat"
+#line 3052 "gperf_input_nmemonic.dat"
     {"PMINSW", TOK_INSTRUCTION, 961},
-#line 2783 "gperf_input_nmemonic.dat"
+#line 2774 "gperf_input_nmemonic.dat"
     {"FILD", TOK_INSTRUCTION, 412},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2891 "gperf_input_nmemonic.dat"
+#line 2882 "gperf_input_nmemonic.dat"
     {"JNLE", TOK_INSTRUCTION, 604},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3039 "gperf_input_nmemonic.dat"
+#line 3030 "gperf_input_nmemonic.dat"
     {"PEXTRW", TOK_INSTRUCTION, 926},
     {(char*)0}, {(char*)0},
-#line 2779 "gperf_input_nmemonic.dat"
+#line 2770 "gperf_input_nmemonic.dat"
     {"FICOM", TOK_INSTRUCTION, 404},
     {(char*)0},
-#line 2660 "gperf_input_nmemonic.dat"
+#line 2651 "gperf_input_nmemonic.dat"
     {"CLFLUSHOPT", TOK_INSTRUCTION, 161},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3091 "gperf_input_nmemonic.dat"
+#line 3082 "gperf_input_nmemonic.dat"
     {"PREFETCHT0", TOK_INSTRUCTION, 1009},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2889 "gperf_input_nmemonic.dat"
+#line 2880 "gperf_input_nmemonic.dat"
     {"JNGE", TOK_INSTRUCTION, 600},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2581 "gperf_input_nmemonic.dat"
+#line 2572 "gperf_input_nmemonic.dat"
     {"LOCK", TOK_LOCK, TOK_LOCK},
-#line 2487 "gperf_input_nmemonic.dat"
+#line 2478 "gperf_input_nmemonic.dat"
     {"SI", TOK_REG, 78},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2488 "gperf_input_nmemonic.dat"
+#line 2479 "gperf_input_nmemonic.dat"
     {"DI", TOK_REG, 79},
-#line 2552 "gperf_input_nmemonic.dat"
+#line 2543 "gperf_input_nmemonic.dat"
     {".DATA", TOK_DATA, TOK_DATA},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3219 "gperf_input_nmemonic.dat"
+#line 3210 "gperf_input_nmemonic.dat"
     {"SHRX", TOK_INSTRUCTION, 1374},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3074 "gperf_input_nmemonic.dat"
+#line 3065 "gperf_input_nmemonic.dat"
     {"PMOVZXBW", TOK_INSTRUCTION, 977},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3579 "gperf_input_nmemonic.dat"
+#line 3570 "gperf_input_nmemonic.dat"
     {"VPSRLW", TOK_INSTRUCTION, 2052},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3349 "gperf_input_nmemonic.dat"
+#line 3340 "gperf_input_nmemonic.dat"
     {"VFMSUB132PS", TOK_INSTRUCTION, 1597},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3068 "gperf_input_nmemonic.dat"
+#line 3059 "gperf_input_nmemonic.dat"
     {"PMOVSXBW", TOK_INSTRUCTION, 971},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3348 "gperf_input_nmemonic.dat"
+#line 3339 "gperf_input_nmemonic.dat"
     {"VFMSUB132PD", TOK_INSTRUCTION, 1595},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3646 "gperf_input_nmemonic.dat"
+#line 3637 "gperf_input_nmemonic.dat"
     {"XLAT", TOK_INSTRUCTION, 2180},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3174 "gperf_input_nmemonic.dat"
+#line 3165 "gperf_input_nmemonic.dat"
     {"SETA", TOK_INSTRUCTION, 1260},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2443 "gperf_input_nmemonic.dat"
+#line 2434 "gperf_input_nmemonic.dat"
     {"MM2", TOK_REG, 34},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2759 "gperf_input_nmemonic.dat"
+#line 2750 "gperf_input_nmemonic.dat"
     {"FCLEX", TOK_INSTRUCTION, 369},
-#line 3647 "gperf_input_nmemonic.dat"
+#line 3638 "gperf_input_nmemonic.dat"
     {"XLATB", TOK_INSTRUCTION, 2181},
     {(char*)0},
-#line 2791 "gperf_input_nmemonic.dat"
+#line 2782 "gperf_input_nmemonic.dat"
     {"FISUBR", TOK_INSTRUCTION, 429},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2729 "gperf_input_nmemonic.dat"
+#line 2720 "gperf_input_nmemonic.dat"
     {"CVTTPS2DQ", TOK_INSTRUCTION, 325},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2727 "gperf_input_nmemonic.dat"
+#line 2718 "gperf_input_nmemonic.dat"
     {"CVTTPD2DQ", TOK_INSTRUCTION, 323},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3002 "gperf_input_nmemonic.dat"
+#line 2993 "gperf_input_nmemonic.dat"
     {"PACKUSDW", TOK_INSTRUCTION, 867},
-#line 3173 "gperf_input_nmemonic.dat"
+#line 3164 "gperf_input_nmemonic.dat"
     {"SERIALIZE", TOK_INSTRUCTION, 1259},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3266 "gperf_input_nmemonic.dat"
+#line 3257 "gperf_input_nmemonic.dat"
     {"UIRET", TOK_INSTRUCTION, 1462},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3000 "gperf_input_nmemonic.dat"
+#line 2991 "gperf_input_nmemonic.dat"
     {"PACKSSDW", TOK_INSTRUCTION, 863},
     {(char*)0},
-#line 3262 "gperf_input_nmemonic.dat"
+#line 3253 "gperf_input_nmemonic.dat"
     {"UCOMISS", TOK_INSTRUCTION, 1458},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2521 "gperf_input_nmemonic.dat"
+#line 2512 "gperf_input_nmemonic.dat"
     {"TMM2", TOK_TREG, 2},
-#line 3261 "gperf_input_nmemonic.dat"
+#line 3252 "gperf_input_nmemonic.dat"
     {"UCOMISD", TOK_INSTRUCTION, 1457},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -5819,69 +5810,69 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3351 "gperf_input_nmemonic.dat"
+#line 3342 "gperf_input_nmemonic.dat"
     {"VFMSUB132SS", TOK_INSTRUCTION, 1600},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3350 "gperf_input_nmemonic.dat"
+#line 3341 "gperf_input_nmemonic.dat"
     {"VFMSUB132SD", TOK_INSTRUCTION, 1599},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3471 "gperf_input_nmemonic.dat"
+#line 3462 "gperf_input_nmemonic.dat"
     {"VPBLENDW", TOK_INSTRUCTION, 1832},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3046 "gperf_input_nmemonic.dat"
+#line 3037 "gperf_input_nmemonic.dat"
     {"PHSUBW", TOK_INSTRUCTION, 940},
-#line 3045 "gperf_input_nmemonic.dat"
+#line 3036 "gperf_input_nmemonic.dat"
     {"PHSUBSW", TOK_INSTRUCTION, 938},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2438 "gperf_input_nmemonic.dat"
+#line 2429 "gperf_input_nmemonic.dat"
     {"XMM13", TOK_REG, 29},
     {(char*)0}, {(char*)0},
-#line 2677 "gperf_input_nmemonic.dat"
+#line 2668 "gperf_input_nmemonic.dat"
     {"CMOVNA", TOK_INSTRUCTION, 198},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2900 "gperf_input_nmemonic.dat"
+#line 2891 "gperf_input_nmemonic.dat"
     {"JRCXZ", TOK_INSTRUCTION, 622},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3493 "gperf_input_nmemonic.dat"
+#line 3484 "gperf_input_nmemonic.dat"
     {"VPERM2F128", TOK_INSTRUCTION, 1872},
     {(char*)0},
-#line 3661 "gperf_input_nmemonic.dat"
+#line 3652 "gperf_input_nmemonic.dat"
     {"XSAVEOPT64", TOK_INSTRUCTION, 2217},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3369 "gperf_input_nmemonic.dat"
+#line 3360 "gperf_input_nmemonic.dat"
     {"VFNMADD132SS", TOK_INSTRUCTION, 1630},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3368 "gperf_input_nmemonic.dat"
+#line 3359 "gperf_input_nmemonic.dat"
     {"VFNMADD132SD", TOK_INSTRUCTION, 1629},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3367 "gperf_input_nmemonic.dat"
+#line 3358 "gperf_input_nmemonic.dat"
     {"VFNMADD132PS", TOK_INSTRUCTION, 1627},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3366 "gperf_input_nmemonic.dat"
+#line 3357 "gperf_input_nmemonic.dat"
     {"VFNMADD132PD", TOK_INSTRUCTION, 1625},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2439 "gperf_input_nmemonic.dat"
+#line 2430 "gperf_input_nmemonic.dat"
     {"XMM14", TOK_REG, 30},
     {(char*)0},
-#line 3267 "gperf_input_nmemonic.dat"
+#line 3258 "gperf_input_nmemonic.dat"
     {"UMONITOR", TOK_INSTRUCTION, 1463},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -5891,107 +5882,107 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2985 "gperf_input_nmemonic.dat"
+#line 2976 "gperf_input_nmemonic.dat"
     {"MULX", TOK_INSTRUCTION, 808},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3594 "gperf_input_nmemonic.dat"
+#line 3585 "gperf_input_nmemonic.dat"
     {"VPUNPCKLDQ", TOK_INSTRUCTION, 2084},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3377 "gperf_input_nmemonic.dat"
+#line 3368 "gperf_input_nmemonic.dat"
     {"VFNMADD231SS", TOK_INSTRUCTION, 1642},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3376 "gperf_input_nmemonic.dat"
+#line 3367 "gperf_input_nmemonic.dat"
     {"VFNMADD231SD", TOK_INSTRUCTION, 1641},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2424 "gperf_input_nmemonic.dat"
+#line 2415 "gperf_input_nmemonic.dat"
     {"YMM15", TOK_REG, 15},
     {(char*)0},
-#line 3375 "gperf_input_nmemonic.dat"
+#line 3366 "gperf_input_nmemonic.dat"
     {"VFNMADD231PS", TOK_INSTRUCTION, 1639},
     {(char*)0},
-#line 2878 "gperf_input_nmemonic.dat"
+#line 2869 "gperf_input_nmemonic.dat"
     {"JGE", TOK_INSTRUCTION, 574},
     {(char*)0}, {(char*)0},
-#line 3374 "gperf_input_nmemonic.dat"
+#line 3365 "gperf_input_nmemonic.dat"
     {"VFNMADD231PD", TOK_INSTRUCTION, 1637},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3012 "gperf_input_nmemonic.dat"
+#line 3003 "gperf_input_nmemonic.dat"
     {"PALIGNR", TOK_INSTRUCTION, 886},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3633 "gperf_input_nmemonic.dat"
+#line 3624 "gperf_input_nmemonic.dat"
     {"WRGSBASE", TOK_INSTRUCTION, 2146},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3329 "gperf_input_nmemonic.dat"
+#line 3320 "gperf_input_nmemonic.dat"
     {"VEXTRACTPS", TOK_INSTRUCTION, 1564},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2876 "gperf_input_nmemonic.dat"
+#line 2867 "gperf_input_nmemonic.dat"
     {"JECXZ", TOK_INSTRUCTION, 571},
     {(char*)0},
-#line 3127 "gperf_input_nmemonic.dat"
+#line 3118 "gperf_input_nmemonic.dat"
     {"PUNPCKHWD", TOK_INSTRUCTION, 1085},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3033 "gperf_input_nmemonic.dat"
+#line 3024 "gperf_input_nmemonic.dat"
     {"PCONFIG", TOK_INSTRUCTION, 918},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3481 "gperf_input_nmemonic.dat"
+#line 3472 "gperf_input_nmemonic.dat"
     {"VPCMPESTRI", TOK_INSTRUCTION, 1852},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2805 "gperf_input_nmemonic.dat"
+#line 2796 "gperf_input_nmemonic.dat"
     {"FNINIT", TOK_INSTRUCTION, 451},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3094 "gperf_input_nmemonic.dat"
+#line 3085 "gperf_input_nmemonic.dat"
     {"PREFETCHW", TOK_INSTRUCTION, 1012},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3361 "gperf_input_nmemonic.dat"
+#line 3352 "gperf_input_nmemonic.dat"
     {"VFMSUBADD132PS", TOK_INSTRUCTION, 1615},
     {(char*)0}, {(char*)0},
-#line 3515 "gperf_input_nmemonic.dat"
+#line 3506 "gperf_input_nmemonic.dat"
     {"VPHSUBW", TOK_INSTRUCTION, 1910},
-#line 3514 "gperf_input_nmemonic.dat"
+#line 3505 "gperf_input_nmemonic.dat"
     {"VPHSUBSW", TOK_INSTRUCTION, 1908},
-#line 3360 "gperf_input_nmemonic.dat"
+#line 3351 "gperf_input_nmemonic.dat"
     {"VFMSUBADD132PD", TOK_INSTRUCTION, 1613},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3093 "gperf_input_nmemonic.dat"
+#line 3084 "gperf_input_nmemonic.dat"
     {"PREFETCHT2", TOK_INSTRUCTION, 1011},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3631 "gperf_input_nmemonic.dat"
+#line 3622 "gperf_input_nmemonic.dat"
     {"WBNOINVD", TOK_INSTRUCTION, 2143},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3171 "gperf_input_nmemonic.dat"
+#line 3162 "gperf_input_nmemonic.dat"
     {"SCASW", TOK_INSTRUCTION, 1257},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2491 "gperf_input_nmemonic.dat"
+#line 2482 "gperf_input_nmemonic.dat"
     {"R10W", TOK_REG, 82},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3521 "gperf_input_nmemonic.dat"
+#line 3512 "gperf_input_nmemonic.dat"
     {"VPMADDWD", TOK_INSTRUCTION, 1918},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6001,86 +5992,86 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3407 "gperf_input_nmemonic.dat"
+#line 3398 "gperf_input_nmemonic.dat"
     {"VMASKMOVPD", TOK_INSTRUCTION, 1690},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3540 "gperf_input_nmemonic.dat"
+#line 3531 "gperf_input_nmemonic.dat"
     {"VPMOVSXDQ", TOK_INSTRUCTION, 1960},
     {(char*)0},
-#line 2928 "gperf_input_nmemonic.dat"
+#line 2919 "gperf_input_nmemonic.dat"
     {"MASKMOVDQU", TOK_INSTRUCTION, 667},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3538 "gperf_input_nmemonic.dat"
+#line 3529 "gperf_input_nmemonic.dat"
     {"VPMOVSXBQ", TOK_INSTRUCTION, 1956},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2460 "gperf_input_nmemonic.dat"
+#line 2451 "gperf_input_nmemonic.dat"
     {"R11", TOK_REG, 51},
-#line 3107 "gperf_input_nmemonic.dat"
+#line 3098 "gperf_input_nmemonic.dat"
     {"PSLLW", TOK_INSTRUCTION, 1036},
     {(char*)0}, {(char*)0},
-#line 2662 "gperf_input_nmemonic.dat"
+#line 2653 "gperf_input_nmemonic.dat"
     {"CLRSSBSY", TOK_INSTRUCTION, 163},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3475 "gperf_input_nmemonic.dat"
+#line 3466 "gperf_input_nmemonic.dat"
     {"VPBROADCASTW", TOK_INSTRUCTION, 1840},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2501 "gperf_input_nmemonic.dat"
+#line 2492 "gperf_input_nmemonic.dat"
     {"AH", TOK_REG, 92},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2600 "gperf_input_nmemonic.dat"
+#line 2591 "gperf_input_nmemonic.dat"
     {"ADCX", TOK_INSTRUCTION, 22},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3421 "gperf_input_nmemonic.dat"
+#line 3412 "gperf_input_nmemonic.dat"
     {"VMOVDQA", TOK_INSTRUCTION, 1722},
-#line 3657 "gperf_input_nmemonic.dat"
+#line 3648 "gperf_input_nmemonic.dat"
     {"XSAVE64", TOK_INSTRUCTION, 2213},
-#line 3663 "gperf_input_nmemonic.dat"
+#line 3654 "gperf_input_nmemonic.dat"
     {"XSAVES64", TOK_INSTRUCTION, 2219},
-#line 2634 "gperf_input_nmemonic.dat"
+#line 2625 "gperf_input_nmemonic.dat"
     {"BLSMSK", TOK_INSTRUCTION, 102},
     {(char*)0}, {(char*)0},
-#line 3095 "gperf_input_nmemonic.dat"
+#line 3086 "gperf_input_nmemonic.dat"
     {"PSADBW", TOK_INSTRUCTION, 1013},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2879 "gperf_input_nmemonic.dat"
+#line 2870 "gperf_input_nmemonic.dat"
     {"JL", TOK_INSTRUCTION, 576},
     {(char*)0},
-#line 3519 "gperf_input_nmemonic.dat"
+#line 3510 "gperf_input_nmemonic.dat"
     {"VPINSRW", TOK_INSTRUCTION, 1915},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3546 "gperf_input_nmemonic.dat"
+#line 3537 "gperf_input_nmemonic.dat"
     {"VPMOVZXDQ", TOK_INSTRUCTION, 1972},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3544 "gperf_input_nmemonic.dat"
+#line 3535 "gperf_input_nmemonic.dat"
     {"VPMOVZXBQ", TOK_INSTRUCTION, 1968},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3480 "gperf_input_nmemonic.dat"
+#line 3471 "gperf_input_nmemonic.dat"
     {"VPCMPEQW", TOK_INSTRUCTION, 1850},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2422 "gperf_input_nmemonic.dat"
+#line 2413 "gperf_input_nmemonic.dat"
     {"YMM13", TOK_REG, 13},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3659 "gperf_input_nmemonic.dat"
+#line 3650 "gperf_input_nmemonic.dat"
     {"XSAVEC64", TOK_INSTRUCTION, 2215},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6088,12 +6079,12 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3246 "gperf_input_nmemonic.dat"
+#line 3237 "gperf_input_nmemonic.dat"
     {"SWAPGS", TOK_INSTRUCTION, 1425},
-#line 3365 "gperf_input_nmemonic.dat"
+#line 3356 "gperf_input_nmemonic.dat"
     {"VFMSUBADD231PS", TOK_INSTRUCTION, 1623},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3364 "gperf_input_nmemonic.dat"
+#line 3355 "gperf_input_nmemonic.dat"
     {"VFMSUBADD231PD", TOK_INSTRUCTION, 1621},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6101,31 +6092,31 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3216 "gperf_input_nmemonic.dat"
+#line 3207 "gperf_input_nmemonic.dat"
     {"SHLX", TOK_INSTRUCTION, 1351},
     {(char*)0}, {(char*)0},
-#line 2865 "gperf_input_nmemonic.dat"
+#line 2856 "gperf_input_nmemonic.dat"
     {"INVLPG", TOK_INSTRUCTION, 554},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2423 "gperf_input_nmemonic.dat"
+#line 2414 "gperf_input_nmemonic.dat"
     {"YMM14", TOK_REG, 14},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2946 "gperf_input_nmemonic.dat"
+#line 2937 "gperf_input_nmemonic.dat"
     {"MOVDIR64B", TOK_INSTRUCTION, 735},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2494 "gperf_input_nmemonic.dat"
+#line 2485 "gperf_input_nmemonic.dat"
     {"R13W", TOK_REG, 85},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3570 "gperf_input_nmemonic.dat"
+#line 3561 "gperf_input_nmemonic.dat"
     {"VPSLLW", TOK_INSTRUCTION, 2024},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3643 "gperf_input_nmemonic.dat"
+#line 3634 "gperf_input_nmemonic.dat"
     {"XCHG", TOK_INSTRUCTION, 2162},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6133,199 +6124,199 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2837 "gperf_input_nmemonic.dat"
+#line 2828 "gperf_input_nmemonic.dat"
     {"FXCH", TOK_INSTRUCTION, 500},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3308 "gperf_input_nmemonic.dat"
+#line 3299 "gperf_input_nmemonic.dat"
     {"VCVTPS2PH", TOK_INSTRUCTION, 1531},
     {(char*)0}, {(char*)0},
-#line 3453 "gperf_input_nmemonic.dat"
+#line 3444 "gperf_input_nmemonic.dat"
     {"VPACKSSWB", TOK_INSTRUCTION, 1796},
-#line 2786 "gperf_input_nmemonic.dat"
+#line 2777 "gperf_input_nmemonic.dat"
     {"FINIT", TOK_INSTRUCTION, 418},
-#line 3381 "gperf_input_nmemonic.dat"
+#line 3372 "gperf_input_nmemonic.dat"
     {"VFNMSUB132SS", TOK_INSTRUCTION, 1648},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3380 "gperf_input_nmemonic.dat"
+#line 3371 "gperf_input_nmemonic.dat"
     {"VFNMSUB132SD", TOK_INSTRUCTION, 1647},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3379 "gperf_input_nmemonic.dat"
+#line 3370 "gperf_input_nmemonic.dat"
     {"VFNMSUB132PS", TOK_INSTRUCTION, 1645},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2426 "gperf_input_nmemonic.dat"
+#line 2417 "gperf_input_nmemonic.dat"
     {"XMM1", TOK_REG, 17},
-#line 3378 "gperf_input_nmemonic.dat"
+#line 3369 "gperf_input_nmemonic.dat"
     {"VFNMSUB132PD", TOK_INSTRUCTION, 1643},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2496 "gperf_input_nmemonic.dat"
+#line 2487 "gperf_input_nmemonic.dat"
     {"R15W", TOK_REG, 87},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3590 "gperf_input_nmemonic.dat"
+#line 3581 "gperf_input_nmemonic.dat"
     {"VPUNPCKHDQ", TOK_INSTRUCTION, 2076},
     {(char*)0}, {(char*)0},
-#line 2870 "gperf_input_nmemonic.dat"
+#line 2861 "gperf_input_nmemonic.dat"
     {"JA", TOK_INSTRUCTION, 559},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3408 "gperf_input_nmemonic.dat"
+#line 3399 "gperf_input_nmemonic.dat"
     {"VMASKMOVPS", TOK_INSTRUCTION, 1694},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2435 "gperf_input_nmemonic.dat"
+#line 2426 "gperf_input_nmemonic.dat"
     {"XMM10", TOK_REG, 26},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3030 "gperf_input_nmemonic.dat"
+#line 3021 "gperf_input_nmemonic.dat"
     {"PCMPGTW", TOK_INSTRUCTION, 914},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3389 "gperf_input_nmemonic.dat"
+#line 3380 "gperf_input_nmemonic.dat"
     {"VFNMSUB231SS", TOK_INSTRUCTION, 1660},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3388 "gperf_input_nmemonic.dat"
+#line 3379 "gperf_input_nmemonic.dat"
     {"VFNMSUB231SD", TOK_INSTRUCTION, 1659},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3525 "gperf_input_nmemonic.dat"
+#line 3516 "gperf_input_nmemonic.dat"
     {"VPMAXSD", TOK_INSTRUCTION, 1930},
     {(char*)0},
-#line 3387 "gperf_input_nmemonic.dat"
+#line 3378 "gperf_input_nmemonic.dat"
     {"VFNMSUB231PS", TOK_INSTRUCTION, 1657},
     {(char*)0}, {(char*)0},
-#line 3109 "gperf_input_nmemonic.dat"
+#line 3100 "gperf_input_nmemonic.dat"
     {"PSRAW", TOK_INSTRUCTION, 1044},
-#line 3103 "gperf_input_nmemonic.dat"
+#line 3094 "gperf_input_nmemonic.dat"
     {"PSIGNW", TOK_INSTRUCTION, 1025},
-#line 3386 "gperf_input_nmemonic.dat"
+#line 3377 "gperf_input_nmemonic.dat"
     {"VFNMSUB231PD", TOK_INSTRUCTION, 1655},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3083 "gperf_input_nmemonic.dat"
+#line 3074 "gperf_input_nmemonic.dat"
     {"PMULLW", TOK_INSTRUCTION, 989},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2890 "gperf_input_nmemonic.dat"
+#line 2881 "gperf_input_nmemonic.dat"
     {"JNL", TOK_INSTRUCTION, 602},
-#line 3524 "gperf_input_nmemonic.dat"
+#line 3515 "gperf_input_nmemonic.dat"
     {"VPMAXSB", TOK_INSTRUCTION, 1928},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2481 "gperf_input_nmemonic.dat"
+#line 2472 "gperf_input_nmemonic.dat"
     {"AX", TOK_REG, 72},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3318 "gperf_input_nmemonic.dat"
+#line 3309 "gperf_input_nmemonic.dat"
     {"VCVTTSS2SI", TOK_INSTRUCTION, 1549},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3536 "gperf_input_nmemonic.dat"
+#line 3527 "gperf_input_nmemonic.dat"
     {"VPMOVMSKB", TOK_INSTRUCTION, 1952},
-#line 3317 "gperf_input_nmemonic.dat"
+#line 3308 "gperf_input_nmemonic.dat"
     {"VCVTTSD2SI", TOK_INSTRUCTION, 1547},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2659 "gperf_input_nmemonic.dat"
+#line 2650 "gperf_input_nmemonic.dat"
     {"CLFLUSH", TOK_INSTRUCTION, 160},
     {(char*)0},
-#line 3343 "gperf_input_nmemonic.dat"
+#line 3334 "gperf_input_nmemonic.dat"
     {"VFMADDSUB132PS", TOK_INSTRUCTION, 1585},
     {(char*)0}, {(char*)0},
-#line 3032 "gperf_input_nmemonic.dat"
+#line 3023 "gperf_input_nmemonic.dat"
     {"PCMPISTRM", TOK_INSTRUCTION, 917},
     {(char*)0},
-#line 3342 "gperf_input_nmemonic.dat"
+#line 3333 "gperf_input_nmemonic.dat"
     {"VFMADDSUB132PD", TOK_INSTRUCTION, 1583},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2705 "gperf_input_nmemonic.dat"
+#line 2696 "gperf_input_nmemonic.dat"
     {"CMPXCHG", TOK_INSTRUCTION, 288},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3406 "gperf_input_nmemonic.dat"
+#line 3397 "gperf_input_nmemonic.dat"
     {"VMASKMOVDQU", TOK_INSTRUCTION, 1689},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2888 "gperf_input_nmemonic.dat"
+#line 2879 "gperf_input_nmemonic.dat"
     {"JNG", TOK_INSTRUCTION, 598},
     {(char*)0}, {(char*)0},
-#line 3651 "gperf_input_nmemonic.dat"
+#line 3642 "gperf_input_nmemonic.dat"
     {"XRESLDTRK", TOK_INSTRUCTION, 2207},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2495 "gperf_input_nmemonic.dat"
+#line 2486 "gperf_input_nmemonic.dat"
     {"R14W", TOK_REG, 86},
-#line 2883 "gperf_input_nmemonic.dat"
+#line 2874 "gperf_input_nmemonic.dat"
     {"JNAE", TOK_INSTRUCTION, 588},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3463 "gperf_input_nmemonic.dat"
+#line 3454 "gperf_input_nmemonic.dat"
     {"VPADDW", TOK_INSTRUCTION, 1816},
-#line 3460 "gperf_input_nmemonic.dat"
+#line 3451 "gperf_input_nmemonic.dat"
     {"VPADDSW", TOK_INSTRUCTION, 1810},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3451 "gperf_input_nmemonic.dat"
+#line 3442 "gperf_input_nmemonic.dat"
     {"VPABSW", TOK_INSTRUCTION, 1792},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2800 "gperf_input_nmemonic.dat"
+#line 2791 "gperf_input_nmemonic.dat"
     {"FLDPI", TOK_INSTRUCTION, 442},
     {(char*)0},
-#line 3557 "gperf_input_nmemonic.dat"
+#line 3548 "gperf_input_nmemonic.dat"
     {"VPSADBW", TOK_INSTRUCTION, 1994},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2778 "gperf_input_nmemonic.dat"
+#line 2769 "gperf_input_nmemonic.dat"
     {"FIADD", TOK_INSTRUCTION, 402},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3532 "gperf_input_nmemonic.dat"
+#line 3523 "gperf_input_nmemonic.dat"
     {"VPMINSW", TOK_INSTRUCTION, 1944},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3123 "gperf_input_nmemonic.dat"
+#line 3114 "gperf_input_nmemonic.dat"
     {"PTWRITE", TOK_INSTRUCTION, 1078},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3504 "gperf_input_nmemonic.dat"
+#line 3495 "gperf_input_nmemonic.dat"
     {"VPEXTRW", TOK_INSTRUCTION, 1889},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2907 "gperf_input_nmemonic.dat"
+#line 2898 "gperf_input_nmemonic.dat"
     {"LEA", TOK_INSTRUCTION, 633},
     {(char*)0}, {(char*)0},
-#line 2835 "gperf_input_nmemonic.dat"
+#line 2826 "gperf_input_nmemonic.dat"
     {"FWAIT", TOK_INSTRUCTION, 498},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2949 "gperf_input_nmemonic.dat"
+#line 2940 "gperf_input_nmemonic.dat"
     {"MOVDQA", TOK_INSTRUCTION, 739},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6343,31 +6334,31 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3051 "gperf_input_nmemonic.dat"
+#line 3042 "gperf_input_nmemonic.dat"
     {"PMADDUBSW", TOK_INSTRUCTION, 947},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3347 "gperf_input_nmemonic.dat"
+#line 3338 "gperf_input_nmemonic.dat"
     {"VFMADDSUB231PS", TOK_INSTRUCTION, 1593},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3541 "gperf_input_nmemonic.dat"
+#line 3532 "gperf_input_nmemonic.dat"
     {"VPMOVSXWD", TOK_INSTRUCTION, 1962},
-#line 3346 "gperf_input_nmemonic.dat"
+#line 3337 "gperf_input_nmemonic.dat"
     {"VFMADDSUB231PD", TOK_INSTRUCTION, 1591},
     {(char*)0},
-#line 2840 "gperf_input_nmemonic.dat"
+#line 2831 "gperf_input_nmemonic.dat"
     {"FXSAVE", TOK_INSTRUCTION, 504},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2461 "gperf_input_nmemonic.dat"
+#line 2452 "gperf_input_nmemonic.dat"
     {"R12", TOK_REG, 52},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3595 "gperf_input_nmemonic.dat"
+#line 3586 "gperf_input_nmemonic.dat"
     {"VPUNPCKLQDQ", TOK_INSTRUCTION, 2086},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6375,14 +6366,14 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3239 "gperf_input_nmemonic.dat"
+#line 3230 "gperf_input_nmemonic.dat"
     {"STTILECFG", TOK_INSTRUCTION, 1397},
     {(char*)0},
-#line 3128 "gperf_input_nmemonic.dat"
+#line 3119 "gperf_input_nmemonic.dat"
     {"PUNPCKLBW", TOK_INSTRUCTION, 1087},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2410 "gperf_input_nmemonic.dat"
+#line 2401 "gperf_input_nmemonic.dat"
     {"YMM1", TOK_REG, 1},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6392,17 +6383,17 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3455 "gperf_input_nmemonic.dat"
+#line 3446 "gperf_input_nmemonic.dat"
     {"VPACKUSWB", TOK_INSTRUCTION, 1800},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2799 "gperf_input_nmemonic.dat"
+#line 2790 "gperf_input_nmemonic.dat"
     {"FLDLN2", TOK_INSTRUCTION, 441},
     {(char*)0},
-#line 3547 "gperf_input_nmemonic.dat"
+#line 3538 "gperf_input_nmemonic.dat"
     {"VPMOVZXWD", TOK_INSTRUCTION, 1974},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2419 "gperf_input_nmemonic.dat"
+#line 2410 "gperf_input_nmemonic.dat"
     {"YMM10", TOK_REG, 10},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6411,61 +6402,61 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3486 "gperf_input_nmemonic.dat"
+#line 3477 "gperf_input_nmemonic.dat"
     {"VPCMPGTW", TOK_INSTRUCTION, 1860},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3081 "gperf_input_nmemonic.dat"
+#line 3072 "gperf_input_nmemonic.dat"
     {"PMULHW", TOK_INSTRUCTION, 986},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2706 "gperf_input_nmemonic.dat"
+#line 2697 "gperf_input_nmemonic.dat"
     {"CMPXCHG16B", TOK_INSTRUCTION, 293},
-#line 2877 "gperf_input_nmemonic.dat"
+#line 2868 "gperf_input_nmemonic.dat"
     {"JG", TOK_INSTRUCTION, 572},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3528 "gperf_input_nmemonic.dat"
+#line 3519 "gperf_input_nmemonic.dat"
     {"VPMAXUD", TOK_INSTRUCTION, 1936},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3494 "gperf_input_nmemonic.dat"
+#line 3485 "gperf_input_nmemonic.dat"
     {"VPERM2I128", TOK_INSTRUCTION, 1873},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3596 "gperf_input_nmemonic.dat"
+#line 3587 "gperf_input_nmemonic.dat"
     {"VPUNPCKLWD", TOK_INSTRUCTION, 2088},
     {(char*)0}, {(char*)0},
-#line 3527 "gperf_input_nmemonic.dat"
+#line 3518 "gperf_input_nmemonic.dat"
     {"VPMAXUB", TOK_INSTRUCTION, 1934},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3627 "gperf_input_nmemonic.dat"
+#line 3618 "gperf_input_nmemonic.dat"
     {"VZEROALL", TOK_INSTRUCTION, 2139},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2617 "gperf_input_nmemonic.dat"
+#line 2608 "gperf_input_nmemonic.dat"
     {"AESENCLAST", TOK_INSTRUCTION, 61},
     {(char*)0}, {(char*)0},
-#line 2836 "gperf_input_nmemonic.dat"
+#line 2827 "gperf_input_nmemonic.dat"
     {"FXAM", TOK_INSTRUCTION, 499},
     {(char*)0}, {(char*)0},
-#line 3025 "gperf_input_nmemonic.dat"
+#line 3016 "gperf_input_nmemonic.dat"
     {"PCMPESTRI", TOK_INSTRUCTION, 907},
     {(char*)0},
-#line 2437 "gperf_input_nmemonic.dat"
+#line 2428 "gperf_input_nmemonic.dat"
     {"XMM12", TOK_REG, 28},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6473,43 +6464,43 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2427 "gperf_input_nmemonic.dat"
+#line 2418 "gperf_input_nmemonic.dat"
     {"XMM2", TOK_REG, 18},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3665 "gperf_input_nmemonic.dat"
+#line 3656 "gperf_input_nmemonic.dat"
     {"XSUSLDTRK", TOK_INSTRUCTION, 2221},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2611 "gperf_input_nmemonic.dat"
+#line 2602 "gperf_input_nmemonic.dat"
     {"AESDECLAST", TOK_INSTRUCTION, 55},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2726 "gperf_input_nmemonic.dat"
+#line 2717 "gperf_input_nmemonic.dat"
     {"CVTSS2SI", TOK_INSTRUCTION, 321},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2721 "gperf_input_nmemonic.dat"
+#line 2712 "gperf_input_nmemonic.dat"
     {"CVTSD2SI", TOK_INSTRUCTION, 313},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2752 "gperf_input_nmemonic.dat"
+#line 2743 "gperf_input_nmemonic.dat"
     {"F2XM1", TOK_INSTRUCTION, 358},
     {(char*)0}, {(char*)0},
-#line 3210 "gperf_input_nmemonic.dat"
+#line 3201 "gperf_input_nmemonic.dat"
     {"SHA1RNDS4", TOK_INSTRUCTION, 1326},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3462 "gperf_input_nmemonic.dat"
+#line 3453 "gperf_input_nmemonic.dat"
     {"VPADDUSW", TOK_INSTRUCTION, 1814},
     {(char*)0},
-#line 2720 "gperf_input_nmemonic.dat"
+#line 2711 "gperf_input_nmemonic.dat"
     {"CVTPS2PI", TOK_INSTRUCTION, 312},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2714 "gperf_input_nmemonic.dat"
+#line 2705 "gperf_input_nmemonic.dat"
     {"CVTPD2PI", TOK_INSTRUCTION, 306},
     {(char*)0},
-#line 3642 "gperf_input_nmemonic.dat"
+#line 3633 "gperf_input_nmemonic.dat"
     {"XBEGIN", TOK_INSTRUCTION, 2160},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6519,7 +6510,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3535 "gperf_input_nmemonic.dat"
+#line 3526 "gperf_input_nmemonic.dat"
     {"VPMINUW", TOK_INSTRUCTION, 1950},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6528,17 +6519,17 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2781 "gperf_input_nmemonic.dat"
+#line 2772 "gperf_input_nmemonic.dat"
     {"FIDIV", TOK_INSTRUCTION, 408},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3050 "gperf_input_nmemonic.dat"
+#line 3041 "gperf_input_nmemonic.dat"
     {"PINSRW", TOK_INSTRUCTION, 945},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3100 "gperf_input_nmemonic.dat"
+#line 3091 "gperf_input_nmemonic.dat"
     {"PSHUFW", TOK_INSTRUCTION, 1020},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6552,40 +6543,40 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3373 "gperf_input_nmemonic.dat"
+#line 3364 "gperf_input_nmemonic.dat"
     {"VFNMADD213SS", TOK_INSTRUCTION, 1636},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3372 "gperf_input_nmemonic.dat"
+#line 3363 "gperf_input_nmemonic.dat"
     {"VFNMADD213SD", TOK_INSTRUCTION, 1635},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3371 "gperf_input_nmemonic.dat"
+#line 3362 "gperf_input_nmemonic.dat"
     {"VFNMADD213PS", TOK_INSTRUCTION, 1633},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3370 "gperf_input_nmemonic.dat"
+#line 3361 "gperf_input_nmemonic.dat"
     {"VFNMADD213PD", TOK_INSTRUCTION, 1631},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3258 "gperf_input_nmemonic.dat"
+#line 3249 "gperf_input_nmemonic.dat"
     {"TILERELEASE", TOK_INSTRUCTION, 1452},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3487 "gperf_input_nmemonic.dat"
+#line 3478 "gperf_input_nmemonic.dat"
     {"VPCMPISTRI", TOK_INSTRUCTION, 1862},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3561 "gperf_input_nmemonic.dat"
+#line 3552 "gperf_input_nmemonic.dat"
     {"VPSHUFLW", TOK_INSTRUCTION, 2002},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3390 "gperf_input_nmemonic.dat"
+#line 3381 "gperf_input_nmemonic.dat"
     {"VGATHERDPD", TOK_INSTRUCTION, 1661},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3079 "gperf_input_nmemonic.dat"
+#line 3070 "gperf_input_nmemonic.dat"
     {"PMULHRSW", TOK_INSTRUCTION, 982},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6595,7 +6586,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3591 "gperf_input_nmemonic.dat"
+#line 3582 "gperf_input_nmemonic.dat"
     {"VPUNPCKHQDQ", TOK_INSTRUCTION, 2078},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6603,13 +6594,13 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3353 "gperf_input_nmemonic.dat"
+#line 3344 "gperf_input_nmemonic.dat"
     {"VFMSUB213PS", TOK_INSTRUCTION, 1603},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3124 "gperf_input_nmemonic.dat"
+#line 3115 "gperf_input_nmemonic.dat"
     {"PUNPCKHBW", TOK_INSTRUCTION, 1080},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3352 "gperf_input_nmemonic.dat"
+#line 3343 "gperf_input_nmemonic.dat"
     {"VFMSUB213PD", TOK_INSTRUCTION, 1601},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6623,46 +6614,46 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2986 "gperf_input_nmemonic.dat"
+#line 2977 "gperf_input_nmemonic.dat"
     {"MWAIT", TOK_INSTRUCTION, 810},
     {(char*)0}, {(char*)0},
-#line 3396 "gperf_input_nmemonic.dat"
+#line 3387 "gperf_input_nmemonic.dat"
     {"VGF2P8MULB", TOK_INSTRUCTION, 1673},
     {(char*)0},
-#line 3564 "gperf_input_nmemonic.dat"
+#line 3555 "gperf_input_nmemonic.dat"
     {"VPSIGNW", TOK_INSTRUCTION, 2008},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2960 "gperf_input_nmemonic.dat"
+#line 2951 "gperf_input_nmemonic.dat"
     {"MOVNTDQA", TOK_INSTRUCTION, 756},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3357 "gperf_input_nmemonic.dat"
+#line 3348 "gperf_input_nmemonic.dat"
     {"VFMSUB231PS", TOK_INSTRUCTION, 1609},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3356 "gperf_input_nmemonic.dat"
+#line 3347 "gperf_input_nmemonic.dat"
     {"VFMSUB231PD", TOK_INSTRUCTION, 1607},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3363 "gperf_input_nmemonic.dat"
+#line 3354 "gperf_input_nmemonic.dat"
     {"VFMSUBADD213PS", TOK_INSTRUCTION, 1619},
     {(char*)0}, {(char*)0},
-#line 3080 "gperf_input_nmemonic.dat"
+#line 3071 "gperf_input_nmemonic.dat"
     {"PMULHUW", TOK_INSTRUCTION, 984},
     {(char*)0},
-#line 3362 "gperf_input_nmemonic.dat"
+#line 3353 "gperf_input_nmemonic.dat"
     {"VFMSUBADD213PD", TOK_INSTRUCTION, 1617},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2979 "gperf_input_nmemonic.dat"
+#line 2970 "gperf_input_nmemonic.dat"
     {"MPSADBW", TOK_INSTRUCTION, 798},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3042 "gperf_input_nmemonic.dat"
+#line 3033 "gperf_input_nmemonic.dat"
     {"PHADDW", TOK_INSTRUCTION, 933},
-#line 3041 "gperf_input_nmemonic.dat"
+#line 3032 "gperf_input_nmemonic.dat"
     {"PHADDSW", TOK_INSTRUCTION, 931},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6670,105 +6661,105 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3401 "gperf_input_nmemonic.dat"
+#line 3392 "gperf_input_nmemonic.dat"
     {"VINSERTF128", TOK_INSTRUCTION, 1683},
     {(char*)0}, {(char*)0},
-#line 2421 "gperf_input_nmemonic.dat"
+#line 2412 "gperf_input_nmemonic.dat"
     {"YMM12", TOK_REG, 12},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2906 "gperf_input_nmemonic.dat"
+#line 2897 "gperf_input_nmemonic.dat"
     {"LDTILECFG", TOK_INSTRUCTION, 632},
     {(char*)0},
-#line 3355 "gperf_input_nmemonic.dat"
+#line 3346 "gperf_input_nmemonic.dat"
     {"VFMSUB213SS", TOK_INSTRUCTION, 1606},
-#line 2492 "gperf_input_nmemonic.dat"
+#line 2483 "gperf_input_nmemonic.dat"
     {"R11W", TOK_REG, 83},
     {(char*)0},
-#line 2843 "gperf_input_nmemonic.dat"
+#line 2834 "gperf_input_nmemonic.dat"
     {"FYL2X", TOK_INSTRUCTION, 507},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3354 "gperf_input_nmemonic.dat"
+#line 3345 "gperf_input_nmemonic.dat"
     {"VFMSUB213SD", TOK_INSTRUCTION, 1605},
-#line 3592 "gperf_input_nmemonic.dat"
+#line 3583 "gperf_input_nmemonic.dat"
     {"VPUNPCKHWD", TOK_INSTRUCTION, 2080},
     {(char*)0},
-#line 2411 "gperf_input_nmemonic.dat"
+#line 2402 "gperf_input_nmemonic.dat"
     {"YMM2", TOK_REG, 2},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3542 "gperf_input_nmemonic.dat"
+#line 3533 "gperf_input_nmemonic.dat"
     {"VPMOVSXWQ", TOK_INSTRUCTION, 1964},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3314 "gperf_input_nmemonic.dat"
+#line 3305 "gperf_input_nmemonic.dat"
     {"VCVTSS2SI", TOK_INSTRUCTION, 1541},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3309 "gperf_input_nmemonic.dat"
+#line 3300 "gperf_input_nmemonic.dat"
     {"VCVTSD2SI", TOK_INSTRUCTION, 1533},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2724 "gperf_input_nmemonic.dat"
+#line 2715 "gperf_input_nmemonic.dat"
     {"CVTSI2SS", TOK_INSTRUCTION, 318},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2723 "gperf_input_nmemonic.dat"
+#line 2714 "gperf_input_nmemonic.dat"
     {"CVTSI2SD", TOK_INSTRUCTION, 316},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2717 "gperf_input_nmemonic.dat"
+#line 2708 "gperf_input_nmemonic.dat"
     {"CVTPI2PS", TOK_INSTRUCTION, 309},
     {(char*)0},
-#line 3359 "gperf_input_nmemonic.dat"
+#line 3350 "gperf_input_nmemonic.dat"
     {"VFMSUB231SS", TOK_INSTRUCTION, 1612},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2716 "gperf_input_nmemonic.dat"
+#line 2707 "gperf_input_nmemonic.dat"
     {"CVTPI2PD", TOK_INSTRUCTION, 308},
     {(char*)0},
-#line 3358 "gperf_input_nmemonic.dat"
+#line 3349 "gperf_input_nmemonic.dat"
     {"VFMSUB231SD", TOK_INSTRUCTION, 1611},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3505 "gperf_input_nmemonic.dat"
+#line 3496 "gperf_input_nmemonic.dat"
     {"VPGATHERDD", TOK_INSTRUCTION, 1891},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3391 "gperf_input_nmemonic.dat"
+#line 3382 "gperf_input_nmemonic.dat"
     {"VGATHERDPS", TOK_INSTRUCTION, 1663},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3548 "gperf_input_nmemonic.dat"
+#line 3539 "gperf_input_nmemonic.dat"
     {"VPMOVZXWQ", TOK_INSTRUCTION, 1976},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3058 "gperf_input_nmemonic.dat"
+#line 3049 "gperf_input_nmemonic.dat"
     {"PMAXUW", TOK_INSTRUCTION, 958},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3055 "gperf_input_nmemonic.dat"
+#line 3046 "gperf_input_nmemonic.dat"
     {"PMAXSW", TOK_INSTRUCTION, 953},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3090 "gperf_input_nmemonic.dat"
+#line 3081 "gperf_input_nmemonic.dat"
     {"PREFETCHNTA", TOK_INSTRUCTION, 1008},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6779,55 +6770,55 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2847 "gperf_input_nmemonic.dat"
+#line 2838 "gperf_input_nmemonic.dat"
     {"GF2P8MULB", TOK_INSTRUCTION, 511},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3452 "gperf_input_nmemonic.dat"
+#line 3443 "gperf_input_nmemonic.dat"
     {"VPACKSSDW", TOK_INSTRUCTION, 1794},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3554 "gperf_input_nmemonic.dat"
+#line 3545 "gperf_input_nmemonic.dat"
     {"VPMULLW", TOK_INSTRUCTION, 1988},
-#line 3392 "gperf_input_nmemonic.dat"
+#line 3383 "gperf_input_nmemonic.dat"
     {"VGATHERQPD", TOK_INSTRUCTION, 1665},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3284 "gperf_input_nmemonic.dat"
+#line 3275 "gperf_input_nmemonic.dat"
     {"VAESKEYGENASSIST", TOK_INSTRUCTION, 1488},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2784 "gperf_input_nmemonic.dat"
+#line 2775 "gperf_input_nmemonic.dat"
     {"FIMUL", TOK_INSTRUCTION, 415},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3385 "gperf_input_nmemonic.dat"
+#line 3376 "gperf_input_nmemonic.dat"
     {"VFNMSUB213SS", TOK_INSTRUCTION, 1654},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3384 "gperf_input_nmemonic.dat"
+#line 3375 "gperf_input_nmemonic.dat"
     {"VFNMSUB213SD", TOK_INSTRUCTION, 1653},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3331 "gperf_input_nmemonic.dat"
+#line 3322 "gperf_input_nmemonic.dat"
     {"VFMADD132PS", TOK_INSTRUCTION, 1567},
     {(char*)0},
-#line 3560 "gperf_input_nmemonic.dat"
+#line 3551 "gperf_input_nmemonic.dat"
     {"VPSHUFHW", TOK_INSTRUCTION, 2000},
-#line 3383 "gperf_input_nmemonic.dat"
+#line 3374 "gperf_input_nmemonic.dat"
     {"VFNMSUB213PS", TOK_INSTRUCTION, 1651},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3382 "gperf_input_nmemonic.dat"
+#line 3373 "gperf_input_nmemonic.dat"
     {"VFNMSUB213PD", TOK_INSTRUCTION, 1649},
     {(char*)0},
-#line 3330 "gperf_input_nmemonic.dat"
+#line 3321 "gperf_input_nmemonic.dat"
     {"VFMADD132PD", TOK_INSTRUCTION, 1565},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6837,24 +6828,24 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2493 "gperf_input_nmemonic.dat"
+#line 2484 "gperf_input_nmemonic.dat"
     {"R12W", TOK_REG, 84},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2782 "gperf_input_nmemonic.dat"
+#line 2773 "gperf_input_nmemonic.dat"
     {"FIDIVR", TOK_INSTRUCTION, 410},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3209 "gperf_input_nmemonic.dat"
+#line 3200 "gperf_input_nmemonic.dat"
     {"SHA1NEXTE", TOK_INSTRUCTION, 1325},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3506 "gperf_input_nmemonic.dat"
+#line 3497 "gperf_input_nmemonic.dat"
     {"VPGATHERDQ", TOK_INSTRUCTION, 1893},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6865,7 +6856,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3507 "gperf_input_nmemonic.dat"
+#line 3498 "gperf_input_nmemonic.dat"
     {"VPGATHERQD", TOK_INSTRUCTION, 1895},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6876,18 +6867,18 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3333 "gperf_input_nmemonic.dat"
+#line 3324 "gperf_input_nmemonic.dat"
     {"VFMADD132SS", TOK_INSTRUCTION, 1570},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3332 "gperf_input_nmemonic.dat"
+#line 3323 "gperf_input_nmemonic.dat"
     {"VFMADD132SD", TOK_INSTRUCTION, 1569},
     {(char*)0}, {(char*)0},
-#line 3345 "gperf_input_nmemonic.dat"
+#line 3336 "gperf_input_nmemonic.dat"
     {"VFMADDSUB213PS", TOK_INSTRUCTION, 1589},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3344 "gperf_input_nmemonic.dat"
+#line 3335 "gperf_input_nmemonic.dat"
     {"VFMADDSUB213PD", TOK_INSTRUCTION, 1587},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6906,7 +6897,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2841 "gperf_input_nmemonic.dat"
+#line 2832 "gperf_input_nmemonic.dat"
     {"FXSAVE64", TOK_INSTRUCTION, 505},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6917,7 +6908,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3393 "gperf_input_nmemonic.dat"
+#line 3384 "gperf_input_nmemonic.dat"
     {"VGATHERQPS", TOK_INSTRUCTION, 1667},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6928,7 +6919,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3043 "gperf_input_nmemonic.dat"
+#line 3034 "gperf_input_nmemonic.dat"
     {"PHMINPOSUW", TOK_INSTRUCTION, 935},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6949,13 +6940,13 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3539 "gperf_input_nmemonic.dat"
+#line 3530 "gperf_input_nmemonic.dat"
     {"VPMOVSXBW", TOK_INSTRUCTION, 1958},
     {(char*)0}, {(char*)0},
-#line 2947 "gperf_input_nmemonic.dat"
+#line 2938 "gperf_input_nmemonic.dat"
     {"MOVDIRI", TOK_INSTRUCTION, 736},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3508 "gperf_input_nmemonic.dat"
+#line 3499 "gperf_input_nmemonic.dat"
     {"VPGATHERQQ", TOK_INSTRUCTION, 1897},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6963,28 +6954,28 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3468 "gperf_input_nmemonic.dat"
+#line 3459 "gperf_input_nmemonic.dat"
     {"VPAVGW", TOK_INSTRUCTION, 1826},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2436 "gperf_input_nmemonic.dat"
+#line 2427 "gperf_input_nmemonic.dat"
     {"XMM11", TOK_REG, 27},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3511 "gperf_input_nmemonic.dat"
+#line 3502 "gperf_input_nmemonic.dat"
     {"VPHADDW", TOK_INSTRUCTION, 1903},
-#line 3510 "gperf_input_nmemonic.dat"
+#line 3501 "gperf_input_nmemonic.dat"
     {"VPHADDSW", TOK_INSTRUCTION, 1901},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3454 "gperf_input_nmemonic.dat"
+#line 3445 "gperf_input_nmemonic.dat"
     {"VPACKUSDW", TOK_INSTRUCTION, 1798},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3552 "gperf_input_nmemonic.dat"
+#line 3543 "gperf_input_nmemonic.dat"
     {"VPMULHW", TOK_INSTRUCTION, 1984},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -6994,10 +6985,10 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3545 "gperf_input_nmemonic.dat"
+#line 3536 "gperf_input_nmemonic.dat"
     {"VPMOVZXBW", TOK_INSTRUCTION, 1970},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3327 "gperf_input_nmemonic.dat"
+#line 3318 "gperf_input_nmemonic.dat"
     {"VEXTRACTF128", TOK_INSTRUCTION, 1562},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7006,7 +6997,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3099 "gperf_input_nmemonic.dat"
+#line 3090 "gperf_input_nmemonic.dat"
     {"PSHUFLW", TOK_INSTRUCTION, 1019},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7041,7 +7032,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2798 "gperf_input_nmemonic.dat"
+#line 2789 "gperf_input_nmemonic.dat"
     {"FLDLG2", TOK_INSTRUCTION, 440},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7058,7 +7049,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2621 "gperf_input_nmemonic.dat"
+#line 2612 "gperf_input_nmemonic.dat"
     {"AESKEYGENASSIST", TOK_INSTRUCTION, 65},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7067,7 +7058,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3520 "gperf_input_nmemonic.dat"
+#line 3511 "gperf_input_nmemonic.dat"
     {"VPMADDUBSW", TOK_INSTRUCTION, 1916},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7076,7 +7067,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3268 "gperf_input_nmemonic.dat"
+#line 3259 "gperf_input_nmemonic.dat"
     {"UMWAIT", TOK_INSTRUCTION, 1464},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7092,7 +7083,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3550 "gperf_input_nmemonic.dat"
+#line 3541 "gperf_input_nmemonic.dat"
     {"VPMULHRSW", TOK_INSTRUCTION, 1980},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7108,17 +7099,17 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3402 "gperf_input_nmemonic.dat"
+#line 3393 "gperf_input_nmemonic.dat"
     {"VINSERTI128", TOK_INSTRUCTION, 1684},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2420 "gperf_input_nmemonic.dat"
+#line 2411 "gperf_input_nmemonic.dat"
     {"YMM11", TOK_REG, 11},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2882 "gperf_input_nmemonic.dat"
+#line 2873 "gperf_input_nmemonic.dat"
     {"JNA", TOK_INSTRUCTION, 586},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7139,14 +7130,14 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3551 "gperf_input_nmemonic.dat"
+#line 3542 "gperf_input_nmemonic.dat"
     {"VPMULHUW", TOK_INSTRUCTION, 1982},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3593 "gperf_input_nmemonic.dat"
+#line 3584 "gperf_input_nmemonic.dat"
     {"VPUNPCKLBW", TOK_INSTRUCTION, 2082},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7160,7 +7151,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3098 "gperf_input_nmemonic.dat"
+#line 3089 "gperf_input_nmemonic.dat"
     {"PSHUFHW", TOK_INSTRUCTION, 1018},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7174,7 +7165,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3522 "gperf_input_nmemonic.dat"
+#line 3513 "gperf_input_nmemonic.dat"
     {"VPMASKMOVD", TOK_INSTRUCTION, 1920},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7195,7 +7186,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2616 "gperf_input_nmemonic.dat"
+#line 2607 "gperf_input_nmemonic.dat"
     {"AESENC256KL", TOK_INSTRUCTION, 60},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7208,13 +7199,13 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2610 "gperf_input_nmemonic.dat"
+#line 2601 "gperf_input_nmemonic.dat"
     {"AESDEC256KL", TOK_INSTRUCTION, 54},
     {(char*)0}, {(char*)0},
-#line 2732 "gperf_input_nmemonic.dat"
+#line 2723 "gperf_input_nmemonic.dat"
     {"CVTTSS2SI", TOK_INSTRUCTION, 329},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2731 "gperf_input_nmemonic.dat"
+#line 2722 "gperf_input_nmemonic.dat"
     {"CVTTSD2SI", TOK_INSTRUCTION, 327},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7235,7 +7226,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2844 "gperf_input_nmemonic.dat"
+#line 2835 "gperf_input_nmemonic.dat"
     {"FYL2XP1", TOK_INSTRUCTION, 508},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7254,7 +7245,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3523 "gperf_input_nmemonic.dat"
+#line 3514 "gperf_input_nmemonic.dat"
     {"VPMASKMOVQ", TOK_INSTRUCTION, 1924},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7295,7 +7286,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3589 "gperf_input_nmemonic.dat"
+#line 3580 "gperf_input_nmemonic.dat"
     {"VPUNPCKHBW", TOK_INSTRUCTION, 2074},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7303,7 +7294,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3526 "gperf_input_nmemonic.dat"
+#line 3517 "gperf_input_nmemonic.dat"
     {"VPMAXSW", TOK_INSTRUCTION, 1932},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7328,10 +7319,10 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2730 "gperf_input_nmemonic.dat"
+#line 2721 "gperf_input_nmemonic.dat"
     {"CVTTPS2PI", TOK_INSTRUCTION, 326},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2728 "gperf_input_nmemonic.dat"
+#line 2719 "gperf_input_nmemonic.dat"
     {"CVTTPD2PI", TOK_INSTRUCTION, 324},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7373,12 +7364,12 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3335 "gperf_input_nmemonic.dat"
+#line 3326 "gperf_input_nmemonic.dat"
     {"VFMADD213PS", TOK_INSTRUCTION, 1573},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3334 "gperf_input_nmemonic.dat"
+#line 3325 "gperf_input_nmemonic.dat"
     {"VFMADD213PD", TOK_INSTRUCTION, 1571},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7398,12 +7389,12 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3339 "gperf_input_nmemonic.dat"
+#line 3330 "gperf_input_nmemonic.dat"
     {"VFMADD231PS", TOK_INSTRUCTION, 1579},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3338 "gperf_input_nmemonic.dat"
+#line 3329 "gperf_input_nmemonic.dat"
     {"VFMADD231PD", TOK_INSTRUCTION, 1577},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7421,12 +7412,12 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3337 "gperf_input_nmemonic.dat"
+#line 3328 "gperf_input_nmemonic.dat"
     {"VFMADD213SS", TOK_INSTRUCTION, 1576},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3336 "gperf_input_nmemonic.dat"
+#line 3327 "gperf_input_nmemonic.dat"
     {"VFMADD213SD", TOK_INSTRUCTION, 1575},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7446,19 +7437,19 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3341 "gperf_input_nmemonic.dat"
+#line 3332 "gperf_input_nmemonic.dat"
     {"VFMADD231SS", TOK_INSTRUCTION, 1582},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3340 "gperf_input_nmemonic.dat"
+#line 3331 "gperf_input_nmemonic.dat"
     {"VFMADD231SD", TOK_INSTRUCTION, 1581},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3529 "gperf_input_nmemonic.dat"
+#line 3520 "gperf_input_nmemonic.dat"
     {"VPMAXUW", TOK_INSTRUCTION, 1938},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7500,14 +7491,14 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3464 "gperf_input_nmemonic.dat"
+#line 3455 "gperf_input_nmemonic.dat"
     {"VPALIGNR", TOK_INSTRUCTION, 1818},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2615 "gperf_input_nmemonic.dat"
+#line 2606 "gperf_input_nmemonic.dat"
     {"AESENC128KL", TOK_INSTRUCTION, 59},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7520,7 +7511,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2609 "gperf_input_nmemonic.dat"
+#line 2600 "gperf_input_nmemonic.dat"
     {"AESDEC128KL", TOK_INSTRUCTION, 53},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7529,7 +7520,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3031 "gperf_input_nmemonic.dat"
+#line 3022 "gperf_input_nmemonic.dat"
     {"PCMPISTRI", TOK_INSTRUCTION, 916},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7551,7 +7542,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 2618 "gperf_input_nmemonic.dat"
+#line 2609 "gperf_input_nmemonic.dat"
     {"AESENCWIDE128KL", TOK_INSTRUCTION, 62},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7564,7 +7555,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2612 "gperf_input_nmemonic.dat"
+#line 2603 "gperf_input_nmemonic.dat"
     {"AESDECWIDE128KL", TOK_INSTRUCTION, 56},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7586,7 +7577,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3207 "gperf_input_nmemonic.dat"
+#line 3198 "gperf_input_nmemonic.dat"
     {"SHA1MSG1", TOK_INSTRUCTION, 1323},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7607,7 +7598,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3328 "gperf_input_nmemonic.dat"
+#line 3319 "gperf_input_nmemonic.dat"
     {"VEXTRACTI128", TOK_INSTRUCTION, 1563},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7636,10 +7627,10 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3395 "gperf_input_nmemonic.dat"
+#line 3386 "gperf_input_nmemonic.dat"
     {"VGF2P8AFFINEQB", TOK_INSTRUCTION, 1671},
     {(char*)0}, {(char*)0},
-#line 3394 "gperf_input_nmemonic.dat"
+#line 3385 "gperf_input_nmemonic.dat"
     {"VGF2P8AFFINEINVQB", TOK_INSTRUCTION, 1669},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7649,7 +7640,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2619 "gperf_input_nmemonic.dat"
+#line 2610 "gperf_input_nmemonic.dat"
     {"AESENCWIDE256KL", TOK_INSTRUCTION, 63},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7662,7 +7653,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 2613 "gperf_input_nmemonic.dat"
+#line 2604 "gperf_input_nmemonic.dat"
     {"AESDECWIDE256KL", TOK_INSTRUCTION, 57},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7769,7 +7760,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 3208 "gperf_input_nmemonic.dat"
+#line 3199 "gperf_input_nmemonic.dat"
     {"SHA1MSG2", TOK_INSTRUCTION, 1324},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7780,10 +7771,10 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 2846 "gperf_input_nmemonic.dat"
+#line 2837 "gperf_input_nmemonic.dat"
     {"GF2P8AFFINEQB", TOK_INSTRUCTION, 510},
     {(char*)0}, {(char*)0},
-#line 2845 "gperf_input_nmemonic.dat"
+#line 2836 "gperf_input_nmemonic.dat"
     {"GF2P8AFFINEINVQB", TOK_INSTRUCTION, 509},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7798,7 +7789,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0},
-#line 3211 "gperf_input_nmemonic.dat"
+#line 3202 "gperf_input_nmemonic.dat"
     {"SHA256MSG1", TOK_INSTRUCTION, 1327},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7893,7 +7884,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0},
-#line 3213 "gperf_input_nmemonic.dat"
+#line 3204 "gperf_input_nmemonic.dat"
     {"SHA256RNDS2", TOK_INSTRUCTION, 1329},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7952,7 +7943,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3212 "gperf_input_nmemonic.dat"
+#line 3203 "gperf_input_nmemonic.dat"
     {"SHA256MSG2", TOK_INSTRUCTION, 1328},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -7989,7 +7980,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
-#line 3512 "gperf_input_nmemonic.dat"
+#line 3503 "gperf_input_nmemonic.dat"
     {"VPHMINPOSUW", TOK_INSTRUCTION, 1905},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
@@ -8231,7 +8222,7 @@ static const struct Keyword KEYWORD_TABLE[] =
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0}, {(char*)0}, {(char*)0}, {(char*)0},
     {(char*)0},
-#line 2916 "gperf_input_nmemonic.dat"
+#line 2907 "gperf_input_nmemonic.dat"
     {"LOADIWKEY", TOK_INSTRUCTION, 649}
   };
 #if (defined __GNUC__ && __GNUC__ + (__GNUC_MINOR__ >= 6) > 4) || (defined __clang__ && __clang_major__ >= 3)
@@ -8257,7 +8248,7 @@ find_keyword (str, len)
     }
   return (struct Keyword *) 0;
 }
-#line 3667 "gperf_input_nmemonic.dat"
+#line 3658 "gperf_input_nmemonic.dat"
 
 const int KEYWORD_TABLE_SIZE = MAX_HASH_VALUE;
 const struct Keyword* get_keyword(uint64_t index){ return &KEYWORD_TABLE[index];}

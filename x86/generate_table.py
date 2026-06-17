@@ -253,51 +253,28 @@ for variant in instructions["IMUL"]:
 sorted_instructions = sorted(instructions)
 gperf_file.write("const Instruction INSTRUCTION_TABLE[] = {\n")
 
-lock_prefix_indices: list[int] = []
-rep_prefix_indices: list[int] = []
-repe_prefix_indices: list[int] = []
 instr_variant_lookup = []
 current_index = 0
 instruction_table_size = 0
-for i, instr in enumerate(sorted_instructions):
-    variant_count = len(instructions[instr])
+for i, mnemonic in enumerate(sorted_instructions):
+    variant_count = len(instructions[mnemonic])
     instr_variant_lookup.append(current_index)
-    instructions[instr].sort(key=lambda var: var.get_size())
-    for instr_variant in instructions[instr]:
-        if instruction_allows_lock(instr_variant, instr):
-            lock_prefix_indices.append(current_index)
+    instructions[mnemonic].sort(key=lambda var: var.get_size())
+    for instr_variant in instructions[mnemonic]:
+        if instruction_allows_lock(instr_variant, mnemonic):
+            instr_variant.lock = 1
 
-        if instruction_allows_rep(instr):
-            rep_prefix_indices.append(current_index)
+        if instruction_allows_rep(mnemonic):
+            instr_variant.rep = 1
 
-        if instruction_allows_repe(instr):
-            repe_prefix_indices.append(current_index)
+        if instruction_allows_repe(mnemonic):
+            instr_variant.repe = 1
 
         gperf_file.write(instr_variant.to_c_struct(variant_count) + '\n')
         current_index += 1
         instruction_table_size += 1 
 gperf_file.write("};\n")
-
-gperf_file.write(f"const uint16_t LOCK_PREFIX_TABLE_SIZE = {len(lock_prefix_indices)};\n")
-gperf_file.write(f"const uint16_t REP_PREFIX_TABLE_SIZE = {len(rep_prefix_indices)};\n")
-gperf_file.write(f"const uint16_t REPE_PREFIX_TABLE_SIZE = {len(repe_prefix_indices)};\n")
-
-gperf_file.write("const uint16_t LOCK_PREFIX_INDICES[] = {\n")
-for index in lock_prefix_indices:
-    gperf_file.write(f"{index},")
-gperf_file.write("};\n")
-
-gperf_file.write("const uint16_t REP_PREFIX_INDICES[] = {\n")
-for index in rep_prefix_indices:
-    gperf_file.write(f"{index},")
-gperf_file.write("};\n")
-
-gperf_file.write("const uint16_t REPE_PREFIX_INDICES[] = {\n")
-for index in repe_prefix_indices:
-    gperf_file.write(f"{index},")
-gperf_file.write("};\n")
 gperf_file.write("%}\n")
-
 
 # write the gperf output
 gperf_file.write("""

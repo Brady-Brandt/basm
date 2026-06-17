@@ -1744,20 +1744,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
 }
 
 
-static inline bool check_prefix(const Instruction* instruction, const uint16_t* prefix_array, int prefix_array_size){
-    bool is_lock_instr = false;
-    uint16_t instr_var_index = (instruction - INSTRUCTION_TABLE);
-    for(int i = 0; i < prefix_array_size; i++){
-        if(prefix_array[i] == instr_var_index){
-            return true;
-        }
-    }
-    return false;
-}
-
-// is_rep stores if if the prefix is the rep prefix
-// rep uses the same encoding (0xf3) as repe so we use this bool 
-static bool parse_instruction(Parser* p, InstructionPrefix prefix, bool is_rep){
+static bool parse_instruction(Parser* p, TokenType prefix){
     Operand operands[4] = {0};
     int operand_count = 0;
     uint64_t instr = p->currentToken.instruction; 
@@ -1795,51 +1782,76 @@ static bool parse_instruction(Parser* p, InstructionPrefix prefix, bool is_rep){
     }
 
     const Instruction* instruction = NULL;
-    if(operand_count == 0){
+    if(operand_count == 0)
         instruction = find_instruction_nop(instr);
-    } else if (operand_count == 1) { 
+    else if (operand_count == 1)
         instruction = find_instruction_one_operand(instr, &operands[0]);
-    } else if (operand_count == 2) { 
+    else if (operand_count == 2)
         instruction = find_instruction_two_operands(instr, &operands[0], &operands[1]);
-    } else if (operand_count == 3) {
+    else if (operand_count == 3)
         instruction = find_instruction_three_operands(instr, &operands[0], &operands[1], &operands[2]);
-    } else{
+    else
         instruction = find_instruction_four_operands(instr,&operands[0],&operands[1], &operands[2], &operands[3]);
-    }
 
     if(instruction == NULL){
-        for(int i = 0; i < operand_count; i++){
-            scratch_buffer_fmt("%s ", operand_to_string(operands[i].type));
+        if(operand_count != 0){
+            for(int i = 0; i < operand_count; i++)
+                scratch_buffer_fmt("%s ", operand_to_string(operands[i].type));
+
+            char* temp = scratch_buffer_as_str();
+            parser_error_loc(p,instr_line, instr_col, "Couldn't find instruction for nmemonic: %s %s\n",
+                    get_keyword(instr)->name, temp);
+            scratch_buffer_clear();
+        } else{
+            parser_error_loc(p,instr_line, instr_col, "Couldn't find instruction for nmemonic: %s\n",
+                    get_keyword(instr)->name);
         }
-        char* temp = scratch_buffer_as_str();
-        parser_error_loc(p,instr_line, instr_col, "Couldn't find instruction for nmemonic: %s %s\n", 
-                get_keyword(instr)->name, temp); 
-        scratch_buffer_clear();
         parser_expect_consume_token(p, TOK_NEW_LINE);
         return false;
     } 
     
-    if(prefix == PREFIX_LOCK){
-        if(!check_prefix(instruction, LOCK_PREFIX_INDICES, LOCK_PREFIX_TABLE_SIZE) || !is_mem(operands[0].type)){
-            parser_error_loc(p,instr_line, instr_col, "Cannot use Lock with this instruction\n"); 
+    if(prefix == TOK_LOCK){
+        if(!(instruction->flags & FLAG_LOCK)){
+            parser_error_loc(p,instr_line, instr_col, "Cannot use LOCK with this instruction\n");
             parser_expect_consume_token(p, TOK_NEW_LINE);
             return false;
         }
-        section_add_data(&program.text, &prefix, 1);
-    } else if (prefix == PREFIX_REP && is_rep) {
-        if(!check_prefix(instruction, REP_PREFIX_INDICES, REPE_PREFIX_TABLE_SIZE)){
-            parser_error_loc(p,instr_line, instr_col, "Cannot use Rep prefix with this instruction\n"); 
+        else if (!is_mem(operands[0].type)) {
+            parser_error_loc(p,operands[0].line, operands[0].col,
+                    "Destination Operand must be memory location when using LOCK prefix\n");
             parser_expect_consume_token(p, TOK_NEW_LINE);
             return false;
-        } 
-        section_add_data(&program.text, &prefix, 1);
-    } else if (prefix == PREFIX_REPE || prefix == PREFIX_REPNE) {
-        if(!check_prefix(instruction, REPE_PREFIX_INDICES, REPE_PREFIX_TABLE_SIZE)){
-            parser_error_loc(p,instr_line, instr_col, "Cannot use Repe/Repne prefix with this instruction\n"); 
+        }
+        uint8_t LOCK = 0xf0;
+        section_add_data(&program.text, &LOCK, 1);
+    }
+    else if (prefix == TOK_REP) {
+        if(!(instruction->flags & FLAG_REP)){
+            parser_error_loc(p,instr_line, instr_col, "Cannot use REP prefix with this instruction\n");
             parser_expect_consume_token(p, TOK_NEW_LINE);
             return false;
-        } 
-        section_add_data(&program.text, &prefix, 1); 
+        }
+        uint8_t REP = 0xf3;
+        section_add_data(&program.text, &REP, 1);
+    }
+    else if (prefix == TOK_REPE) {
+        if(!(instruction->flags & FLAG_REPE)){
+            parser_error_loc(p,instr_line, instr_col, "Cannot use REPE prefix with this instruction\n");
+            parser_expect_consume_token(p, TOK_NEW_LINE);
+            return false;
+        }
+        uint8_t REPE = 0xf3;
+        section_add_data(&program.text, &REPE, 1);
+    }
+    else if (prefix == TOK_REPNE) {
+        // REPE & REPNE support the same instructions
+        if(!(instruction->flags & FLAG_REPE)){
+            parser_error_loc(p,instr_line, instr_col, "Cannot use REPNE prefix with this instruction\n");
+            parser_expect_consume_token(p, TOK_NEW_LINE);
+            return false;
+        }
+        uint8_t REPNE = 0xf2;
+        section_add_data(&program.text, &REPNE, 1);
     }
 
     emit_instruction(p, instruction, operands);
@@ -1848,46 +1860,19 @@ static bool parse_instruction(Parser* p, InstructionPrefix prefix, bool is_rep){
 }
 
 
-typedef enum {
-    PREFIX_RESULT_NONE,
-    PREFIX_RESULT_ERROR,
-    PREFIX_RESULT_HANDLED,
-} PrefixResult;
-
-static PrefixResult instruction_handle_prefix(Parser* p){
-    InstructionPrefix prefix = PREFIX_NONE;
-    //need this to distinguish between rep/repe since they have the same opcode
-    bool is_rep = false;
-    if(p->currentToken.type == TOK_LOCK){
-        prefix = PREFIX_LOCK;
-    } else if (p->currentToken.type == TOK_REP) { 
-        is_rep = true;
-        prefix = PREFIX_REP;
-    }else if (p->currentToken.type == TOK_REPE) { 
-        prefix = PREFIX_REPE;
-    } else if (p->currentToken.type == TOK_REPNE) {
-        prefix = PREFIX_REPNE; 
-    } else{
-        return PREFIX_RESULT_NONE;
-    }
-
-    parser_next_token(p);
-    if(!parser_expect_token(p, TOK_INSTRUCTION)){
-        parser_expect_consume_token(p, TOK_NEW_LINE);
-        return PREFIX_RESULT_ERROR;
-    }
-
-    if(parse_instruction(p, prefix, is_rep)){
-        return PREFIX_RESULT_HANDLED;
-    } 
-    return PREFIX_RESULT_ERROR;
-}
+#define TOK_IS_PREFIX(type) (type >= TOK_LOCK && type <= TOK_REPNZ)
 
 static void parse_text_section(Parser* p){
     while(p->currentToken.type != TOK_SECTION){
 
-        if(instruction_handle_prefix(p) != PREFIX_RESULT_NONE){
-            continue; 
+        if(TOK_IS_PREFIX(p->currentToken.type)){
+            TokenType prefix = p->currentToken.type;
+            parser_next_token(p);
+            if(!parser_expect_token(p, TOK_INSTRUCTION)){
+                parser_expect_consume_token(p, TOK_NEW_LINE);
+                continue;
+            }
+            parse_instruction(p, prefix);
         }
         else if(p->currentToken.type == TOK_GLOBAL || p->currentToken.type == TOK_EXTERN){
             int section = (p->currentToken.type == TOK_GLOBAL) ? SECTION_TEXT : SECTION_EXTERN;
@@ -1917,7 +1902,7 @@ static void parse_text_section(Parser* p){
             symbol_table_add(id.literal, id.line_number, id.col, program.text.size, SECTION_TEXT, VISIBILITY_LOCAL);
         } 
         else if (p->currentToken.type == TOK_INSTRUCTION) {
-            parse_instruction(p, PREFIX_NONE, false); 
+            parse_instruction(p, TOK_MAX);
         } else if (p->currentToken.type == TOK_TIMES) {
             Token tamount = parser_next_token(p);
             if(!parser_expect_consume_token(p, TOK_INT)){
@@ -1933,37 +1918,34 @@ static void parse_text_section(Parser* p){
                 continue;
             }
 
-
             int start = program.text.size;
-            switch (instruction_handle_prefix(p)) {
-                case PREFIX_RESULT_NONE:
-                    if(!parser_expect_token(p, TOK_INSTRUCTION) || !parse_instruction(p, PREFIX_NONE, false)){
-                        parser_expect_consume_token(p, TOK_NEW_LINE);
-                        continue;
-                    }
-                    break;
-                case PREFIX_RESULT_HANDLED:
-                    break;
-                case PREFIX_RESULT_ERROR:
-                    continue; 
+
+            TokenType prefix = TOK_MAX;
+            if(TOK_IS_PREFIX(p->currentToken.type)){
+                prefix = p->currentToken.type;
+                parser_next_token(p);
             }
- 
-            //since section_add_data uses memcpy we have to 
+
+            if(!parser_expect_token(p, TOK_INSTRUCTION)){
+                parser_expect_consume_token(p, TOK_NEW_LINE);
+                continue;
+            }
+
+            parse_instruction(p, prefix);
+            //since section_add_data uses memcpy we have to
             //copy to a temp buffer
             uint8_t instr_opcode[15] = {0};
             int end = program.text.size;
             memcpy(instr_opcode, &program.text.data[start], end - start);
 
-            for(uint32_t i = 0; i < amount - 1; i++){
+            for(uint32_t i = 0; i < amount - 1; i++)
                 section_add_data(&program.text,instr_opcode, end-start);
-            }
-        } 
+        }
         else{
             parser_error(p, "Invalid token found in text section\n");
             parser_next_token(p);
         }
     }
-
 }
 
 

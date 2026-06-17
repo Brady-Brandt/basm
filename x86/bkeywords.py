@@ -32,12 +32,14 @@ KEYWORDS = [
     "TWORD",
     "DQWORD",
     "YWORD",
+    # Keep prefixes together in this order
     "LOCK",
     "REP",
     "REPE",
     "REPZ",
     "REPNE",
     "REPNZ",
+    #--------
     "TIMES",
     "MOFFSET",
     "REL",

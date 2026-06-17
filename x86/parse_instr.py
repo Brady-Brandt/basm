@@ -76,10 +76,14 @@ class Instruction:
             flags |= InstructionFlags.THREE_BYTE_VEX
         if self.evex:
             flags |= InstructionFlags.EVEX
-        # TODO STORE WHETHER A PREFIX IS ALLOWED HERE
-        #LOCK = 1 << 6
-        #REP  = 1 << 7
-        #REPE  = 1 << 8
+
+        if self.lock:
+            flags |= InstructionFlags.LOCK
+        if self.rep:
+            flags |= InstructionFlags.REP
+        if self.repe:
+            flags |= InstructionFlags.REPE
+
         if self.rve_w:
             flags |= InstructionFlags.REX_W
 

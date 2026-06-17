@@ -68,14 +68,6 @@ typedef struct{
 } Instruction;
 
 
-typedef enum  {
-    PREFIX_NONE  =  0x00,
-    PREFIX_LOCK  =  0xf0,
-    PREFIX_REP   =  0xf3,
-    PREFIX_REPE  =  0xf3,
-    PREFIX_REPNE = 0xf2,
-} InstructionPrefix;
-
 struct Keyword {
     const char* name; 
     TokenType type; 
@@ -95,11 +87,3 @@ extern void print_instruction(const Instruction* instr);
 extern const Instruction INSTRUCTION_TABLE[];
 
 extern const int KEYWORD_TABLE_SIZE;
-
-extern const uint16_t LOCK_PREFIX_TABLE_SIZE;
-extern const uint16_t REP_PREFIX_TABLE_SIZE;
-extern const uint16_t REPE_PREFIX_TABLE_SIZE; 
-
-extern const uint16_t LOCK_PREFIX_INDICES[];
-extern const uint16_t REP_PREFIX_INDICES[];
-extern const uint16_t REPE_PREFIX_INDICES[];
