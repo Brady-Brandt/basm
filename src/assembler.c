@@ -1323,7 +1323,8 @@ static int modrm_sib_fields(Operand* op, uint8_t *data, char** label){
 
 static inline void emit_operand_overide_prefix(OperandType op1, OperandType instr_op2){
     uint8_t prefix = 0x66;
-    if(op1 == OPERAND_M16 || op1 == OPERAND_R16 || op1 == OPERAND_IMM16 || instr_op2 == OPERAND_AX){ 
+    if(op1 == OPERAND_M16 || op1 == OPERAND_R16 || op1 == OPERAND_IMM16 || instr_op2 == OPERAND_AX
+            || (op1 == OPERAND_MEM_ANY && instr_op2 == OPERAND_IMM16)){
         section_add_data(&program.text,&prefix, 1);
     }
 
