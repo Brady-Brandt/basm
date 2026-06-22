@@ -4,6 +4,7 @@ CFLAGS = -DDEBUG -Wextra -g -I .
 
 TARGET = bin/basm 
 
+TESTS = tests/btest
 
 BUILD_DIR = build
 SRC_DIR = src
@@ -28,6 +29,14 @@ $(INSTR_OUTPUT): $(INSTR_INPUT) x86/types.h
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
+
+rtests: $(TESTS)
+	./tests/btest
+
+tests: $(TESTS)
+
+$(TESTS): tests/main.c $(INSTR_OUTPUT) $(TARGET)
+	$(CC) $(CFLAGS) tests/main.c build/util.o $(INSTR_OUTPUT) -o $@
 
 clean:
 	rm -rf $(BUILD_DIR) $(BIN)

@@ -1,2 +1,7 @@
 bin/
 build/
+x86/__pycache__
+tests/output.txt
+tests/test.asm
+tests/btest.o
+tests/btest
