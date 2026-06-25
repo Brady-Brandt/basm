@@ -45,7 +45,7 @@ static Token id_or_kw(int* col){
 
     const struct Keyword* kw = find_keyword(str, str_size); 
     if(kw != NULL){
-        if(kw->type >= TOK_DREG && kw->type <= TOK_REG){
+        if(kw->type >= TOK_DREG && kw->type <= TOK_ZMM){
             return (Token){kw->type, .reg = kw->value, 0, 0};
         } else if (kw->type == TOK_INSTRUCTION) {
             // in order to not lose information about the 
@@ -440,7 +440,3 @@ bool __match(Parser* p, ...){
     va_end(list);
     return false;
 }
-
-
-
-

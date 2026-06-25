@@ -26,8 +26,8 @@
 #define REX_R 4   // Extension of the ModR/M reg field
 #define REX_X 2  // Extension of the SIB index field
 #define REX_B 1 // Extension of the ModR/M r/m field, SIB base field, or Opcode reg field
-
-
+#define REG_REQUIRES_REX(idx)  (idx > 7 && idx < 16)
+#define REG_REQUIRES_REX2(idx) (idx > 16)
 
 /*
 0 AL AX EAX RAX
@@ -40,21 +40,7 @@
 7 BH, DIL 1 DI EDI RDI
 */
 
-#define is_r256(reg) (reg >= REG_YMM0 && reg <= REG_YMM15)
-#define is_r128(reg) (reg >= REG_XMM0 && reg <= REG_XMM15)
-#define is_mmx(reg) (reg >= REG_MM0 && reg <= REG_MM7)
-#define is_r64(reg) (reg >= REG_RAX && reg <= REG_R15)
-#define is_r32(reg) (reg >= REG_EAX && reg <= REG_R15D)
-#define is_r16(reg) (reg >= REG_AX && reg <= REG_R15W)
-#define is_r8(reg) (reg >= REG_AL && reg <= REG_R15B)
-
-
-//THIS MACRO SHOULD ONLY BE CALLED AFTER THE REGISTER HAS BEEN 
-// CONVERTED TO AN INDEX 0-15
-#define is_extended_reg(type) (type >= 8 && type <= 15)
-
-#define is_ah_to_bh(op) (!op.isExtendedRegister && (op.registerIndex >= (REG_AH - REG_AL) \
-                        && op.registerIndex <= (REG_BH - REG_AL)))
+#define is_ah_to_bh(op) (op.rex == 0 && (op.registerIndex >= 4 && op.registerIndex <= 7))
 #define is_advanced_reg(r) (r >= OPERAND_MM && r <= OPERAND_YMM)
 #define is_reg32_or_64(type) (type == OPERAND_R32 || type == OPERAND_R64)
 #define is_immediate(i) (i >= OPERAND_IMM8 && i <= OPERAND_IMM64)
@@ -475,6 +461,7 @@ typedef enum {
 
 #define REGISTER_RSP 0x4
 #define REGISTER_RBP 0x5
+#define REG_MAX 255
 
 #define MEMORY_BASE_MASK 0x7
 #define MEMORY_SCALE_FACTOR1_MASK 0x3f
@@ -489,7 +476,7 @@ typedef struct {
     union {
         struct{
             uint8_t registerIndex;
-            bool isExtendedRegister;
+            uint8_t rex;
         };
         uint8_t fpuIndex;
 
@@ -593,23 +580,30 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                 }
                 op->mem.label = p->currentToken.literal;
                 break;
-            case TOK_REG: {
+            case TOK_R32:
+            case TOK_R64: {
                     if(is_rel){
                         parser_error(p, "Cannot have a register in a relative address\n");
                         return false;
                     }
+                    //TODO: REWRITE THIS PARSER
                     OperandType size = OPERAND_NOP;
-                    uint8_t reg = REG_MAX; 
-                    if(is_r64(p->currentToken.reg)){
+                    uint8_t reg = REG_MAX;
+                    if(t.type == TOK_R64){
                         size = OPERAND_R64;
-                        reg = p->currentToken.reg - REG_RAX;
-                    } else if(is_r32(p->currentToken.reg)){
+                        reg = p->currentToken.reg;
+                    } else if(t.type == TOK_R32){
                         size = OPERAND_R32;
-                        reg = p->currentToken.reg - REG_EAX;
+                        reg = p->currentToken.reg;
                         op->mem.flags |= MEM_OVERRIDE;
                     } else{
                         //In 64 bit mode these registers need to be 32 or 64 bit
                         parser_error(p, "Invalid Register Size\n");
+                        return false;
+                    }
+
+                    if(reg > 15){
+                        parser_error(p, "APX registers not supported yet\n");
                         return false;
                     }
 
@@ -619,7 +613,7 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                             return false;
                         }
 
-                        if(reg == (REG_RSP - REG_RAX)){
+                        if(reg == REGISTER_RSP){
                             parser_error(p, "This register cannot be an index\n");
                             return false;
                         }
@@ -643,8 +637,8 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                         op->mem.flags |= MEM_BASE;
                     } else if(index == REG_MAX){
                         op->mem.flags |= MEM_INDEX;
-                        //rsp/r12 cannot be an index 
-                        if(reg == (REG_RSP - REG_RAX)){
+                        //rsp cannot be an index
+                        if(reg == REGISTER_RSP){
                             index_size = base_size;
                             index = base;
                             base = reg;
@@ -680,24 +674,27 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
                     }
                     parser_next_token(p);
                     parser_next_token(p);
-                    if(!parser_expect_token(p, TOK_REG)) return false;
 
                     OperandType size = OPERAND_NOP;
                     uint8_t reg = REG_MAX; 
-                    if(is_r64(p->currentToken.reg)){
+                    if(p->currentToken.type == TOK_R64){
                         size = OPERAND_R64;
-                        reg = p->currentToken.reg - REG_RAX;
-                    } else if(is_r32(p->currentToken.reg)){
+                        reg = p->currentToken.reg;
+                    } else if(p->currentToken.type == TOK_R32){
                         size = OPERAND_R32;
-                        reg = p->currentToken.reg - REG_EAX;
+                        reg = p->currentToken.reg;
                         op->mem.flags |= MEM_OVERRIDE;
                     } else{
                         //In 64 bit mode these registers need to be 32 or 64 bit
-                        parser_error(p, "Invalid Register Size\n");
+                        parser_error(p, "Invalid Memory Address\n");
+                        return false;
+                    }
+                    if(reg > 15){
+                        parser_error(p, "APX registers not supported yet\n");
                         return false;
                     }
 
-                    if(reg == (REG_RSP - REG_RAX)){
+                    if(reg == REGISTER_RSP){
                         parser_error(p, "This register cannot be an index\n");
                         return false;
                     }
@@ -714,7 +711,9 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
             }
             case TOK_ADD: {
                 Token next = parser_peek_token(p);
-                if(next.type != TOK_IDENTIFIER && next.type != TOK_REG && next.type != TOK_INT && next.type != TOK_SUB){
+                if(next.type != TOK_IDENTIFIER && next.type != TOK_R32 && next.type != TOK_R64
+                        && next.type != TOK_INT
+                        && next.type != TOK_SUB){
                     parser_error_loc(p, next.line_number, next.col, 
                             "Expected Label, Offset, or Register\n");
                     return false;
@@ -772,15 +771,21 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
         }
     }
 
-    if(is_extended_reg(base)){
-        op->mem.rex |= REX_B;
-        base -= 8;
+    if(base != REG_MAX){
+        if(REG_REQUIRES_REX(base)){
+            op->mem.rex |= REX_B;
+            base -= 8;
+        }
+        op->mem.data |= base & 7;
     }
 
-    if(is_extended_reg(index)){
-        op->mem.rex |= REX_X;
-        index -= 8;
-    }
+    if(index != REG_MAX){
+        if(REG_REQUIRES_REX(index)){
+            op->mem.rex |= REX_X;
+            index -= 8;
+        }
+        op->mem.data |= ((index & 7) << 3);
+    } 
 
     if(program.flags.ftype == BASM_FILE_MACHO){
         if(op->mem.label != NULL && !is_rel){
@@ -793,15 +798,25 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
             return false;
         }
     }
-
-    op->mem.data |= ((index & 7) << 3);
-    op->mem.data |= base & 7;
-    
     return true;
 }
 
 
+static inline bool check_apx_registers(Parser* p, uint8_t reg){
+    if(reg > 15){
+        parser_error(p, "APX Registers not supported yet\n");
+        return false;
+    }
+    return true;
+}
 
+static inline bool check_extended_vector(Parser* p, uint8_t reg){
+    if(reg > 15){
+        parser_error(p, "Extended Vector Registers not supported yet\n");
+        return false;
+    }
+    return true;
+}
 
 
 static bool parse_operand(Parser* p, Operand* op){
@@ -809,41 +824,43 @@ static bool parse_operand(Parser* p, Operand* op){
     op->col = p->currentToken.col;
 
     switch (p->currentToken.type) {
-        case TOK_REG: { 
-            if(is_r256(p->currentToken.reg)){
-                op->type = OPERAND_YMM;
-                op->registerIndex = p->currentToken.reg - REG_YMM0;
+        case TOK_R64:
+            op->type = OPERAND_R64;
+            op->registerIndex = p->currentToken.reg;
+            return check_apx_registers(p, op->registerIndex);
+        case TOK_R32:
+            op->type = OPERAND_R32;
+            op->registerIndex = p->currentToken.reg;
+            return check_apx_registers(p, op->registerIndex);
+        case TOK_R16:
+            op->type = OPERAND_R16;
+            op->registerIndex = p->currentToken.reg;
+            return check_apx_registers(p, op->registerIndex);
+        case TOK_R8:
+            op->type = OPERAND_R8;
+            // We a way to distinguish between AH,BH,CH,DH and SIL,DIL,SPL,BPL
+            if(p->currentToken.reg < 4){
+                op->registerIndex = p->currentToken.reg + 4;
+                op->rex = REX_NIBBLE;
+            } else{
+                op->registerIndex = p->currentToken.reg - 4;
             }
-            else if(is_r128(p->currentToken.reg)){
-                op->type = OPERAND_XMM;
-                op->registerIndex = p->currentToken.reg - REG_XMM0;
-            } else if(is_mmx(p->currentToken.reg)){
-                op->type = OPERAND_MM;
-                op->registerIndex = p->currentToken.reg - REG_MM0;
-            }
-            else if(is_r64(p->currentToken.reg)){
-                op->type = OPERAND_R64;
-                op->registerIndex = p->currentToken.reg - REG_RAX;
-            } else if(is_r32(p->currentToken.reg)){
-                op->type = OPERAND_R32;
-                op->registerIndex = p->currentToken.reg - REG_EAX;
-            } else if(is_r16(p->currentToken.reg)){
-                op->type = OPERAND_R16;
-                op->registerIndex = p->currentToken.reg - REG_AX;
-            } else {
-                op->type = OPERAND_R8;
-                op->registerIndex = p->currentToken.reg - REG_AL;
-            }             
-
-            op->isExtendedRegister = false;
-            if(is_extended_reg(op->registerIndex)){
-                op->isExtendedRegister = true;
-                op->registerIndex -= 8;
-            }
-
-
+            return check_apx_registers(p, op->registerIndex);
+        case TOK_XMM:
+            op->type = OPERAND_XMM;
+            op->registerIndex = p->currentToken.reg;
+            return check_extended_vector(p, op->registerIndex);
+        case TOK_YMM:
+            op->type = OPERAND_YMM;
+            op->registerIndex = p->currentToken.reg;
+            return check_extended_vector(p, op->registerIndex);
+        case TOK_ZMM:
+            parser_error(p, "ZMM Registers not supported yet\n");
+            return false;
+        case TOK_MMX:
+            op->type = OPERAND_MM;
+            op->registerIndex = p->currentToken.reg;
             return true;
-        }
         case TOK_SREG:
             op->type = OPERAND_SREG;
             op->registerIndex = p->currentToken.reg;
@@ -862,11 +879,8 @@ static bool parse_operand(Parser* p, Operand* op){
             return true;
         case TOK_CREG:
             op->registerIndex = p->currentToken.reg;
-            if(p->currentToken.reg == 8){
+            if(p->currentToken.reg == 8)
                 op->type = OPERAND_CR8;
-                op->isExtendedRegister = true;
-                op->registerIndex -= 8;
-            }
             else
                 op->type = OPERAND_CREG;
             return true;
@@ -956,17 +970,15 @@ static bool parse_operand(Parser* p, Operand* op){
 static inline bool check_operand_certain_register(OperandType table_instr, Operand* op){
     if(table_instr >= OPERAND_AL && table_instr <= OPERAND_RAX){
         if(op->type == OPERAND_R64)
-            return table_instr == OPERAND_RAX && (!op->isExtendedRegister && op->registerIndex == 0);
+            return table_instr == OPERAND_RAX && op->registerIndex == 0;
         if (op->type == OPERAND_R32)
-            return table_instr == OPERAND_EAX && (!op->isExtendedRegister && op->registerIndex == 0);
+            return table_instr == OPERAND_EAX && op->registerIndex == 0;
         if (op->type == OPERAND_R16) {
-            if(op->isExtendedRegister)
-                return false;
             if(op->registerIndex == 0 && table_instr == OPERAND_AX)
                 return true;
             return op->registerIndex == 2 && table_instr == OPERAND_DX;
         }
-        if (op->type == OPERAND_R8 && !op->isExtendedRegister) {
+        if (op->type == OPERAND_R8 && op->rex == 0) {
             if(op->registerIndex == 0 && table_instr == OPERAND_AL)
                 return true;
             return op->registerIndex == 1 && table_instr == OPERAND_CL;
@@ -1091,8 +1103,7 @@ static const Instruction* find_instruction_one_operand(uint64_t instr_index, Ope
             }
 
             // FSTSW, FNSTSW instructions
-            if(instruct_var.op1 == OPERAND_AX && op->type == OPERAND_R16 && !op->isExtendedRegister
-                    && op->registerIndex == 0)
+            if(instruct_var.op1 == OPERAND_AX && op->type == OPERAND_R16 && op->registerIndex == 0)
                 return &INSTRUCTION_TABLE[i];
 
             //push/pop
@@ -1330,15 +1341,19 @@ static inline void emit_operand_overide_prefix(OperandType op1, OperandType inst
 
 }
 
-#define VEX_REGISTER(idx, is_extended) (is_extended) ? (((~(idx + 8)) & 0xF) << 3): (((~(idx)) & 0xF) << 3);
+#define VEX_REGISTER(idx) (((~(idx)) & 0xF) << 3);
 #define VEX_UNUSED_REG 0x78
-
 
 static void emit_instruction(Parser *p, const Instruction* instruction, Operand operand[4]){
     uint8_t vex_reg = VEX_UNUSED_REG;
 
     // these can be rex, vex, or evex
     uint8_t rex = 0;
+
+    // when using SPL, BPL, SIL, DIL
+    // rex prefix is required even if no payload bits are set
+    // either equal to 0 || REX_NIBBLE
+    uint8_t rex_req = 0;
 
     uint8_t modrm_sib[6] = {0};
     uint8_t modrm_size = 0;
@@ -1353,7 +1368,13 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
 
     int32_t addend = 0;
     bool is_rel = false; 
+    bool op1_is_upper = false;
+    bool op2_is_upper = false;
 
+    if(operand[0].type == OPERAND_R8 && is_ah_to_bh(operand[0]))
+        op1_is_upper = true;
+    else if(operand[1].type == OPERAND_R8 && is_ah_to_bh(operand[1]))
+        op2_is_upper = true;
 
     if(instruction->flags & FLAG_OPCODE_EXTENSION){
         modrm_size = 1;
@@ -1373,7 +1394,6 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 imm_index = 1;
             break;
         case OP_ENC_MI:
-            //fall through expected
             imm_index = 1;
         case OP_ENC_M1: // 1 imm is implicit
         case OP_ENC_MC: //cl operand is implicit
@@ -1386,21 +1406,25 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 lbl_l = operand[0].line;
                 lbl_c = operand[0].col;
             } else{
-                if(operand[0].isExtendedRegister)
+                if(REG_REQUIRES_REX(operand[0].registerIndex)){
                     rex |= REX_B;
+                    operand[0].registerIndex -= 8;
+                }
                 modrm_sib[MODRM_INDEX] |= 192;
                 modrm_sib[MODRM_INDEX] |= operand[0].registerIndex;
+                rex_req |= operand[0].rex;
                 modrm_size = 1;
             }
             break;
         case OP_ENC_MRI:
-            //fall through expected
             imm_index = 2;
         case OP_ENC_MRC: //cl is immplicit
         case OP_ENC_MR:
-            if(operand[1].isExtendedRegister)
+            if(REG_REQUIRES_REX(operand[1].registerIndex)){
                 rex |= REX_R;
-
+                operand[1].registerIndex -= 8;
+            }
+            rex_req |= operand[1].rex;
             modrm_sib[MODRM_INDEX] |= (operand[1].registerIndex << 3);
 
             if(is_mem(operand[0].type)){
@@ -1411,22 +1435,26 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 lbl_l = operand[0].line;
                 lbl_c = operand[0].col;
             } else{
-                if(operand[0].isExtendedRegister)
+                if(REG_REQUIRES_REX(operand[0].registerIndex)){
                     rex |= REX_B;
-
+                    operand[0].registerIndex -= 8;
+                }
+                rex_req |= operand[0].rex;
                 modrm_sib[MODRM_INDEX] |= 192;
                 modrm_sib[MODRM_INDEX] |= operand[0].registerIndex;
                 modrm_size = 1;
             }
             break;
         case OP_ENC_RMI:
-            //fall through expected
             imm_index = 2;
         case OP_ENC_RM0: //zero indicates implicit xmm0 operand
         case OP_ENC_RM: 
-            if(operand[0].isExtendedRegister)
+            if(REG_REQUIRES_REX(operand[0].registerIndex)){
                 rex |= REX_R;
+                operand[0].registerIndex -= 8;
+            }
 
+            rex_req |= operand[0].rex;
             modrm_sib[MODRM_INDEX] |= operand[0].registerIndex << 3; 
             if(is_mem(operand[1].type)){
                 rex |= operand[1].mem.rex;
@@ -1436,9 +1464,11 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 lbl_l = operand[1].line;
                 lbl_c = operand[1].col;
             } else{
-                if(operand[1].isExtendedRegister)
+                if(REG_REQUIRES_REX(operand[1].registerIndex)){
                     rex |= REX_B;
-
+                    operand[1].registerIndex -= 8;
+                }
+                rex_req |= operand[1].rex;
                 modrm_sib[MODRM_INDEX] |= 192;
                 modrm_sib[MODRM_INDEX] |= operand[1].registerIndex;
                 modrm_size = 1;
@@ -1446,16 +1476,19 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             break;
         case OP_ENC_RVMR:
         case OP_ENC_RVMI:
-            //fall through expected
             imm_index = 3;
         case OP_ENC_RVM:
-            if(operand[0].isExtendedRegister)
+            if(REG_REQUIRES_REX(operand[0].registerIndex)){
                 rex |= REX_R;
-            vex_reg = VEX_REGISTER(operand[1].registerIndex, operand[1].isExtendedRegister);
+                operand[0].registerIndex -= 8;
+            }
+            vex_reg = VEX_REGISTER(operand[1].registerIndex);
             modrm_sib[MODRM_INDEX] |= (operand[0].registerIndex << 3);
             if(is_advanced_reg(operand[2].type) || is_reg32_or_64(operand[2].type)){
-                if(operand[2].isExtendedRegister)
+                if(REG_REQUIRES_REX(operand[2].registerIndex)){
                     rex |= REX_B;
+                    operand[2].registerIndex -= 8;
+                }
                 modrm_sib[MODRM_INDEX] |= 192;
                 modrm_sib[MODRM_INDEX] |= operand[2].registerIndex;
                 modrm_size = 1;
@@ -1469,10 +1502,11 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             }
             break;
         case OP_ENC_RMV: 
-            if(operand[0].isExtendedRegister)
+            if(REG_REQUIRES_REX(operand[0].registerIndex)){
                 rex |= REX_R;
-
-            vex_reg = VEX_REGISTER(operand[2].registerIndex, operand[2].isExtendedRegister);
+                operand[0].registerIndex -= 8;
+            }
+            vex_reg = VEX_REGISTER(operand[2].registerIndex);
             modrm_sib[MODRM_INDEX] |= (operand[0].registerIndex << 3);
             if(is_mem(operand[1].type)){
                 rex |= operand[1].mem.rex;
@@ -1482,21 +1516,24 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 lbl_l = operand[1].line;
                 lbl_c = operand[1].col;
             } else{
-                if(operand[1].isExtendedRegister)
+                if(REG_REQUIRES_REX(operand[1].registerIndex)){
                     rex |= REX_B;
+                    operand[1].registerIndex -= 8;
+                }
                 modrm_sib[MODRM_INDEX] |= 192;
                 modrm_sib[MODRM_INDEX] |= operand[1].registerIndex;
                 modrm_size = 1;
             }
             break;
         case OP_ENC_VMI: 
-            //fallthrough expected
             imm_index = 2;
         case OP_ENC_VM: 
-            vex_reg = VEX_REGISTER(operand[0].registerIndex, operand[0].isExtendedRegister);
+            vex_reg = VEX_REGISTER(operand[0].registerIndex);
             if(is_advanced_reg(operand[1].type) || is_reg32_or_64(operand[1].type)){
-                if(operand[1].isExtendedRegister)
+                if(REG_REQUIRES_REX(operand[1].registerIndex)){
                     rex |= REX_B;
+                    operand[1].registerIndex -= 8;
+                }
                 modrm_sib[MODRM_INDEX] |= 192;
                 modrm_sib[MODRM_INDEX] |= operand[1].registerIndex;
                 modrm_size = 1;
@@ -1510,13 +1547,17 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             } 
             break;
         case OP_ENC_MVR:
-            if(operand[2].isExtendedRegister)
+            if(REG_REQUIRES_REX(operand[2].registerIndex)){
                 rex |= REX_R;
-            vex_reg = VEX_REGISTER(operand[1].registerIndex, operand[1].isExtendedRegister);
+                operand[2].registerIndex -= 8;
+            }
+            vex_reg = VEX_REGISTER(operand[1].registerIndex);
             modrm_sib[MODRM_INDEX] |= (operand[2].registerIndex << 3);
             if(is_advanced_reg(operand[0].type) || is_reg32_or_64(operand[0].type)){
-                if(operand[0].isExtendedRegister)
+                if(REG_REQUIRES_REX(operand[0].registerIndex)){
                     rex |= REX_B;
+                    operand[0].registerIndex -= 8;
+                }
                 modrm_sib[MODRM_INDEX] |= 192;
                 modrm_sib[MODRM_INDEX] |= operand[0].registerIndex;
                 modrm_size = 1;
@@ -1531,27 +1572,34 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             break;
         //add register to opcode
         case OP_ENC_OI:
-            if(operand[0].isExtendedRegister)
-                rex |= REX_B;   
-
+            if(REG_REQUIRES_REX(operand[0].registerIndex)){
+                rex |= REX_B;
+                operand[0].registerIndex -= 8;
+            }
+            rex_req |= operand[0].rex;
             opcode[instruction_size - 1] += operand[0].registerIndex;
             imm_index = 1;
             break;
         case OP_ENC_O: 
             // handles xchg with operand AX,EAX,RAX
-            if(operand[1].type != OPERAND_NOP && operand[0].registerIndex == 0 && !operand[0].isExtendedRegister){
+            if(operand[1].type != OPERAND_NOP && operand[0].registerIndex == 0){
                 Operand temp = operand[0];
                 operand[0] = operand[1];
                 operand[1] = temp;
             }
-            if(operand[0].isExtendedRegister)
-                rex |= REX_B; 
-
+            if(REG_REQUIRES_REX(operand[0].registerIndex)){
+                rex |= REX_B;
+                operand[0].registerIndex -= 8;
+            }
+            rex_req |= operand[0].rex;
             opcode[instruction_size - 1] += operand[0].registerIndex;
             break;
         case OP_ENC_R:
-            if(operand[0].isExtendedRegister)
+            if(REG_REQUIRES_REX(operand[0].registerIndex)){
                 rex |= REX_B;
+                operand[0].registerIndex -= 8;
+            }
+            rex_req |= operand[0].rex;
             modrm_size = 1;
             modrm_sib[MODRM_INDEX] |= 192;
             modrm_sib[MODRM_INDEX] |= operand[0].registerIndex;
@@ -1621,7 +1669,6 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
 
         //moffsets
         case OP_ENC_FD:
-            //fallthrough expected
             imm_index++;
         case OP_ENC_TD: 
             imm_index++;
@@ -1674,14 +1721,19 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
     else if (instruction->flags & FLAG_EVEX) {
         fatal_error("EVEX not supported yet Unreachable\n");
     } else{
-        rex |= REX_NIBBLE;
-        rex |= GET_REX_W(instruction->flags);
-        if(rex > REX_NIBBLE){
+        rex |= GET_REX_W(instruction->flags) | rex_req;
+        if(rex > 0){
             const char* REX_8BIT_REG_ERR = "Cannot use AH, BH, CH, or DH with rex prefix\n";
-            if(operand[0].type == OPERAND_R8 && is_ah_to_bh(operand[0]))
-                return parser_error_loc(p, operand[0].line, operand[0].col, REX_8BIT_REG_ERR);
-            if(operand[1].type == OPERAND_R8 && is_ah_to_bh(operand[1]))
-                return parser_error_loc(p, operand[1].line, operand[1].col, REX_8BIT_REG_ERR);
+            if(op1_is_upper){
+                parser_error_loc(p, operand[0].line, operand[0].col, REX_8BIT_REG_ERR);
+                return;
+            }
+            if(op2_is_upper){
+                parser_error_loc(p, operand[1].line, operand[1].col, REX_8BIT_REG_ERR);
+                return;
+            }
+
+            rex |= REX_NIBBLE;
 
             //rex prefix must come right before escape prefix
             if(opcode[1] == 0x0f){
@@ -1716,7 +1768,6 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 break;
             case OPERAND_YMM:
             case OPERAND_XMM:{
-                operand[3].registerIndex += (operand[3].isExtendedRegister) ? 8 : 0;
                 uint8_t payload = (operand[3].registerIndex) << 4;
                 section_add_data(&program.text, &payload, 1); 
             }

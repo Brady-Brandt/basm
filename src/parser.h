@@ -7,7 +7,7 @@
 typedef struct {
     TokenType type;
     union{
-        RegisterType reg;
+        uint8_t reg;
         char* literal;  
         uint64_t instruction;
     };
@@ -58,5 +58,3 @@ bool __match(Parser* p, ...);
 #define match(p,...) __match(p, __VA_ARGS__, TOK_MAX)
 
 #define parser_is_last_token(p) ((p)->tokenIndex == (uint32_t)((p)->tokens->size - 1))
-
-
