@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import pymupdf
 
 
@@ -26,8 +27,17 @@ correct_encodings = {
         "HRESET": 'I',
 }
 
+@dataclass
+class InstructionVar:
+    opcode: str
+    operands: str
+    encoding: str
+    support: str
+    cpuid: str | None
+    description: str
 
-out = open("instructions.dat", "w") 
+
+output_file = open("instructions.dat", "w")
 #out = open("temp.dat", "w") # create a text output
 
 
@@ -140,7 +150,9 @@ def get_encoding(nm, encoding_val, tables, page_num):
 
     print("Failure: ",nm, operand_table, encoding_val)
 
-def write_opcode_table(instruction, file, op_table, tables, page_num):
+def write_opcode_table(instruction: str | None, op_table, tables, page_num: int):
+    global output_file
+
     in_op_en = False
 
     pad_size = 45
@@ -152,6 +164,8 @@ def write_opcode_table(instruction, file, op_table, tables, page_num):
 
     instruction_count = 0
 
+    opcode_table_rows = []
+
     for i in range(1,len(op_table)):
         row = op_table[i]
 
@@ -164,162 +178,120 @@ def write_opcode_table(instruction, file, op_table, tables, page_num):
                 continue
             if 'AVX512' in row[3]:
                 continue
+            opcode, *operands = row[0].split('\n')
+            operands = ' '.join(operands).strip()
+            if 'fxtract' in operands.lower():
+                opcode_table_rows.append(
+                        InstructionVar(opcode,operands,"FPU", row[1], "FPU", row[3]))
+            else:
+                encoding = row[1].replace('\n', '')
+                support = row[2]
+                cpuid = row[3]
+                description = row[4]
+                opcode_table_rows.append(
+                        InstructionVar(opcode,operands,encoding, support, cpuid, description))
 
         else:
             if row[3][0] != 'V':
                 continue
+
+            opcode = row[0]
+            operands = row[1].replace('*', '')
+            operands = operands.strip()
+            operands = operands.strip('\n')
+            # most fpu instructions don't have encodings specified in the tables
+            if operands[0].lower() == 'f':
+                opcode_table_rows.append(
+                        InstructionVar(opcode,operands,"FPU", row[2], "FPU", row[4]))
+            else:
+                encoding = row[2].rstrip('\n')
+                opcode_table_rows.append(
+                        InstructionVar(opcode, operands,encoding, row[3], None, row[5]))
+
         instruction_count += 1
 
 
     if instruction_count == 0:
         return False
 
-
     if inst != None:
-        file.write(inst + "\n")
-
-    
-    # this encodings point to tables following the opcode tables
-    # I don't want to parse them so we will have generate_table.py figure
-    # out the operand encodings for the instructions that contain these values
+        output_file.write(inst + "\n")
+    # these encodings point to tables following the opcode tables
     unknown_encodings = ['A', 'B', 'C', 'D', 'E']
     enc_padding_size = 5
 
-    for i in range(1,len(op_table)):
-        row = op_table[i]
-
-        if row[1] == None:
-            break
-
-        description_col = 0
-        for index, header in enumerate(op_table[0]):
-            if 'description' in header.lower():
-                description_col = index
- 
+    for variant in opcode_table_rows:
         if in_op_en:
-            # only support 64 bit instructions
-            if row[2][0] != 'V':
-                continue
-            # don't support EVEX instructions
-            if 'AVX512' in row[3]:
-                continue
-
-            nl = row[0].find('\n')
-            
-            tmp = row[0].split('\n')
-            # make sure the entire instruction is on one line
-            if len(tmp) > 2:
-                for i in range(2, len(tmp)):
-                    tmp[1] += ' ' + tmp[i]
-            
-
-            opcode = tmp[0]
-            operands = tmp[1]
-            operands = operands.strip()
-
-            description = row[description_col].lower()
-
-            if 'sign extend' in description or 'sign-extend' in description:
-                operands = operands.replace('imm', 'simm')
-
-            encoding = row[1]
-            encoding = encoding.replace('\n','')
+            variant.description = variant.description.lower()
+            if 'sign extend' in variant.description or 'sign-extend' in variant.description:
+                variant.operands = variant.operands.replace('imm', 'simm')
 
             # fix the instructions with incorrect encodings
             if instruction != None:
                 for right_enc in correct_encodings:
                     if right_enc.lower() in instruction.lower():
-                        encoding = correct_encodings[right_enc]
+                        variant.encoding = correct_encodings[right_enc]
                         break
-            
-            # fxtract has a different opcode table format then
-            # than the rest of the fpu instructions
-            if encoding == 'Valid':
-                encoding = 'FPU'
-
 
             # for instructions that have evex encoding in the opcode table
             # we need to parse the operand encoding table afterwards
             # They use A,B,C,D as keys in an operand table instead of the more 
             # descriptive names that most other instructions use
-            if encoding in unknown_encodings:
-                encoding = get_encoding(instruction,encoding, tables, page_num)
-
+            if variant.encoding in unknown_encodings:
+                variant.encoding = get_encoding(instruction,variant.encoding, tables, page_num)
+ 
+            if variant.encoding not in encodings:
+                encodings.append(variant.encoding)
             
-          
-            if encoding not in encodings:
-                encodings.append(encoding)
-
+            encoding = variant.encoding
             enc_padding = enc_padding_size - len(encoding)
-            padding = pad_size - len(row[0][:nl]) - len(encoding) - enc_padding - 1
+            padding = pad_size - len(variant.opcode) - len(encoding) - enc_padding - 1
  
             # trying to get rid of superscripts 
             # pymupdf doesn't have an easy way to determine if 
             # a piece of text is a superscript
-            operands = operands.replace("81", "8")
-            operands = operands.replace("82", "8")
-            operands = operands.replace("*", "")
-            operands = operands.replace("41", "4")
+            variant.operands = variant.operands.replace("81", "8").replace("82", "8")
+            variant.operands = variant.operands.replace("*", "").replace("41", "4")
 
-            file.write(encoding + enc_padding * " " + '|' + opcode + padding * " " + "|" + operands + "\n")
+            output_file.write(encoding + enc_padding * " " + '|' +
+                              variant.opcode + padding * " " + "|" + variant.operands + "\n")
         else:
-            # only support 64 bit instructions
-            if row[3][0] != 'V':
-                continue    
+            # performing these manual replaces is not ideal, but
+            # the added run time is neglible with them
+            variant.opcode  = variant.opcode.replace("/r1", "/r")
 
-            opcode = row[0]
-            operands= row[1]
-            encoding = row[2]
+            variant.operands = variant.operands.replace("UD01", "UD0")
+            variant.operands = variant.operands.replace("FNSTSW1", "FNSTSW")
+            variant.operands = variant.operands.replace("FNSTCW1", "FNSTCW")
+            variant.operands = variant.operands.replace("FNCLEX1", "FNCLEX")
+            variant.operands = variant.operands.replace("FNINIT1", "FNINIT")
+            variant.operands = variant.operands.replace("FNSAVE1", "FNSAVE")
+            variant.operands = variant.operands.replace("FNSTENV1", "FNSTENV")
 
-            operands = operands.replace("*", "")
-            operands = operands.replace("\n", "")
-            operands = operands.strip()
-            # try to get rid of the superscripts
+            variant.operands = variant.operands.replace("81", "8")
+            variant.operands = variant.operands.replace("82", "8")
+            variant.operands = variant.operands.replace("g2", "g")
+            variant.operands = variant.operands.replace("83", "8")
+            variant.operands = variant.operands.replace("63", "6")
+            variant.operands = variant.operands.replace("23", "2")
+            variant.operands = variant.operands.replace("43", "4")
+            variant.operands = variant.operands.replace("42", "4")
+            variant.operands = variant.operands.replace("62", "6")
+            variant.operands = variant.operands.replace("61", "6")
 
-            opcode = opcode.replace("/r1", "/r")
-            operands = operands.replace("81", "8")
+            variant.description = variant.description.lower()
+            if 'sign extend' in variant.description or 'sign-extend' in variant.description:
+                variant.operands = variant.operands.replace('imm', 'simm')
 
-            operands = operands.replace("UD01", "UD0")
-            operands = operands.replace("FNSTSW1", "FNSTSW")
-            operands = operands.replace("FNSTCW1", "FNSTCW")
-            operands = operands.replace("FNCLEX1", "FNCLEX")
-            operands = operands.replace("FNINIT1", "FNINIT")
-            operands = operands.replace("FNSAVE1", "FNSAVE")
-            operands = operands.replace("FNSTENV1", "FNSTENV")
+            if variant.encoding not in encodings:
+                encodings.append(variant.encoding)
 
-            operands = operands.replace("82", "8")
-            operands = operands.replace("g2", "g")
-            operands = operands.replace("83", "8")
-            operands = operands.replace("63", "6")
-            operands = operands.replace("23", "2")
-            operands = operands.replace("43", "4")
-            operands = operands.replace("42", "4")
-            operands = operands.replace("62", "6")
-            operands = operands.replace("61", "6")
-          
-            # fpu instructions don't have encodings specified
-            # in the tables 
-            if operands[0].lower() == "f":
-                encoding = "FPU"
-
-
-            description = row[description_col].lower()
-            if 'sign extend' in description or 'sign-extend' in description:
-                operands = operands.replace('imm', 'simm')
-
-            encoding = encoding.replace('\n','')
-
-
-            if encoding not in encodings:
-                encodings.append(encoding)
-
-            
+            encoding = variant.encoding
             enc_padding = enc_padding_size - len(encoding)
-            padding= pad_size - len(opcode) - len(encoding) - enc_padding - 1
+            padding= pad_size - len(variant.opcode) - len(encoding) - enc_padding - 1
 
-            file.write(encoding + enc_padding * ' ' + '|' + opcode + padding * " " + "|" + operands + "\n")
-
-
+            output_file.write(encoding + enc_padding * ' ' +
+                              '|' + variant.opcode + padding * " " + "|" + variant.operands + "\n")
     return True
 
 
@@ -339,7 +311,7 @@ for page_num, page in enumerate(doc.pages(start, 2266)):
     #should_add_unkown = False 
     page = doc.load_page(page_num)
 
-    words = page.get_text("words") 
+    words = page.get_text("words")
 
     inst = words[0][4]
 
@@ -354,15 +326,15 @@ for page_num, page in enumerate(doc.pages(start, 2266)):
 
 
         table_finder = page.find_tables()
+        assert table_finder, "Error finding tables"
 
         if table_finder.tables == []:
            continue 
+
         op_table = table_finder.tables[0]
-
-
         op_table = op_table.extract()
 
-        if write_opcode_table(inst, out, op_table, table_finder.tables, page_num):
+        if write_opcode_table(inst, op_table, table_finder.tables, page_num):
             prev_page = inst
             if should_add_unkown:
                 known_pages.append(page_num)
@@ -372,6 +344,7 @@ for page_num, page in enumerate(doc.pages(start, 2266)):
     elif prev_page != None:
         # some tables go to the next page
         table_finder = page.find_tables()
+        assert table_finder, "Error finding tables"
         if table_finder.tables == []:
            continue 
         op_table = table_finder.tables[0].extract()
@@ -380,13 +353,12 @@ for page_num, page in enumerate(doc.pages(start, 2266)):
         if "Opcode" in op_table[0][0]:
             if should_add_unkown:
                 known_pages.append(page_num)
-            write_opcode_table(None, out, op_table, table_finder.tables, page_num) 
+            write_opcode_table(None, op_table, table_finder.tables, page_num)
 
     else:
         prev_page = None
-out.close()
+output_file.close()
 
 if should_add_unkown:
     print(known_pages)
 print(encodings)
-
