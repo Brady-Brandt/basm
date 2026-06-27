@@ -25,6 +25,7 @@ correct_encodings = {
         "VPCMPISTRI": 'RMI',
         "SHA256RNDS2": 'RM0',
         "HRESET": 'I',
+        "PREFETCHW" : 'M',
 }
 
 @dataclass
@@ -36,121 +37,116 @@ class InstructionVar:
     cpuid: str | None
     description: str
 
+@dataclass
+class OperandEncRow:
+    id: str
+    tuple_type: str | None
+    encoding: str
+
 
 output_file = open("instructions.dat", "w")
 #out = open("temp.dat", "w") # create a text output
 
 
-def get_encoding(nm, encoding_val, tables, page_num):
+def get_encoding(op1: str, op2: str, op3: str, op4: str) -> str | None:
+    if 'reg' in op1:
+        if 'r/m' in op2:
+            if 'vex' in op3:
+                return 'RMV'
+            elif 'imm' in op3:
+                return 'RMI'
+            elif 'n/a' in op3 or 'implicit' in op3:
+                return 'RM'
+        elif 'vex' in op2:
+            if 'r/m' in op3:
+                if 'imm8[7:4]' in op4:
+                    return 'RVMR'
+                elif 'imm8' in op4:
+                    return 'RVMI'
+                elif 'n/a' in op4:
+                    return 'RVM'
+        elif 'vsib' in op2:
+            return 'RVSV'
+        elif 'n/a' in op2:
+            return 'R'
+    elif 'r/m' in op1:
+        if 'reg' in op2:
+            if 'imm' in op3:
+                return 'MRI'
+            elif 'n/a' in op3:
+                return 'MR'
+        elif 'vex' in op2:
+            if 'reg' in op3:
+                return 'MVR'
+            # it seems there was a typo in the operand table
+            # for MOVLPD based on the operands it seems
+            # it should be RVM
+            elif 'r/m' in op3:
+                return 'RVM'
+        elif 'implicit' in op2 or 'n/a' in op2:
+            return 'M'
+        elif 'imm' in op2:
+            return 'MI'
+    elif 'vex' in op1:
+        if 'r/m' in op2:
+            if 'imm' in op3:
+                return 'VMI'
+            else:
+                return 'VM'
+    elif 'n/a' in op1:
+        return 'ZO'
+    elif 'imm' in op1:
+        return 'I'
+    elif 'offset' in op1:
+        return 'D'
+    return None
+
+def get_operand_encoding_table(tables, page_num: int) -> list[OperandEncRow]:
     operand_table = None
-    try:
-        operand_table = tables[1]
-    except IndexError:
-        # operand table should be on the next page
-        page = doc.load_page(page_num + 1)
-        table_finder = page.find_tables()
-        tables = table_finder.tables
-
-
-    found_operand_table = False
-
-    for i in range(0, len(tables)):
-        operand_table = tables[i]
-        if operand_table.extract()[0][0].lower() == 'op/en':
-            found_operand_table = True
+    for table in tables:
+        if table.extract()[0][0].lower() == 'op/en':
+            operand_table = table
             break
 
-    if not found_operand_table:
-        # check the next page
-        page = doc.load_page(page_num + 2)
+    # means the table is on the next page or the page after
+    if operand_table == None:
+        page = doc.load_page(page_num + 1)
         table_finder = page.find_tables()
+        assert table_finder, "Error finding tables"
         tables = table_finder.tables
-        return get_encoding(nm, encoding_val, tables, page_num + 2)
-        
-    op1 = 2
-    op2 = 3
-    op3 = 4
-    op4 = 5
+        return get_operand_encoding_table(tables, page_num + 1)
 
-    if 'tuple' not in operand_table.header.names[1].lower():
-        op1 -= 1
-        op2 -= 1
-        op3 -= 1
-        op4 -= 1
-
+    op_enc_rows = []
     operand_table = operand_table.extract()
-
+    contains_tuple = 'tuple' in operand_table[0][1].lower()
     for i in range(1,len(operand_table)):
         row = operand_table[i]
+        id = row[0].strip()
+        tup_type = None
+        encoding = ""
+        if contains_tuple:
+            tup_type = row[1].strip()
+            op1 = row[2].strip().lower()
+            op2 = row[3].strip().lower()
+            op3 = ""
+            op4 = ""
+            if len(row) > 4:
+                op3 = row[4].strip().lower()
+                op4 = row[5].strip().lower()
+            encoding = get_encoding(op1, op2, op3, op4)
+        else:
+            op1 = row[1].strip().lower()
+            op2 = row[2].strip().lower()
+            op3 = row[3].strip().lower()
+            op4 = row[4].strip().lower()
+            encoding = get_encoding(op1, op2, op3, op4)
+        if encoding == None:
+            print(f"Failed to get encoding on page {page_num} with id {id}")
+        else:
+            op_enc_rows.append(OperandEncRow(id, tup_type, encoding))
+    return op_enc_rows
 
-        # PREFETCHW—Prefetch table the encoding_val is wrong  
-        if row[0] == encoding_val or i == len(operand_table) - 1:
-            if 'reg' in row[op1].lower():
-                if 'r/m' in row[op2].lower():
-                    if 'vex' in row[op3].lower():
-                        return 'RMV'
-                    elif 'imm' in row[op3].lower():
-                        return 'RMI'
-                    elif 'n/a' in row[op3].lower() or 'implicit' in row[op3].lower(): 
-                        # operanding encoding for these instruction is incorrect
-                        if nm != None and ('vpermilps' in nm.lower() or 'vpermilpd' in nm.lower()):
-                            return 'RMI'
-                        return 'RM'
-                elif 'vex' in row[op2].lower():
-                    if 'r/m' in row[op3].lower():
-                        try:
-                            if 'imm8[7:4]' in row[op4].lower():
-                                return 'RVMR'
-                            elif 'imm8' in row[op4].lower(): 
-                                return 'RVMI'
-                            elif 'n/a' in row[op4].lower():
-                                return 'RVM'
-                        except IndexError:
-                            # PINSRB
-                            # pymupdf can't get the fourth operand for this instruction for some reason
-                            # so we have to manually check it
-                            if encoding_val == 'A':
-                                return 'RMI'
-                            else:
-                                return 'RVMI' 
-                elif 'vsib' in row[op2].lower():
-                    return 'RVSV'
-                elif 'n/a' in row[op2].lower():
-                    return 'R'
-            elif 'r/m' in row[op1].lower():
-                if 'reg' in row[op2].lower():
-                    if 'imm' in row[op3].lower():
-                        return 'MRI'
-                    elif 'n/a' in row[op3].lower():
-                        return 'MR'
-                elif 'vex' in row[op2].lower():
-                    if 'reg' in row[op3].lower():
-                        return 'MVR'
-                    # it seems there was a typo in the operand table
-                    # for MOVLPD based on the operands it seems
-                    # it should be RVM
-                    elif 'r/m' in row[op3].lower():
-                        return 'RVM'
-                elif 'implicit' in row[op2].lower() or 'n/a' in row[op2].lower():
-                    return 'M'
-                elif 'imm' in row[op2].lower():
-                    return 'MI'
-            elif 'vex' in row[op1].lower():
-                if 'r/m' in row[op2].lower():
-                    if 'imm' in row[op3].lower():
-                        return 'VMI'
-                    else:
-                        return 'VM'
-            elif 'n/a' in row[op1].lower():
-                return 'ZO'
-            elif 'imm' in row[op1].lower():
-                return 'I'
-            elif 'offset' in row[op1].lower():
-                return 'D'
-
-    print("Failure: ",nm, operand_table, encoding_val)
-
-def write_opcode_table(instruction: str | None, op_table, tables, page_num: int):
+def write_opcode_table(instruction: str | None, op_table, tables, page_num: int) -> bool:
     global output_file
 
     in_op_en = False
@@ -165,6 +161,10 @@ def write_opcode_table(instruction: str | None, op_table, tables, page_num: int)
     instruction_count = 0
 
     opcode_table_rows = []
+
+    # these encodings point to tables following the opcode tables
+    unknown_encodings = ['A', 'B', 'C', 'D', 'E']
+    encoding_follows_op_table = False
 
     for i in range(1,len(op_table)):
         row = op_table[i]
@@ -185,6 +185,8 @@ def write_opcode_table(instruction: str | None, op_table, tables, page_num: int)
                         InstructionVar(opcode,operands,"FPU", row[1], "FPU", row[3]))
             else:
                 encoding = row[1].replace('\n', '')
+                if not encoding_follows_op_table and encoding in unknown_encodings:
+                    encoding_follows_op_table = True
                 support = row[2]
                 cpuid = row[3]
                 description = row[4]
@@ -216,8 +218,25 @@ def write_opcode_table(instruction: str | None, op_table, tables, page_num: int)
 
     if inst != None:
         output_file.write(inst + "\n")
-    # these encodings point to tables following the opcode tables
-    unknown_encodings = ['A', 'B', 'C', 'D', 'E']
+    
+    operand_enc_table = None
+    # for some reason pymupdf cannot properly extract this table
+    if instruction != None and "PINSRB" in instruction:
+        operand_enc_table = [
+            OperandEncRow('A', None, 'RMI'),
+            OperandEncRow('B', None, 'RVMI'),
+            OperandEncRow('C', "Tuple1 Scalar", ''), # TODO: REPLACE WITH EVEX encoding
+        ]
+    elif instruction != None and ("VPERMILPD" in instruction or "VPERMILPS" in instruction):
+        operand_enc_table = [
+            OperandEncRow('A', None, 'RVM'),
+            OperandEncRow('B', None, 'RMI'),
+            OperandEncRow('C', "Full", ''), # TODO: REPLACE WITH EVEX encoding
+            OperandEncRow('D', "Full", 'RMI'),
+        ]
+    elif encoding_follows_op_table:
+        operand_enc_table = get_operand_encoding_table(tables, page_num)
+
     enc_padding_size = 5
 
     for variant in opcode_table_rows:
@@ -237,9 +256,13 @@ def write_opcode_table(instruction: str | None, op_table, tables, page_num: int)
             # we need to parse the operand encoding table afterwards
             # They use A,B,C,D as keys in an operand table instead of the more 
             # descriptive names that most other instructions use
-            if variant.encoding in unknown_encodings:
-                variant.encoding = get_encoding(instruction,variant.encoding, tables, page_num)
- 
+            if encoding_follows_op_table:
+                assert operand_enc_table, f"Failed to get encoding table {instruction}"
+                for row in operand_enc_table:
+                    if row.id == variant.encoding:
+                        variant.encoding = row.encoding
+                        break
+
             if variant.encoding not in encodings:
                 encodings.append(variant.encoding)
             
