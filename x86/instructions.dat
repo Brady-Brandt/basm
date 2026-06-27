@@ -82,9 +82,9 @@ RM   |66 0F 38 DF /r                         |AESDECLAST xmm1, xmm2/m128
 RVM  |VEX.128.66.0F38.WIG DF /r              |VAESDECLAST xmm1, xmm2, xmm3/m128
 RVM  |VEX.256.66.0F38.WIG DF /r              |VAESDECLAST ymm1, ymm2, ymm3/m256
 AESDECWIDE128KL—Perform
-ZO   |F3 0F 38 D8 !(11):001:bbb              |AESDECWIDE128KL m384, <XMM0-7>
+M    |F3 0F 38 D8 !(11):001:bbb              |AESDECWIDE128KL m384, <XMM0-7>
 AESDECWIDE256KL—Perform
-ZO   |F3 0F 38 D8 !(11):011:bbb              |AESDECWIDE256KL m512, <XMM0-7>
+M    |F3 0F 38 D8 !(11):011:bbb              |AESDECWIDE256KL m512, <XMM0-7>
 AESENC—Perform
 RM   |66 0F 38 DC /r                         |AESENC xmm1, xmm2/m128
 RVM  |VEX.128.66.0F38.WIG DC /r              |VAESENC xmm1, xmm2, xmm3/m128
@@ -98,9 +98,9 @@ RM   |66 0F 38 DD /r                         |AESENCLAST xmm1, xmm2/m128
 RVM  |VEX.128.66.0F38.WIG DD /r              |VAESENCLAST xmm1, xmm2, xmm3/m128
 RVM  |VEX.256.66.0F38.WIG DD /r              |VAESENCLAST ymm1, ymm2, ymm3/m256
 AESENCWIDE128KL—Perform
-ZO   |F3 0F 38 D8 !(11):000:bbb              |AESENCWIDE128KL m384, <XMM0-7>
+M    |F3 0F 38 D8 !(11):000:bbb              |AESENCWIDE128KL m384, <XMM0-7>
 AESENCWIDE256KL—Perform
-ZO   |F3 0F 38 D8 !(11):010:bbb              |AESENCWIDE256KL m512, <XMM0-7>
+M    |F3 0F 38 D8 !(11):010:bbb              |AESENCWIDE256KL m512, <XMM0-7>
 AESIMC—Perform
 RM   |66 0F 38 DB /r                         |AESIMC xmm1, xmm2/m128
 RM   |VEX.128.66.0F38.WIG DB /r              |VAESIMC xmm1, xmm2/m128
