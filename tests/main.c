@@ -47,8 +47,17 @@
 
 const char* input_file = "tests/test.asm";
 const char* output_file = "tests/output.txt";
-const char* basm_cmd = "bin/basm -f elf tests/test.asm -o tests/btest.o";
-const char* objdump_cmd = "objdump -M intel -d --no-show-raw-insn --no-addresses tests/btest.o";
+#ifdef _WIN32
+    const char *basm_cmd =
+        "bin\\basm.exe -f elf tests\\test.asm -o tests\\btest.o";
+    const char *objdump_cmd =
+        "objdump.exe -M intel -d --no-show-raw-insn --no-addresses tests\\btest.o";
+#else
+    const char *basm_cmd =
+        "bin/basm -f elf tests/test.asm -o tests/btest.o";
+    const char *objdump_cmd =
+        "objdump -M intel -d --no-show-raw-insn --no-addresses tests/btest.o";
+#endif
 
 
 
@@ -591,6 +600,18 @@ int strcmp_ignore_whitespace(const char *s1, const char *s2) {
     return 1; // Strings match (ignoring whitespace)
 }
 
+char *dup_n(const char *s, size_t n){
+    char *copy = malloc(n + 1);
+    if (copy == NULL){
+        fprintf(stderr, "FAILED TO ALLOCATE MEMORY\n");
+        return NULL;
+    }
+
+    memcpy(copy, s, n);
+    copy[n] = '\0';
+    return copy;
+}
+
 static bool strcmp_check_alias(const char* s1, const char* s2){
     // get the instruction
     size_t instr1_size = 0;
@@ -598,7 +619,7 @@ static bool strcmp_check_alias(const char* s1, const char* s2){
        if(s1[instr1_size] == ' ') break;
     }  
 
-    char* new_instr1 = strndup(s1, instr1_size);
+    char* new_instr1 = dup_n(s1, instr1_size);
 
     const char* normal_instr1 = normalize_instr(new_instr1);
 
@@ -607,7 +628,7 @@ static bool strcmp_check_alias(const char* s1, const char* s2){
        if(s2[instr2_size] == ' ') break;
     }
 
-    char* new_instr2 = strndup(s2, instr2_size);
+    char* new_instr2 = dup_n(s2, instr2_size);
     const char* normal_instr2 = normalize_instr(new_instr2);
  
     
