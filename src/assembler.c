@@ -159,9 +159,14 @@ static inline void init_section(Section* section, uint64_t start_size){
 }
 
 
-static void section_realloc(Section* section){
+static void section_realloc(Section* section, uint32_t bytes_to_add){
    //TODO: CHECK FOR OVERFLOW
-   uint64_t new_capacity = section->capacity * 2;
+   uint64_t new_capacity;
+   if(bytes_to_add + section->size >= section->capacity * 2)
+        new_capacity = (section->size + bytes_to_add) * 2;
+   else{
+        new_capacity = section->capacity * 2;
+   }
    section->data = realloc(section->data, new_capacity);
    if(section->data == NULL) fatal_error("Out of memory\n");
    
@@ -172,7 +177,7 @@ static void section_realloc(Section* section){
 
 
 #define check_section_size(section_ptr, bytes_to_add)\
-    if(section->size + bytes_to_add >= section->capacity) section_realloc(section)
+    if(section->size + bytes_to_add >= section->capacity) section_realloc(section, bytes_to_add)
     
 
 
