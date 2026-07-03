@@ -152,7 +152,7 @@ static bool preprocessor_expect_token(TokenType expected){
                     token_to_string(preprocessor.currentToken.type));
         } else{
             parser_error(preprocessor.p, "Expected %s found \'%c\' in macro\n",
-                    preprocessor.currentToken.type);
+                    token_to_string(expected), preprocessor.currentToken.type);
         }
         return false;
     }
