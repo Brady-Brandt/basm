@@ -1,52 +1,37 @@
 ; prints out some cpu flags
-#if __ELF__
-    #define first_arg rdi
-    #define second_arg rsi
-    #define third_arg rdx
-#endif
 
 
 #macro call_check_flag(reg,value,str_lbl)
-    mov first_arg, reg
-
-    mov second_arg, 1
-    shl second_arg, value 
-
-    lea third_arg, [str_lbl]
+    bt reg, value
+    lea first_arg, [rel str_lbl]
     call check_flag
 #endmacro
+ 
 
-section .text
+#if __ELF__
+    global _start
+    extern exit
+    extern puts
+    #define print puts
+    #define first_arg rdi
 
-global _start
-
-extern exit
-extern printf
-extern puts 
-
-
-check_flag:
-    and first_arg, second_arg
-    jz lbl
-    mov first_arg, third_arg
-    call puts
-    lbl:
-    ret
-
-
-
-
+    #macro exit_success()
+        xor edi, edi
+        call exit
+    #endmacro
 _start:
+#endif
+
     ; get the processor string
     mov eax, 0
     cpuid
     
     ; print the processor string
-    lea first_arg, [pstr]
+    lea first_arg, [rel pstr]
     mov [first_arg], ebx
     mov [first_arg + 4], edx
     mov [first_arg + 8], ecx
-    call puts
+    call print
 
     ; feature flags 
     mov eax, 1
@@ -55,81 +40,79 @@ _start:
     mov r15d, edx
     mov r14d, ecx
 
-    call_check_flag(r15,0,fpu_str) 
-    call_check_flag(r15,1,vme_str) 
-    call_check_flag(r15,2, de_str) 
-    call_check_flag(r15,3, pse_str) 
-    call_check_flag(r15,4, tsc_str) 
-    call_check_flag(r15,5, msr_str) 
-    call_check_flag(r15,6, pae_str) 
-    call_check_flag(r15,7, mce_str) 
-    call_check_flag(r15,8, cx8_str) 
-    call_check_flag(r15,9, apic_str) 
-    call_check_flag(r15,11, sep_str) 
-    call_check_flag(r15,12, mtrr_str) 
-    call_check_flag(r15,13, pge_str) 
-    call_check_flag(r15,14, mca_str) 
-    call_check_flag(r15,15, cmov_str) 
-    call_check_flag(r15,16, pat_str) 
-    call_check_flag(r15,17, pse36_str) 
-    call_check_flag(r15,18, psn_str) 
-    call_check_flag(r15,19, clfsh_str) 
-    call_check_flag(r15,21, debug_st_str) 
-    call_check_flag(r15,22, acpi_str) 
-    call_check_flag(r15,23, mmx_str) 
-    call_check_flag(r15,24, fxsr_str) 
-    call_check_flag(r15,25, sse_str) 
-    call_check_flag(r15,26, sse2_str) 
-    call_check_flag(r15,27, self_snoop_str) 
-    call_check_flag(r15,28,htt_str ) 
-    call_check_flag(r15,29, tm_str) 
-    call_check_flag(r15,30, ia64_str) 
-    call_check_flag(r15,31, pbe_str) 
+    call_check_flag(r15d,0,fpu_str)
+    call_check_flag(r15d,1,vme_str)
+    call_check_flag(r15d,2, de_str)
+    call_check_flag(r15d,3, pse_str)
+    call_check_flag(r15d,4, tsc_str)
+    call_check_flag(r15d,5, msr_str)
+    call_check_flag(r15d,6, pae_str)
+    call_check_flag(r15d,7, mce_str)
+    call_check_flag(r15d,8, cx8_str)
+    call_check_flag(r15d,9, apic_str)
+    call_check_flag(r15d,11, sep_str)
+    call_check_flag(r15d,12, mtrr_str)
+    call_check_flag(r15d,13, pge_str)
+    call_check_flag(r15d,14, mca_str)
+    call_check_flag(r15d,15, cmov_str)
+    call_check_flag(r15d,16, pat_str)
+    call_check_flag(r15d,17, pse36_str)
+    call_check_flag(r15d,18, psn_str)
+    call_check_flag(r15d,19, clfsh_str)
+    call_check_flag(r15d,21, debug_st_str)
+    call_check_flag(r15d,22, acpi_str)
+    call_check_flag(r15d,23, mmx_str)
+    call_check_flag(r15d,24, fxsr_str)
+    call_check_flag(r15d,25, sse_str)
+    call_check_flag(r15d,26, sse2_str)
+    call_check_flag(r15d,27, self_snoop_str)
+    call_check_flag(r15d,28,htt_str )
+    call_check_flag(r15d,29, tm_str)
+    call_check_flag(r15d,30, ia64_str)
+    call_check_flag(r15d,31, pbe_str)
 
     ; print line new line to seperate
-    mov byte [pstr], 0
-    lea first_arg, [pstr]
-    call puts
+    mov byte [rel pstr], 0
+    lea first_arg, [rel pstr]
+    call print
     
-    call_check_flag(r14,0,sse3_str) 
-    call_check_flag(r14,1,pclmulqdq_str) 
-    call_check_flag(r14,2, dtes64_str) 
-    call_check_flag(r14,3, monitor_str) 
-    call_check_flag(r14,4, dscpl_str) 
-    call_check_flag(r14,5, vmx_str) 
-    call_check_flag(r14,6, smx_str) 
-    call_check_flag(r14,7, est_str) 
-    call_check_flag(r14,8, tm2_str) 
-    call_check_flag(r14,9, ssse3_str) 
-    call_check_flag(r14,10, cnxtid_str) 
-    call_check_flag(r14,11, sbdg_str) 
-    call_check_flag(r14,12, fma_str) 
-    call_check_flag(r14,13, cx16_str) 
-    call_check_flag(r14,14, xptr_str) 
-    call_check_flag(r14,15, pdcm_str) 
-    call_check_flag(r14,17, pcid_str) 
-    call_check_flag(r14,18, dca_str) 
-    call_check_flag(r14,19, sse41_str) 
-    call_check_flag(r14,20, sse42_str) 
-    call_check_flag(r14,21, x2apic_str) 
-    call_check_flag(r14,22, movbe_str) 
-    call_check_flag(r14,23, popcnt_str) 
-    call_check_flag(r14,24, tscdead_str) 
-    call_check_flag(r14,25, aes_str) 
-    call_check_flag(r14,26, xsave_str) 
-    call_check_flag(r14,27, osxsave_str) 
-    call_check_flag(r14,28,avx_str ) 
-    call_check_flag(r14,29, f16c_str) 
-    call_check_flag(r14,30, rdrnd_str) 
-    call_check_flag(r14,31, hypervisor_str) 
+    call_check_flag(r14d,0,sse3_str)
+    call_check_flag(r14d,1,pclmulqdq_str)
+    call_check_flag(r14d,2, dtes64_str)
+    call_check_flag(r14d,3, monitor_str)
+    call_check_flag(r14d,4, dscpl_str)
+    call_check_flag(r14d,5, vmx_str)
+    call_check_flag(r14d,6, smx_str)
+    call_check_flag(r14d,7, est_str)
+    call_check_flag(r14d,8, tm2_str)
+    call_check_flag(r14d,9, ssse3_str)
+    call_check_flag(r14d,10, cnxtid_str)
+    call_check_flag(r14d,11, sbdg_str)
+    call_check_flag(r14d,12, fma_str)
+    call_check_flag(r14d,13, cx16_str)
+    call_check_flag(r14d,14, xptr_str)
+    call_check_flag(r14d,15, pdcm_str)
+    call_check_flag(r14d,17, pcid_str)
+    call_check_flag(r14d,18, dca_str)
+    call_check_flag(r14d,19, sse41_str)
+    call_check_flag(r14d,20, sse42_str)
+    call_check_flag(r14d,21, x2apic_str)
+    call_check_flag(r14d,22, movbe_str)
+    call_check_flag(r14d,23, popcnt_str)
+    call_check_flag(r14d,24, tscdead_str)
+    call_check_flag(r14d,25, aes_str)
+    call_check_flag(r14d,26, xsave_str)
+    call_check_flag(r14d,27, osxsave_str)
+    call_check_flag(r14d,28,avx_str )
+    call_check_flag(r14d,29, f16c_str)
+    call_check_flag(r14d,30, rdrnd_str)
+    call_check_flag(r14d,31, hypervisor_str)
 
 
     ; print line new line to seperate
-    lea first_arg, [pstr]
-    call puts
+    lea first_arg, [rel pstr]
+    call print
 
-
-    
     mov eax, 0x7
     mov ecx, 0
     cpuid
@@ -138,50 +121,53 @@ _start:
     mov r14d, ecx
     mov r13d, edx
 
-    call_check_flag(r15,0,fsgsbase_str) 
-    call_check_flag(r15,1,adjust_msr_str) 
-    call_check_flag(r15,2,sgx_str) 
-    call_check_flag(r15,3,bmi1_str) 
-    call_check_flag(r15,4,hle_str) 
-    call_check_flag(r15,5,avx2_str) 
-    call_check_flag(r15,6,fdpexcpt_str) 
-    call_check_flag(r15,7,smep_str) 
-    call_check_flag(r15,8,bmi2_str) 
-    call_check_flag(r15,9,erms_str) 
-    call_check_flag(r15,10,invpcid_str) 
-    call_check_flag(r15,11,rtm_str) 
-    call_check_flag(r15,12,rdt_str) 
-    call_check_flag(r15,13,dep_fpu_cs_str) 
-    call_check_flag(r15,14,mpx_str) 
-    call_check_flag(r15,15,rdt_apq_str) 
-    call_check_flag(r15,16,avx512f_str) 
-    call_check_flag(r15,17,avx512dq_str) 
-    call_check_flag(r15,18,rdseed_str) 
-    call_check_flag(r15,19,adx_str) 
-    call_check_flag(r15,20,smap_str) 
-    call_check_flag(r15,21,avx512ifma_str) 
-    call_check_flag(r15,22,pcommit_str) 
-    call_check_flag(r15,23,clfshopt_str) 
-    call_check_flag(r15,24,clwb_str) 
-    call_check_flag(r15,25,pt_str) 
-    call_check_flag(r15,26,avx512pf_str) 
-    call_check_flag(r15,27,avx512er_str) 
-    call_check_flag(r15,28,avx512cd_str) 
-    call_check_flag(r15,29,sha_str) 
-    call_check_flag(r15,30,avx512bw_str) 
-    call_check_flag(r15,31,avx512vl_str) 
+    call_check_flag(r15d,0,fsgsbase_str)
+    call_check_flag(r15d,1,adjust_msr_str)
+    call_check_flag(r15d,2,sgx_str)
+    call_check_flag(r15d,3,bmi1_str)
+    call_check_flag(r15d,4,hle_str)
+    call_check_flag(r15d,5,avx2_str)
+    call_check_flag(r15d,6,fdpexcpt_str)
+    call_check_flag(r15d,7,smep_str)
+    call_check_flag(r15d,8,bmi2_str)
+    call_check_flag(r15d,9,erms_str)
+    call_check_flag(r15d,10,invpcid_str)
+    call_check_flag(r15d,11,rtm_str)
+    call_check_flag(r15d,12,rdt_str)
+    call_check_flag(r15d,13,dep_fpu_cs_str)
+    call_check_flag(r15d,14,mpx_str)
+    call_check_flag(r15d,15,rdt_apq_str)
+    call_check_flag(r15d,16,avx512f_str)
+    call_check_flag(r15d,17,avx512dq_str)
+    call_check_flag(r15d,18,rdseed_str)
+    call_check_flag(r15d,19,adx_str)
+    call_check_flag(r15d,20,smap_str)
+    call_check_flag(r15d,21,avx512ifma_str)
+    call_check_flag(r15d,22,pcommit_str)
+    call_check_flag(r15d,23,clfshopt_str)
+    call_check_flag(r15d,24,clwb_str)
+    call_check_flag(r15d,25,pt_str)
+    call_check_flag(r15d,26,avx512pf_str)
+    call_check_flag(r15d,27,avx512er_str)
+    call_check_flag(r15d,28,avx512cd_str)
+    call_check_flag(r15d,29,sha_str)
+    call_check_flag(r15d,30,avx512bw_str)
+    call_check_flag(r15d,31,avx512vl_str)
 
-    xor first_arg, first_arg
-    call exit
-    
+    exit_success()
 
+; since macro local labels are not yet supported
+; need to call a seperate function
+check_flag:
+    jnc lbl
+    call print
+    lbl:
+    ret
 
 section .bss
     pstr: resb 13
 
-
 section .data
-    fmt: db "%032B\n"
     fpu_str: db "x87 FPU"
     vme_str: db "Virtual 8086 extensions"
     de_str: db "Debuggin Extensions" 
