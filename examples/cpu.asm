@@ -3,7 +3,7 @@
 
 #macro call_check_flag(reg,value,str_lbl)
     bt reg, value
-    lea first_arg, [rel str_lbl]
+    lea arg0, [rel str_lbl]
     call check_flag
 #endmacro
  
@@ -13,13 +13,24 @@
     extern exit
     extern puts
     #define print puts
-    #define first_arg rdi
+    #define arg0 rdi
 
     #macro exit_success()
         xor edi, edi
         call exit
     #endmacro
 _start:
+#elif __MACHO__
+    global _main
+    extern _exit
+    extern _puts
+    #define print _puts
+    #define arg0 rdi
+    #macro exit_success()
+        xor edi, edi
+        call _exit
+    #endmacro
+_main:
 #endif
 
     ; get the processor string
@@ -27,10 +38,10 @@ _start:
     cpuid
     
     ; print the processor string
-    lea first_arg, [rel pstr]
-    mov [first_arg], ebx
-    mov [first_arg + 4], edx
-    mov [first_arg + 8], ecx
+    lea arg0, [rel pstr]
+    mov [arg0], ebx
+    mov [arg0 + 4], edx
+    mov [arg0 + 8], ecx
     call print
 
     ; feature flags 
@@ -73,7 +84,7 @@ _start:
 
     ; print line new line to seperate
     mov byte [rel pstr], 0
-    lea first_arg, [rel pstr]
+    lea arg0, [rel pstr]
     call print
     
     call_check_flag(r14d,0,sse3_str)
@@ -110,7 +121,7 @@ _start:
 
 
     ; print line new line to seperate
-    lea first_arg, [rel pstr]
+    lea arg0, [rel pstr]
     call print
 
     mov eax, 0x7
