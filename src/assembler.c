@@ -792,14 +792,16 @@ static bool parse_memory(Parser* p, OperandType mem_type, Operand* op){
         op->mem.data |= ((index & 7) << 3);
     } 
 
-    if(program.flags.ftype == BASM_FILE_MACHO){
-        if(op->mem.label != NULL && !is_rel){
-            parser_error_loc(p, l, c, "Invalid Address: Macho addresses with labels must be rip relative\n");
-            return false;
-        }
-
-        if(op->mem.offset != 0){
-            parser_error_loc(p, l, c, "Invalid Macho Address: Offsets are not supported\n");
+    if(program.flags.ftype == BASM_FILE_MACHO && op->mem.label != NULL && !is_rel){
+        // make the symbol rip relative if possible since
+        // macos doesn't support absolute addressing in 64 bit mode
+        // probably going to make relative the addressing the default for
+        // all file types at some point
+        if(index == REG_MAX && base == REG_MAX){
+            op->mem.flags |= MEM_RELATIVE;
+            return true;
+        } else {
+            parser_error_loc(p, l, c, "Invalid Address: Macho addresses cannot contain both a label and register\n");
             return false;
         }
     }
@@ -1255,11 +1257,10 @@ static int modrm_sib_fields(Operand* op, uint8_t *data, char** label){
 
     if(op->mem.label != NULL){ 
         (*label) = op->mem.label;
-        //this offset info is stored in the elf file format
-        //but for windows we need to keep it in the instruction output
-        if(program.flags.ftype != BASM_FILE_PE){
+        // offset is stored in the symbol table for elf files
+        // for macos & windows its stored in the instruction output
+        if(program.flags.ftype == BASM_FILE_ELF)
             offset = 0;
-        }
     }
 
     if(op->mem.flags & MEM_OVERRIDE)
