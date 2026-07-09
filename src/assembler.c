@@ -2154,7 +2154,7 @@ bool basm_parse_flags(int argc, char** argv){
         if(strcmp("-f", argv[i]) == 0){
             i++;
             if(i == argc){
-                fatal_error("Invalid File Type\n");
+                fatal_error("Output File Type not Specified\nExpected win | elf | macho\n");
                 return false;
             }
             if(strcmp("win", argv[i]) == 0){
@@ -2164,7 +2164,7 @@ bool basm_parse_flags(int argc, char** argv){
             } else if (strcmp("macho", argv[i]) == 0) {
                 program.flags.ftype = BASM_FILE_MACHO;
             } else{
-                fatal_error("Invalid File Type: %s\n", argv[i]);
+                fatal_error("Invalid Output File Type: %s\nExpected win | elf | macho\n", argv[i]);
                 return false;
             }
         } else if (strcmp("-o", argv[i]) == 0) {
