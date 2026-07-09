@@ -20,41 +20,50 @@ make
 ### Hello World
 ```asm
 ; file hello.asm
-#if __ELF__
-    #define p1 rdi
-    #define __puts__ puts
-    #define __exit__ exit
-    #define entry _start
-#elif __WIN__
-    #define p1 rcx
-    #define __puts__ puts
-    #define __exit__ exit
-    #define entry main
-#elif __MACHO__
-    #define p1 rdi
-    #define __puts__ _puts
-    #define __exit__ _exit
-    #define entry _start
-#endif
-
-extern __puts__ 
-extern __exit__
-global entry
-
-entry:
-    ; use relative addressing because macos
-    ; won't allow 64 bit absolute addresses
-    lea p1, [rel hello]
-    call __puts__ 
-
-    xor p1,p1
-    #if __WIN__
-        push p1
-    #endif
-    call __exit__
-
-section .data 
+section .data
     hello: db "Hello, World!" ; Double quoted strings are null terminated
+
+section .text
+#if __ELF__
+
+global _start
+extern puts
+extern exit
+_start:
+    lea rdi, [rel hello]
+    call puts
+
+    xor edi, edi
+    call exit
+
+#elif __MACHO__
+
+global _main
+extern _puts
+_main:
+    sub rsp, 8
+    lea rdi, [rel hello]
+    call _puts
+    add rsp, 8
+
+    xor eax, eax
+    ret
+
+#elif __WIN__
+
+global main
+extern puts
+main:
+    ; align to 16 bytes + 32 bytes of shadow space
+    sub rsp, 40
+    lea rcx, [rel hello]
+    call puts
+    add rsp, 40
+
+    xor eax, eax
+    ret
+
+#endif
 ```
 ### Assemble
 The -f flag specifies the output file type.
