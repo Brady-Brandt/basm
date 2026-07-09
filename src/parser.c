@@ -422,21 +422,3 @@ bool parser_match_consume_token(Parser* p, TokenType m){
     }
     return false;
 }
-
-
-bool __match(Parser* p, ...){
-    va_list list;
-    va_start(list, p);
-
-    while(true){
-        TokenType current = va_arg(list, TokenType);
-        if(current == TOK_MAX) break;
-
-        if(current == p->currentToken.type){ 
-            va_end(list);
-            return true;
-        }
-    }
-    va_end(list);
-    return false;
-}

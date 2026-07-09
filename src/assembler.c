@@ -1825,7 +1825,7 @@ static bool parse_instruction(Parser* p, TokenType prefix){
 
         parser_next_token(p);
 
-        if(!match(p, TOK_COMMA, TOK_NEW_LINE)){
+        if(p->currentToken.type != TOK_COMMA && p->currentToken.type != TOK_NEW_LINE){
             if(p->currentToken.type > 255 || !isprint(p->currentToken.type)){
                 parser_error(p, "Expected comma or new line after operand got %s\n",
                     token_to_string(p->currentToken.type));

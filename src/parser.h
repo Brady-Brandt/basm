@@ -52,9 +52,4 @@ static inline bool parser_expect_consume_token(Parser* p, TokenType expected){
 
 bool parser_match_consume_token(Parser* p, TokenType m);
 
-
-bool __match(Parser* p, ...); 
-
-#define match(p,...) __match(p, __VA_ARGS__, TOK_MAX)
-
 #define parser_is_last_token(p) ((p)->tokenIndex == (uint32_t)((p)->tokens->size - 1))
