@@ -254,6 +254,9 @@ def parse_opcode(op):
                 elif enc == "0F3A":
                     is_three_byte = True
                     mmmmm = 3
+                elif enc == "MAP7":
+                    is_three_byte = True
+                    mmmmm = 7
                 elif enc == "W0" or enc == "0":
                     is_three_byte = True
                     rve_w = 0
@@ -299,6 +302,8 @@ def parse_opcode(op):
         elif chunk == "ct":
             imm_size = 10
 
+        # checks for modrm encoding looks like
+        # 11:000:100
         elif ':' in chunk:
             # just going to ignore the mod portion 
             # of modrm since that information is implied within the operands
