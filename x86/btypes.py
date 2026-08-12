@@ -117,6 +117,8 @@ OPERAND_ENCODINGS = [
   "MRI",
   "MRC",
   "MVR",
+  "MRV",
+  "IM",
   "RVSV",
 ]
 
@@ -168,6 +170,8 @@ class OperandType(IntEnum):
     REL16 = auto()
     REL32 = auto()
     LABEL = auto() # label
+    ADDR64 = auto()
+    ADDR32 = auto()
     M    = auto()
     SREG  = auto()
     CREG = auto()
