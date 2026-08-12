@@ -3,9 +3,8 @@ This directory is responsible for extracting instruction metadata from the offic
 documentation and building an opcode table as well as a hashmap.
 
 ## Files
-- `intel.pdf`
-    - Intel® 64 and IA-32 Architectures Software Developer’s Manual Instruction Set Reference Volume 2
 - `extractor.py`
+    - Attempts to download the Official Intel Instruction Set Reference A-Z
     - Extracts instructions and instruction metadata from `intel.pdf` organizes it into a 
     human readable, easy to parse file `instructions.dat`
     - Requires Pymupdf to read the pdf
@@ -39,5 +38,13 @@ documentation and building an opcode table as well as a hashmap.
         - Only Needs to be reran if new instructions are added (AVX512)
     - `generate_table.py` relies on [gperf](https://www.gnu.org/software/gperf/) and is expected to be in PATH
         - Needs to be reran if a new keyword is added
+
+> [!IMPORTANT]
+> If the download fails its likely due to a dead link.
+> You should be able to find the updated documentation here [Intel Docs](https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html).
+> Only the `Instruction Set Reference A-Z (Volume 2)` is required.
+> Downloading a newer reference may introduce breaking changes to the script. The script was last updated with June 2026 Reference.
+
+
 > [!IMPORTANT]  
 > `generate_table.py` will produce ~50 error messages saying operand not supported. This is fine right now. You just won't be able to use these variants of those instructions. The reason I have not implemented these operands is because I am not sure what kind of syntax I want to use for some of these niche operand types.
