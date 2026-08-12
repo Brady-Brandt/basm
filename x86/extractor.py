@@ -1,5 +1,8 @@
 from dataclasses import dataclass
 import pymupdf
+import os
+import sys
+from urllib.request import urlretrieve
 
 
 instructions = {}
@@ -10,6 +13,21 @@ letters = []
 
 known_pages = []
 
+
+if not os.path.isfile("intel.pdf"):
+    URL = "https://cdrdv2.intel.com/v1/dl/getContent/671110"
+    try:
+        print("Downloading Intel Instruction Set Reference A-Z")
+        file = urlretrieve(URL, "intel.pdf")
+    except:
+        # Note downloading an updated version of the Instruction Set Reference may
+        # cause breaking changes to this script as Intel has not been super consistent with
+        # their documentation or new if features have been added
+        # The current version of this script works with Instruction Set Reference A-Z June 2026
+        print("Error could not download intel instruction set reference A-Z manual")
+        print("Download it manually at https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html")
+        sys.exit(1)
+    print("Download Successful")
 
 doc = pymupdf.open("intel.pdf")
 
@@ -25,7 +43,6 @@ correct_encodings = {
         "VPCMPISTRI": 'RMI',
         "SHA256RNDS2": 'RM0',
         "HRESET": 'I',
-        "PREFETCHW" : 'M',
 }
 
 @dataclass
@@ -75,6 +92,8 @@ def get_encoding(op1: str, op2: str, op3: str, op4: str) -> str | None:
                 return 'MRI'
             elif 'n/a' in op3:
                 return 'MR'
+            elif 'vex' in op3:
+                return "MRV"
         elif 'vex' in op2:
             if 'reg' in op3:
                 return 'MVR'
@@ -156,6 +175,8 @@ def write_opcode_table(instruction: str | None, op_table, tables, page_num: int)
 
     if "/" in op_table[0][0]:
         in_op_en = True
+        if instruction != None and "CRC32" in instruction:
+            in_op_en = False
 
 
     instruction_count = 0
@@ -179,7 +200,16 @@ def write_opcode_table(instruction: str | None, op_table, tables, page_num: int)
             if 'AVX512' in row[3]:
                 continue
             opcode, *operands = row[0].split('\n')
+
+            opcode = opcode.replace("MAP7:W0.", "MAP7.W0 ")
             operands = ' '.join(operands).strip()
+            # VBCSTNEBF162PS
+            operands = operands.replace("!(11):rrr:bbb ", "")
+
+            if opcode.endswith("AES-"):
+                opcode = opcode.replace("AES-", "")
+                operands = "AES" + operands 
+
             if 'fxtract' in operands.lower():
                 opcode_table_rows.append(
                         InstructionVar(opcode,operands,"FPU", row[1], "FPU", row[3]))
@@ -189,7 +219,13 @@ def write_opcode_table(instruction: str | None, op_table, tables, page_num: int)
                     encoding_follows_op_table = True
                 support = row[2]
                 cpuid = row[3]
-                description = row[4]
+
+                try:
+                    description = row[4]
+                except:
+                    description = cpuid
+                    cpuid = "N/A"
+
                 opcode_table_rows.append(
                         InstructionVar(opcode,operands,encoding, support, cpuid, description))
 
@@ -200,13 +236,31 @@ def write_opcode_table(instruction: str | None, op_table, tables, page_num: int)
             opcode = row[0]
             operands = row[1].replace('*', '')
             operands = operands.strip()
+            operands = operands.replace('XOR r8,1 r/m8', "XOR r8, r/m8")
+            operands = operands.replace('ROL r/m8,2 1', "ROL r/m8, 1")
+
+            first_char = 0
+            for char in operands:
+                if char.isalpha():
+                    break
+                first_char += 1
+            operands = operands[first_char:]
             operands = operands.strip('\n')
+
             # most fpu instructions don't have encodings specified in the tables
             if operands[0].lower() == 'f':
                 opcode_table_rows.append(
                         InstructionVar(opcode,operands,"FPU", row[2], "FPU", row[4]))
             else:
                 encoding = row[2].rstrip('\n')
+                # UDB
+                if encoding == "Z0":
+                    encoding = "ZO"
+
+                # LKGS
+                if encoding == 'A':
+                    encoding = 'M'
+
                 opcode_table_rows.append(
                         InstructionVar(opcode, operands,encoding, row[3], None, row[5]))
 
@@ -221,19 +275,20 @@ def write_opcode_table(instruction: str | None, op_table, tables, page_num: int)
     
     operand_enc_table = None
     # for some reason pymupdf cannot properly extract this table
-    if instruction != None and "PINSRB" in instruction:
-        operand_enc_table = [
-            OperandEncRow('A', None, 'RMI'),
-            OperandEncRow('B', None, 'RVMI'),
-            OperandEncRow('C', "Tuple1 Scalar", ''), # TODO: REPLACE WITH EVEX encoding
-        ]
-    elif instruction != None and ("VPERMILPD" in instruction or "VPERMILPS" in instruction):
+    if instruction != None and ("VPERMILPD" in instruction or "VPERMILPS" in instruction):
         operand_enc_table = [
             OperandEncRow('A', None, 'RVM'),
             OperandEncRow('B', None, 'RMI'),
             OperandEncRow('C', "Full", ''), # TODO: REPLACE WITH EVEX encoding
             OperandEncRow('D', "Full", 'RMI'),
         ]
+    elif instruction != None and ("PMINSB" in instruction):
+        operand_enc_table = [
+            OperandEncRow('A', None, 'RM'),
+            OperandEncRow('B', None, 'RVM'),
+            OperandEncRow('C', "Full Mem", ''), # TODO: REPLACE WITH EVEX encoding
+        ]
+
     elif encoding_follows_op_table:
         operand_enc_table = get_operand_encoding_table(tables, page_num)
 
@@ -319,14 +374,17 @@ def write_opcode_table(instruction: str | None, op_table, tables, page_num: int)
 
 
 
-#128, 2266
-start = 128
+#119, 2320
+start = 119
+end = 2320
+
+
 page_num = start
 
 should_add_unkown = True
 
 prev_page = None
-for page_num, page in enumerate(doc.pages(start, 2266)):
+for page_num, page in enumerate(doc.pages(start, end)):
     page_num += start
 # use this loop when we already know which pages we need to parse
 # use the outer for loop when we don't
@@ -338,7 +396,6 @@ for page_num, page in enumerate(doc.pages(start, 2266)):
 
     inst = words[0][4]
 
-    
     if chr(0x2014) not in inst:
         continue
 
@@ -383,5 +440,6 @@ for page_num, page in enumerate(doc.pages(start, 2266)):
 output_file.close()
 
 if should_add_unkown:
-    print(known_pages)
+    pass
+    #print(known_pages)
 print(encodings)
