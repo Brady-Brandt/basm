@@ -1390,6 +1390,7 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
     if(instruction->encoding != OP_ENC_FPU && (instruction->flags & FLAG_REX_W) == 0)
         emit_operand_overide_prefix(operand[0].type, instruction->op2);
 
+    //TODO: SIMPLIFY THIS SWITCH SINCE MANY OF THE ENCODINGS ONLY DIFFER BY A LITTLE
     switch (instruction->encoding) {
         case OP_ENC_ZO:
             break;
@@ -1398,6 +1399,17 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 imm_index = 0;
             else
                 imm_index = 1;
+            break;
+        case OP_ENC_IM:
+            imm_index = 0;
+            if(REG_REQUIRES_REX(operand[1].registerIndex)){
+                rex |= REX_B;
+                operand[1].registerIndex -= 8;
+            }
+            modrm_sib[MODRM_INDEX] |= 192;
+            modrm_sib[MODRM_INDEX] |= operand[1].registerIndex;
+            rex_req |= operand[1].rex;
+            modrm_size = 1;
             break;
         case OP_ENC_MI:
             imm_index = 1;
@@ -1576,6 +1588,32 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
                 lbl_c = operand[0].col;
             } 
             break;
+        case OP_ENC_MRV:
+            if(REG_REQUIRES_REX(operand[1].registerIndex)){
+                rex |= REX_R;
+                operand[1].registerIndex -= 8;
+            }
+            rex_req |= operand[1].rex;
+            modrm_sib[MODRM_INDEX] |= (operand[1].registerIndex << 3);
+            vex_reg = VEX_REGISTER(operand[2].registerIndex);
+            if(is_mem(operand[0].type)){
+                rex |= operand[0].mem.rex;
+                addend = operand[0].mem.offset;
+                is_rel = operand[0].mem.flags & MEM_RELATIVE;
+                modrm_size = modrm_sib_fields(&operand[0], modrm_sib, &lbl);
+                lbl_l = operand[0].line;
+                lbl_c = operand[0].col;
+            } else{
+                if(REG_REQUIRES_REX(operand[0].registerIndex)){
+                    rex |= REX_B;
+                    operand[0].registerIndex -= 8;
+                }
+                rex_req |= operand[0].rex;
+                modrm_sib[MODRM_INDEX] |= 192;
+                modrm_sib[MODRM_INDEX] |= operand[0].registerIndex;
+                modrm_size = 1;
+            }
+            break;
         //add register to opcode
         case OP_ENC_OI:
             if(REG_REQUIRES_REX(operand[0].registerIndex)){
@@ -1687,8 +1725,9 @@ static void emit_instruction(Parser *p, const Instruction* instruction, Operand 
             section_add_data(&program.text, &operand[imm_index].imm64, 8);
             return;
 
-        case OP_ENC_RVSV:
+        default:
             //should be Unreachable 
+            printf("Encoding: %d", instruction->encoding);
             print_instruction(instruction);
             fatal_error("These encodings are not supported yet\n");
             break;
