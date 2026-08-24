@@ -2,6 +2,9 @@
 Basm is an x86_64 assembler that uses syntax similiar to NASM. It currently supports around 1100 instructions and can only assemble instructions 
 in long mode (64 bit mode). 
 
+## Documentation
+Documentation can be found [here](https://github.com/Brady-Brandt/basm/wiki)
+
 ## Getting Started
 1. Clone the Repo
 ```sh
@@ -93,8 +96,10 @@ Where:
 Basm is able to assemble some code but there are still a lot of incomplete features and bugs. 
 It should only be used for simple, hobby projects right now. 
 
+
 ### Known Issues
 - Using the times psuedoinstruction with a multiline macro will only repeat the first instruction of the macro
+- Using FPU instructions that take both st0 and some other fpu stack location do not work.
 
 ### Planned Features
 - [x] Macho File Support (Macos Support)
