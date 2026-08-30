@@ -108,7 +108,7 @@ It should only be used for simple, hobby projects right now.
 - [x] Support for instruction prefixes
 - [ ] Implementing Hashmaps for the Symbol Tables
 - [ ] Allow multiple assembler passes
-- [ ] Debug Symbols
+- [x] Debug Symbols (**ELF ONLY**)
 - [ ] 16 & 32 bit Instructions
 - [ ] AVX512 Instructions
 - [ ] APX Instructions
