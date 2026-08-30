@@ -4,6 +4,7 @@
 #include "eval.h"
 #include "util.h"
 #include "entry.h"
+#include "dwarf.h"
 #include "preprocess.h"
 #include <stddef.h>
 #include <stdint.h>
@@ -1951,6 +1952,9 @@ static bool parse_instruction(Parser* p, TokenType prefix){
         section_add_data(&program.text, &REPNE, 1);
     }
 
+    if(program.flags.debugSymbols)
+        dwarf_add_line_info(instr_line, program.text.size);
+
     emit_instruction(p, instruction, operands);
     parser_expect_consume_token(p, TOK_NEW_LINE);
     return true;
@@ -2001,6 +2005,12 @@ static void parse_text_section(Parser* p){
         else if (p->currentToken.type == TOK_INSTRUCTION) {
             parse_instruction(p, TOK_MAX);
         } else if (p->currentToken.type == TOK_TIMES) {
+            // TIMES IS LIKELY GOING TO BE DEPRECATED
+            // WANT TO REPLACE IT WITH A FOR LOOP LIKE
+            // STRUCTURE THAT WILL GET UNROLLED
+            if(program.flags.debugSymbols)
+                printf("WARNING: TIMES PSUEDOINSTRUCTION ISN'T SUPPORTED WITH DEBUG SYMBOLS\n");
+
             Token tamount = parser_next_token(p);
             if(!parser_expect_consume_token(p, TOK_INT)){
                 parser_expect_consume_token(p, TOK_NEW_LINE);
@@ -2217,12 +2227,17 @@ bool basm_parse_flags(int argc, char** argv){
         } else if(string_cmp_lower("--help", argv[i]) == 0){
             basm_help();
             return false;
-        }else{
+        }else if(strcmp("-g", argv[i]) == 0){
+            program.flags.debugSymbols = true;
+        } else{
             program.flags.input_file = argv[i];
         }
     }
     
     if(program.flags.input_file == NULL) fatal_error("No input file\n");
+
+    if(program.flags.debugSymbols && program.flags.ftype != BASM_FILE_ELF)
+        printf("WARNING: Debug Symbols are only available for elf files\n");
 
     return true;
 }
@@ -2232,4 +2247,5 @@ void basm_help(){
     printf("Flags: \n");
     printf("-f (file type)        -> win | elf | macho\n");
     printf("-o (output file name) -> output file\n");
+    printf("-g                    -> Enable Debug Symbols (For ELF files only)\n");
 }

@@ -1,5 +1,6 @@
 #include "util.h"
 #include "objectgen.h"
+#include "dwarf.h"
 #include <stdbool.h>
 #include <assert.h>
 #include <stdint.h>
@@ -161,8 +162,7 @@ static uint32_t get_reloc_count(Program* p){
 }
 
 
-
-
+//TODO: Implement a better elf writer API
 bool write_elf(const char* input_file, const char* output_file, Program* p){
     FILE* output_stream = fopen(output_file, "wb");
 
@@ -204,15 +204,22 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     if(p->data.size > 0){
         head.section_header_entries += 1;
         string_table_index += 1;
-    } 
+    }
+
+    if(p->flags.debugSymbols){
+        head.section_header_entries += DWARF_SECTION_COUNT + DWARF_RELA_SECTION_COUNT;
+        string_table_index += DWARF_SECTION_COUNT;
+    }
+
+
     head.string_table_index = string_table_index;
 
     bool has_text_reloca = false;
     uint32_t num_text_reloca_entries = get_reloc_count(p);
-    if(num_text_reloca_entries > 0) has_text_reloca = true;
-
- 
-    head.section_header_entries += (int)has_text_reloca;
+    if(num_text_reloca_entries > 0){
+        has_text_reloca = true;
+        head.section_header_entries++;
+    }
 
     fwrite(&head, sizeof(ElfHeader),1, output_stream);
 
@@ -289,6 +296,49 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
         section_count++;
     }
 
+    DwarfDebugInfo all_debug_info;
+    if(p->flags.debugSymbols){
+        dwarf_emit_debug_info(&all_debug_info, text.size, input_file);
+
+        all_debug_info.debug_info_index = section_index++;
+        // Write Debug_info Section header
+        ElfSectionHeader debug_info = {0};
+        debug_info.type =  ELF_SECTION_PINFO;
+        debug_info.addralign = 1;
+        debug_info.offset = offset;
+        debug_info.name = scratch_buffer_offset();
+        debug_info.size = all_debug_info.debug_info_size;
+        fwrite(&debug_info, sizeof(debug_info), 1, output_stream);
+        offset += debug_info.size;
+        scratch_buffer_append_str(".debug_info");
+
+        section_index++;
+        //write Debug abbreviations section header
+        ElfSectionHeader debug_abbrev = {0};
+        debug_abbrev.type =  ELF_SECTION_PINFO;
+        debug_abbrev.addralign = 1;
+        debug_abbrev.offset = offset;
+        debug_abbrev.name = scratch_buffer_offset();
+        debug_abbrev.size = all_debug_info.debug_abbrev_size;
+        fwrite(&debug_abbrev, sizeof(debug_abbrev), 1, output_stream);
+        offset += debug_abbrev.size;
+        scratch_buffer_append_str(".debug_abbrev");
+
+        all_debug_info.debug_lines_index = section_index++;
+        // Write Debug_Lines section header
+        ElfSectionHeader debug_line = {0};
+        debug_line.type =  ELF_SECTION_PINFO;
+        debug_line.addralign = 1;
+        debug_line.offset = offset;
+        debug_line.name = scratch_buffer_offset();
+        debug_line.size = all_debug_info.debug_lines_size;
+        fwrite(&debug_line, sizeof(debug_line), 1, output_stream);
+        offset += debug_line.size;
+        scratch_buffer_append_str(".debug_line");
+
+        section_count += DWARF_SECTION_COUNT;
+    }
+
 
     ElfSectionHeader section_st = {0};
     section_st.type = ELF_SECTION_STRING_TABLE; 
@@ -311,6 +361,14 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
         scratch_buffer_append_str(".rela.text");
     }
 
+    if(p->flags.debugSymbols){
+        all_debug_info.rela_info_name_offset = scratch_buffer_offset();
+        scratch_buffer_append_str(".rela.debug_info");
+
+        all_debug_info.rela_line_name_offset = scratch_buffer_offset();
+        scratch_buffer_append_str(".rela.debug_line");
+    }
+
     char* section_string_table = scratch_buffer_get_data(0);
     section_st.size = scratch_buffer_offset();
 
@@ -323,12 +381,15 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
         scratch_buffer_append_char(0);
     }
 
+    offset += section_st.size;
+
 
     //THE GLOBAL SYMBOLS MUST COME AFTER THE LOCAL ONES 
     // account for null symbol, text section, and file name
     int sym_table_info = 3;
     if(data_offset != 0) sym_table_info++;
     if(p->bss.size > 0) sym_table_info++;
+    if(p->flags.debugSymbols) sym_table_info += DWARF_SECTION_COUNT;
 
     if(p->symTable.symbols.data != NULL){
         qsort(p->symTable.symbols.data, p->symTable.symbols.size, sizeof(SymbolTableEntry),compare_visibility);
@@ -354,31 +415,27 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     symbol_table.addralign = 8;
     //sections plus all symbols plus the file and null header
     symbol_table.size = ((section_count + p->symTable.symbols.size) + 2) * symbol_table.entsize; 
-    symbol_table.offset = section_st.offset + section_st.size; 
-
+    symbol_table.offset = offset;
+    offset += symbol_table.size;
     fwrite(&symbol_table, sizeof(symbol_table), 1, output_stream);
-
-    
-
 
     ElfSectionHeader symbol_str_table = {0};
     symbol_str_table.type = ELF_SECTION_STRING_TABLE;
     symbol_str_table.name = symbol_string_table_st_index;
     symbol_str_table.addralign = 1; 
-    symbol_str_table.offset = symbol_table.offset + symbol_table.size;
 
 
     uint8_t padding[8] = {0};
     int symbol_table_padding = 0;
     int text_reloca_padding = 0;
+    int info_reloca_padding = 0;
 
 
-    while(symbol_table.offset % symbol_table.addralign != 0){
-        symbol_table.offset++;
-        symbol_str_table.offset++;
+    while(offset % symbol_table.addralign != 0){
+        offset++;
         symbol_table_padding++;
     }
-
+    symbol_str_table.offset = offset;
 
     symbol_str_table.size = strlen(input_file) + 1 + 1;
     for(int i = 0; i < p->symTable.symbols.size; i++){
@@ -386,34 +443,73 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
         symbol_str_table.size += strlen(e.name) + 1;
     }
 
-
+    offset += symbol_str_table.size;
     fwrite(&symbol_str_table, sizeof(symbol_str_table), 1, output_stream);
 
 
     if(has_text_reloca){
-        uint64_t text_reloc_offset = symbol_str_table.offset + symbol_str_table.size;
-
-        while(text_reloc_offset % 8 != 0){
-            text_reloc_offset++;
+        while(offset % 8 != 0){
+            offset++;
             text_reloca_padding++;
         }
 
         ElfSectionHeader text_reloc = {0};
         text_reloc.name = text_reloca_st_index;
-        text_reloc.type = ELF_SECTION_RELAENTRY; 
-        text_reloc.offset = text_reloc_offset;
+        text_reloc.type = ELF_SECTION_RELAENTRY;
+        text_reloc.offset = offset;
         text_reloc.link = symbol_table.link - 1; //points to the symbol table
         text_reloc.info = 1; // points to the text section?
         text_reloc.addralign = 8;
-        text_reloc.entsize = sizeof(ElfRelocatableEntry); 
+        text_reloc.entsize = sizeof(ElfRelocatableEntry);
         text_reloc.size = text_reloc.entsize * num_text_reloca_entries;
+
+        offset += text_reloc.size;
         fwrite(&text_reloc, sizeof(text_reloc), 1, output_stream);
     }
 
 
+    if(p->flags.debugSymbols){
+        while(offset % 8 != 0){
+            offset++;
+            info_reloca_padding++;
+        }
+
+        //write debug info reloc
+        ElfSectionHeader info_reloc = {0};
+        info_reloc.name = all_debug_info.rela_info_name_offset;
+        info_reloc.type = ELF_SECTION_RELAENTRY;
+        info_reloc.offset = offset;
+        info_reloc.link = symbol_table.link - 1; //points to the symbol table
+        info_reloc.info = all_debug_info.debug_info_index;// points to the debug info section
+        info_reloc.addralign = 8;
+        info_reloc.entsize = sizeof(ElfRelocatableEntry);
+        info_reloc.size = info_reloc.entsize * 2;
+
+        offset += info_reloc.size;
+        fwrite(&info_reloc, sizeof(info_reloc), 1, output_stream);
+
+        //write debug lines reloc
+        ElfSectionHeader line_reloc = {0};
+        line_reloc.name = all_debug_info.rela_line_name_offset;
+        line_reloc.type = ELF_SECTION_RELAENTRY;
+        line_reloc.offset = offset;
+        line_reloc.link = symbol_table.link - 1; //points to the symbol table
+        line_reloc.info = all_debug_info.debug_lines_index;// points to the debug line section
+        line_reloc.addralign = 8;
+        line_reloc.entsize = sizeof(ElfRelocatableEntry);
+        line_reloc.size = line_reloc.entsize;
+
+        offset += line_reloc.size;
+        fwrite(&line_reloc, sizeof(line_reloc), 1, output_stream);
+    }
+
 
     fwrite(p->text.data, 1, p->text.size, output_stream);
     if(data_offset != 0) fwrite(p->data.data,1,p->data.size, output_stream);
+    if(p->flags.debugSymbols){
+        DWARF_WRITE_DEBUG_INFO(all_debug_info, output_stream);
+        DWARF_FREE_DEBUG_INFO(all_debug_info);
+    }
 
     fwrite(section_string_table,1, section_st.size, output_stream);
     fwrite(padding, 1, symbol_table_padding, output_stream);
@@ -450,10 +546,11 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     fwrite(&temp, sizeof(temp), 1, output_stream);
 
 
+    int shidx = 2;
     //write data entry
     if(data_offset != 0){
         ElfSymbolEntry d = {0};
-        d.section_index = 2;
+        d.section_index = shidx++;
         d.info = SB_SECTION + SB_LOCAL;
         fwrite(&d, sizeof(d), 1, output_stream);
     }
@@ -462,9 +559,21 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     if(p->bss.size > 0){
         ElfSymbolEntry b = {0};
         //if there is a data section it goes right after it 
-        b.section_index = (data_offset != 0) ? 3 : 2;
+        b.section_index = shidx++;
         b.info = SB_SECTION + SB_LOCAL;
         fwrite(&b, sizeof(b), 1, output_stream);
+    }
+
+    if(p->flags.debugSymbols){
+        //write the symbol table entries for debug_info, debug_abbrev, and debug_lines
+        ElfSymbolEntry dinfo = {0};
+        dinfo.section_index = shidx++;
+        dinfo.info = SB_SECTION + SB_LOCAL;
+        fwrite(&dinfo, sizeof(dinfo), 1, output_stream);
+        dinfo.section_index = shidx++;
+        fwrite(&dinfo, sizeof(dinfo), 1, output_stream);
+        dinfo.section_index = shidx++;
+        fwrite(&dinfo, sizeof(dinfo), 1, output_stream);
     }
 
     for(int i = 0; i < p->symTable.symbols.size; i++){
@@ -498,6 +607,7 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
         int pc_sym_index = 3;
         if(data_offset != 0) pc_sym_index++;
         if(p->bss.size > 0) pc_sym_index++;
+        if(p->flags.debugSymbols) pc_sym_index += DWARF_SECTION_COUNT;
 
         for(int i = 0; i < p->symTable.symbols.size; i++){
             SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
@@ -522,14 +632,31 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
                 fwrite(&reloc_e, sizeof(reloc_e), 1, output_stream);
             }
         }
+    }
 
+    if(p->flags.debugSymbols){
+        fwrite(padding,1,info_reloca_padding, output_stream);
+        // point to start of text section
+        ElfRelocatableEntry reloc_low_pc;
+        reloc_low_pc.info = ((uint64_t)(SECTION_TEXT + 1) << 32) | RELOC_64;
+        reloc_low_pc.offset = all_debug_info.info_low_pc_offset;
+        reloc_low_pc.addend = 0;
+        fwrite(&reloc_low_pc, sizeof(ElfRelocatableEntry), 1, output_stream);
 
+        // high pc will come right after
+        reloc_low_pc.offset += 8;
+        //use text.size instead of p->text.size because p->text.size has been padded
+        reloc_low_pc.addend = text.size;
+        fwrite(&reloc_low_pc, sizeof(ElfRelocatableEntry), 1, output_stream);
 
-
+        //write reloca lines section
+        // point to start of text section
+        reloc_low_pc.offset = all_debug_info.lines_pc_offset;
+        reloc_low_pc.addend = 0;
+        fwrite(&reloc_low_pc, sizeof(ElfRelocatableEntry), 1, output_stream);
     }
     fclose(output_stream);
     return true;
-
 }
 
 
