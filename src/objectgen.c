@@ -105,8 +105,81 @@ typedef enum{
     RELOC_32S = 11, 
 } ElfRelocationTypes;
 
+typedef enum {
+    SEC_NULL,
+    SEC_TEXT = SECTION_TEXT,
+    SEC_DATA = SECTION_DATA,
+    SEC_BSS  = SECTION_BSS,
+    SEC_DEBUG_INFO = 4,
+    SEC_DEBUG_LINE = 5,
+    SEC_DEBUG_ABBREV = 6,
+    SEC_SHRSTRTAB = 7,
+    SEC_SYMTAB = 8,
+    SEC_STRTAB = 9,
+    SEC_RELA_TEXT = 10,
+    SEC_RELA_DEBUG_INFO = 11,
+    SEC_RELA_DEBUG_LINE = 12,
+    ELF_MAX_SECTIONS,
+} ElfSectionId;
 
 
+#define ELF_NON_USER_DEFINED_SYMBOL_CNT 8
+#define ELF_SYMBOL_TBL_SIZE (sizeof(ElfSymbolEntry) * ELF_NON_USER_DEFINED_SYMBOL_CNT)
+static inline bool section_goes_in_symtable(ElfSectionId id) {
+    switch(id){
+        case SEC_TEXT:
+        case SEC_DATA:
+        case SEC_BSS:
+        case SEC_DEBUG_INFO:
+        case SEC_DEBUG_LINE:
+        case SEC_DEBUG_ABBREV:
+            return true;
+        default:
+            return false;
+    }
+}
+
+#define ELF_MAX_SECTION_HEADER_SIZE (sizeof(ElfSectionHeader) * ELF_MAX_SECTIONS)
+
+// the current total is 128 so this should give enough room to grow
+#define ELF_MAX_SECTION_STRTABLE_LEN 256
+
+typedef struct{
+    uint8_t  section_header_cnt;
+    uint8_t  strtable_size;
+    uint8_t symbol_count;
+    uint8_t ids[ELF_MAX_SECTIONS];
+    uint8_t  indices[ELF_MAX_SECTIONS];
+    ElfSectionHeader* section_headers;
+    ElfSymbolEntry* symbols;
+    char*    sh_str_table;
+} ElfCtx;
+
+
+static void elf_add_section_header(ElfCtx* ctx,
+        const char* name, ElfSectionId section_id, ElfSectionHeader sh)
+{
+    sh.name = ctx->strtable_size;
+    if(section_goes_in_symtable(section_id)){
+        ctx->symbols[ctx->symbol_count++] = (ElfSymbolEntry){
+            .name = scratch_buffer_offset(),
+            .info = SB_LOCAL | SB_SECTION,
+            .other = 0,
+            .section_index = ctx->section_header_cnt,
+            .value = 0,
+            .size  = 0,
+        };
+        scratch_buffer_append_str((char*)name);
+    }
+    while(*name != 0)
+        ctx->sh_str_table[ctx->strtable_size++] = *name++;
+    ctx->sh_str_table[ctx->strtable_size++] = '\0';
+
+    ctx->section_headers[ctx->section_header_cnt] = sh;
+    ctx->indices[section_id] = ctx->section_header_cnt;
+    ctx->ids[ctx->section_header_cnt] = section_id;
+    ctx->section_header_cnt++;
+}
 
 
 
@@ -119,31 +192,6 @@ static int compare_visibility(const void *p1, const void *p2){
 
 
 #define MACHINE_X86_64 62
-
- 
-static uint64_t section_pad(Section* section, uint64_t offset, uint64_t alignment){
-    int padding = 0;
-    while(offset % alignment != 0){
-        offset++;
-        padding++;
-    }
-
-    if(section->size + padding >= section->capacity){
-        uint64_t new_capacity = section->capacity * 2;
-        section->data = realloc(section->data, new_capacity);
-        if(section->data == NULL){
-            fatal_error("Out of memory\n");
-        }
-        section->capacity = new_capacity;
-    }
-
-    for(int i = 0; i < padding; i++){
-        section->data[section->size++] = 0;
-
-    }
-    return offset;
-}
-
 
 static uint32_t get_reloc_count(Program* p){
     uint32_t count = 0;
@@ -162,7 +210,37 @@ static uint32_t get_reloc_count(Program* p){
 }
 
 
-//TODO: Implement a better elf writer API
+static void elf_write_rela_text(ElfCtx* ctx, Program* p, FILE* output_stream){
+    for(int i = 0; i < p->symTable.symbols.size; i++){
+        SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
+        for(int j = 0; j < e.instances.size; j++){
+            SymbolInstance instance = array_list_get(e.instances, SymbolInstance, j);
+            //relative addresses in the text section can be resolved by the assembler
+            if(instance.is_relative && e.section == SECTION_TEXT) continue;
+
+            if(instance.is_relative){
+                ElfRelocatableEntry reloc_e = {
+                    .offset = instance.offset,
+                    .addend = instance.addend,
+                    .info = ((uint64_t)(ctx->symbol_count + i) << 32)| RELOC_PC32,
+                };
+                fwrite(&reloc_e, sizeof(reloc_e), 1, output_stream);
+            } else{
+                // index into symbol table
+                // +1 accounts for file name
+                uint64_t section = ctx->indices[e.section] + 1;
+                ElfRelocatableEntry reloc_e = {
+                    .offset = instance.offset,
+                    .addend = e.section_offset + instance.addend,
+                    .info = ((uint64_t)(section) << 32)| RELOC_32S,
+                };
+                fwrite(&reloc_e, sizeof(reloc_e), 1, output_stream);
+            }
+        }
+    }
+}
+
+
 bool write_elf(const char* input_file, const char* output_file, Program* p){
     FILE* output_stream = fopen(output_file, "wb");
 
@@ -170,6 +248,216 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
         fatal_error("Failed to create file %s\n", input_file);
         return false;
     }
+
+    scratch_buffer_clear();
+    ElfCtx ctx;
+    memset(&ctx.indices, 0, ELF_MAX_SECTIONS);
+    ctx.section_header_cnt = 1; // null header
+    ctx.strtable_size = 1;
+    ctx.symbol_count  = 1; //nul symbol
+    uint8_t* ctx_data = malloc(ELF_MAX_SECTION_HEADER_SIZE + ELF_MAX_SECTION_STRTABLE_LEN
+            + ELF_SYMBOL_TBL_SIZE);
+
+    if(ctx_data == NULL){
+        fatal_error("Failed alloc memory\n");
+        return false;
+    }
+    ctx.section_headers = (ElfSectionHeader*)ctx_data;
+    ctx_data += ELF_MAX_SECTION_HEADER_SIZE;
+    ctx.symbols = (ElfSymbolEntry*)ctx_data;
+    ctx_data += ELF_SYMBOL_TBL_SIZE;
+    ctx.sh_str_table = (char*)(ctx_data);
+
+    // add null section header
+    memset(ctx.section_headers, 0, sizeof(ElfSectionHeader));
+    ctx.sh_str_table[0] = '\0';
+
+    //add null symbol table entry
+    memset(ctx.symbols, 0, sizeof(ElfSymbolEntry));
+    scratch_buffer_append_char('\0');
+
+
+    //add the file name symbol
+    scratch_buffer_append_str((char*)input_file);
+    ctx.symbols[ctx.symbol_count++] = (ElfSymbolEntry){
+        .name = 1,
+        .info = SB_LOCAL | SB_FILE,
+        .other = 0,
+        .section_index = 0xfff1,
+        .value = 0,
+        .size  = 0,
+    };
+
+    elf_add_section_header(&ctx, ".text", SEC_TEXT, (ElfSectionHeader){
+        .name   = 0,
+        .type   = ELF_SECTION_PINFO,
+        .flags  = ELF_SF_ALLOC | ELF_SF_EXECINSTR,
+        .addr   = 0,
+        .offset = 0,
+        .size   = p->text.size,
+        .link   = 0,
+        .info   = 0,
+        .addralign = 16,
+        .entsize   = 0,
+    });
+
+    if(p->data.size > 0) {
+        elf_add_section_header(&ctx, ".data", SEC_DATA, (ElfSectionHeader){
+            .name   = 0,
+            .type   = ELF_SECTION_PINFO,
+            .flags  = ELF_SF_ALLOC | ELF_SF_WRITE,
+            .addr   = 0,
+            .offset = 0,
+            .size   = p->data.size,
+            .link   = 0,
+            .info   = 0,
+            .addralign = 4,
+            .entsize   = 0,
+        });
+    }
+
+    if(p->bss.size > 0) {
+        elf_add_section_header(&ctx, ".bss", SEC_BSS, (ElfSectionHeader){
+            .name   = 0,
+            .type   = ELF_SECTION_NOBITS,
+            .flags  = ELF_SF_ALLOC | ELF_SF_WRITE,
+            .addr   = 0,
+            .offset = 0,
+            .size   = p->bss.size,
+            .link   = 0,
+            .info   = 0,
+            .addralign = 4,
+            .entsize   = 0,
+        });
+    }
+
+    DwarfDebugInfo all_debug_info;
+    if(p->flags.debugSymbols){
+        dwarf_emit_debug_info(&all_debug_info, p->text.size, input_file);
+
+        elf_add_section_header(&ctx, ".debug_info", SEC_DEBUG_INFO, (ElfSectionHeader){
+            .name   = 0,
+            .type   = ELF_SECTION_PINFO,
+            .flags  = 0,
+            .addr   = 0,
+            .offset = 0,
+            .size   = all_debug_info.debug_info_size,
+            .link   = 0,
+            .info   = 0,
+            .addralign = 1,
+            .entsize   = 0,
+        });
+
+        elf_add_section_header(&ctx, ".debug_abbrev", SEC_DEBUG_ABBREV,
+                (ElfSectionHeader){
+            .name   = 0,
+            .type   = ELF_SECTION_PINFO,
+            .flags  = 0,
+            .addr   = 0,
+            .offset = 0,
+            .size   = all_debug_info.debug_abbrev_size,
+            .link   = 0,
+            .info   = 0,
+            .addralign = 1,
+            .entsize   = 0,
+        });
+
+        elf_add_section_header(&ctx, ".debug_line", SEC_DEBUG_LINE, (ElfSectionHeader){
+            .name   = 0,
+            .type   = ELF_SECTION_PINFO,
+            .flags  = 0,
+            .addr   = 0,
+            .offset = 0,
+            .size   = all_debug_info.debug_lines_size,
+            .link   = 0,
+            .info   = 0,
+            .addralign = 1,
+            .entsize   = 0,
+        });
+
+        elf_add_section_header(&ctx, ".rela.debug_info",
+                SEC_RELA_DEBUG_INFO, (ElfSectionHeader){
+            .name   = 0,
+            .type   = ELF_SECTION_RELAENTRY,
+            .flags  = 0,
+            .addr   = 0,
+            .offset = 0,
+            .size   = 2 * sizeof(ElfRelocatableEntry),
+            .link   = SEC_SYMTAB,      // going to need to point to symbol table
+            .info   = SEC_DEBUG_INFO, // needs to point to debug info
+            .addralign = 8,
+            .entsize   = sizeof(ElfRelocatableEntry),
+        });
+
+        elf_add_section_header(&ctx, ".rela.debug_line",
+                SEC_RELA_DEBUG_LINE, (ElfSectionHeader){
+            .name   = 0,
+            .type   = ELF_SECTION_RELAENTRY,
+            .flags  = 0,
+            .addr   = 0,
+            .offset = 0,
+            .size   = sizeof(ElfRelocatableEntry),
+            .link   = SEC_SYMTAB,      // going to need to point to symbol table
+            .info   = SEC_DEBUG_LINE, // needs to point to debug line
+            .addralign = 8,
+            .entsize   = sizeof(ElfRelocatableEntry),
+        });
+    }
+
+    uint32_t num_text_reloca_entries = get_reloc_count(p);
+    if(num_text_reloca_entries > 0){
+        elf_add_section_header(&ctx, ".rela.text", SEC_RELA_TEXT, (ElfSectionHeader){
+            .name   = 0,
+            .type   = ELF_SECTION_RELAENTRY,
+            .flags  = 0,
+            .addr   = 0,
+            .offset = 0,
+            .size   = sizeof(ElfRelocatableEntry) * num_text_reloca_entries,
+            .link   = SEC_SYMTAB, // going to need to point to symbol table
+            .info   = SEC_TEXT,  // needs to point to text section
+            .addralign = 8,
+            .entsize   = sizeof(ElfRelocatableEntry),
+        });
+    }
+
+    elf_add_section_header(&ctx, ".symtab", SEC_SYMTAB, (ElfSectionHeader){
+            .name   = 0,
+            .type   = ELF_SECTION_LSYMTABLE,
+            .flags  = 0,
+            .addr   = 0,
+            .offset = 0,
+            .size   = 0, // need to backfill the size
+            .link   = SEC_STRTAB, // going to need to point to symbol string table
+            .info   = 0, // one plus index of last local symbol
+            .addralign = 8,
+            .entsize   = sizeof(ElfSymbolEntry),
+    });
+
+    elf_add_section_header(&ctx, ".strtab", SEC_STRTAB, (ElfSectionHeader){
+            .name   = 0,
+            .type   = ELF_SECTION_STRING_TABLE,
+            .flags  = 0,
+            .addr   = 0,
+            .offset = 0,
+            .size   = 0, // need to backfill the size
+            .link   = 0,
+            .info   = 0,
+            .addralign = 1,
+            .entsize   = 0,
+    });
+
+    elf_add_section_header(&ctx, ".shrstrtab", SEC_SHRSTRTAB, (ElfSectionHeader){
+            .name   = 0,
+            .type   = ELF_SECTION_STRING_TABLE,
+            .flags  = 0,
+            .addr   = 0,
+            .offset = 0,
+            .size   = 0, // need to backfill the size
+            .link   = 0,
+            .info   = 0,
+            .addralign = 1,
+            .entsize   = 0,
+    });
 
     ElfHeader head = {0};
     head.ident[0] = 0x7f;
@@ -191,209 +479,25 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
     head.section_header_offset = head.header_size;
     head.section_header_size = sizeof(ElfSectionHeader);
 
-
-    int string_table_index = 2;
-
-
-    //section names table, linker symbol table, string table, .text section, plus null header
-    head.section_header_entries = 5;
-    if(p->bss.size > 0) {
-        head.section_header_entries += 1;
-        string_table_index += 1;
-    }
-    if(p->data.size > 0){
-        head.section_header_entries += 1;
-        string_table_index += 1;
-    }
-
-    if(p->flags.debugSymbols){
-        head.section_header_entries += DWARF_SECTION_COUNT + DWARF_RELA_SECTION_COUNT;
-        string_table_index += DWARF_SECTION_COUNT;
-    }
-
-
-    head.string_table_index = string_table_index;
-
-    bool has_text_reloca = false;
-    uint32_t num_text_reloca_entries = get_reloc_count(p);
-    if(num_text_reloca_entries > 0){
-        has_text_reloca = true;
-        head.section_header_entries++;
-    }
-
+    head.section_header_entries = ctx.section_header_cnt;
+    head.string_table_index = ctx.section_header_cnt - 1;
     fwrite(&head, sizeof(ElfHeader),1, output_stream);
 
-    uint64_t offset = head.section_header_size * head.section_header_entries + head.header_size;
-
-    int section_index = 0;
-    int section_count = 0;
-
-    uint64_t data_offset = 0;
-
-    //first section is always null
-    ElfSectionHeader null_header = {0};
-    fwrite(&null_header, sizeof(null_header),1, output_stream);
-    section_index++;
-    
-    //TODO MAKE SURE THAT IT HAS A TEXT SECTION
-    scratch_buffer_clear();
-
-    //hold the section string table
-    scratch_buffer_append_char(0);
-    scratch_buffer_append_str(".text");
-
-    ElfSectionHeader text = {0};
-    text.name = 1;
-    text.type = ELF_SECTION_PINFO;
-    text.flags = ELF_SF_ALLOC | ELF_SF_EXECINSTR;
-    text.addr = 0;
-    text.offset = offset;
-    text.size = p->text.size;
-    text.addralign = 16; //CHECK THIS
-    fwrite(&text, sizeof(text), 1, output_stream);
-    section_index++;
-    section_count++;
-
-
-    offset += text.size;
-    offset = section_pad(&p->text, offset, text.addralign);
-
-    
-    if(p->data.size > 0){
-        ElfSectionHeader data = {0};
-        data.type = ELF_SECTION_PINFO;
-        data.flags = ELF_SF_ALLOC | ELF_SF_WRITE;
-        data.name = scratch_buffer_offset();
-        data.size = p->data.size;
-        data.offset = offset;
-        data.addralign = 4;
-
-        data_offset = data.offset;
-        offset += data.size;
-        offset = section_pad(&p->data, offset, data.addralign);
-
-
-        scratch_buffer_append_str(".data");
-        fwrite(&data, sizeof(data), 1, output_stream);
-
-        section_index++;
-        section_count++;
+    //fix all link and info conflicts
+    for(int i = 1; i < ctx.section_header_cnt; i++){
+        ElfSectionHeader* temp = &ctx.section_headers[i];
+        temp->link = ctx.indices[temp->link];
+        temp->info = ctx.indices[temp->info];
     }
 
-    if(p->bss.size > 0){
-        ElfSectionHeader bss = {0};
-        bss.type = ELF_SECTION_NOBITS;
-        bss.flags = ELF_SF_ALLOC | ELF_SF_WRITE;
-        bss.name = scratch_buffer_offset();
-        bss.size = p->bss.size;
-        bss.offset = offset;
-        bss.addralign = 4; //seems to be the default but idk
-        
-        scratch_buffer_append_str(".bss");
-        fwrite(&bss, sizeof(bss), 1, output_stream);
-
-        section_index++;
-        section_count++;
-    }
-
-    DwarfDebugInfo all_debug_info;
-    if(p->flags.debugSymbols){
-        dwarf_emit_debug_info(&all_debug_info, text.size, input_file);
-
-        all_debug_info.debug_info_index = section_index++;
-        // Write Debug_info Section header
-        ElfSectionHeader debug_info = {0};
-        debug_info.type =  ELF_SECTION_PINFO;
-        debug_info.addralign = 1;
-        debug_info.offset = offset;
-        debug_info.name = scratch_buffer_offset();
-        debug_info.size = all_debug_info.debug_info_size;
-        fwrite(&debug_info, sizeof(debug_info), 1, output_stream);
-        offset += debug_info.size;
-        scratch_buffer_append_str(".debug_info");
-
-        section_index++;
-        //write Debug abbreviations section header
-        ElfSectionHeader debug_abbrev = {0};
-        debug_abbrev.type =  ELF_SECTION_PINFO;
-        debug_abbrev.addralign = 1;
-        debug_abbrev.offset = offset;
-        debug_abbrev.name = scratch_buffer_offset();
-        debug_abbrev.size = all_debug_info.debug_abbrev_size;
-        fwrite(&debug_abbrev, sizeof(debug_abbrev), 1, output_stream);
-        offset += debug_abbrev.size;
-        scratch_buffer_append_str(".debug_abbrev");
-
-        all_debug_info.debug_lines_index = section_index++;
-        // Write Debug_Lines section header
-        ElfSectionHeader debug_line = {0};
-        debug_line.type =  ELF_SECTION_PINFO;
-        debug_line.addralign = 1;
-        debug_line.offset = offset;
-        debug_line.name = scratch_buffer_offset();
-        debug_line.size = all_debug_info.debug_lines_size;
-        fwrite(&debug_line, sizeof(debug_line), 1, output_stream);
-        offset += debug_line.size;
-        scratch_buffer_append_str(".debug_line");
-
-        section_count += DWARF_SECTION_COUNT;
-    }
-
-
-    ElfSectionHeader section_st = {0};
-    section_st.type = ELF_SECTION_STRING_TABLE; 
-    section_st.name = scratch_buffer_offset();
-    section_st.offset = offset;
-    section_st.addralign = 1;
-
-    section_index++;
-
-    //write the remaing
-    scratch_buffer_append_str(".shrstrtab");
-    uint64_t symbol_table_st_index = scratch_buffer_offset();
-    scratch_buffer_append_str(".symtab");
-    uint64_t symbol_string_table_st_index = scratch_buffer_offset();
-    scratch_buffer_append_str(".strtab");
-    uint64_t text_reloca_st_index = 0;
-
-    if(has_text_reloca){
-        text_reloca_st_index = scratch_buffer_offset();
-        scratch_buffer_append_str(".rela.text");
-    }
-
-    if(p->flags.debugSymbols){
-        all_debug_info.rela_info_name_offset = scratch_buffer_offset();
-        scratch_buffer_append_str(".rela.debug_info");
-
-        all_debug_info.rela_line_name_offset = scratch_buffer_offset();
-        scratch_buffer_append_str(".rela.debug_line");
-    }
-
-    char* section_string_table = scratch_buffer_get_data(0);
-    section_st.size = scratch_buffer_offset();
-
-    fwrite(&section_st, sizeof(section_st), 1, output_stream);
-
-
-    //pad the section string table with zeros to align with the symbol table
-    while((section_st.offset + section_st.size) % 8 != 0){
-        section_st.size++;
-        scratch_buffer_append_char(0);
-    }
-
-    offset += section_st.size;
-
-
-    //THE GLOBAL SYMBOLS MUST COME AFTER THE LOCAL ONES 
-    // account for null symbol, text section, and file name
-    int sym_table_info = 3;
-    if(data_offset != 0) sym_table_info++;
-    if(p->bss.size > 0) sym_table_info++;
-    if(p->flags.debugSymbols) sym_table_info += DWARF_SECTION_COUNT;
-
+    ctx.section_headers[ctx.indices[SEC_SHRSTRTAB]].size = ctx.strtable_size;
+    // symbol table info in the section header is
+    // 1 greater than the last local symbol
+    int sym_table_info = ctx.symbol_count;
     if(p->symTable.symbols.data != NULL){
-        qsort(p->symTable.symbols.data, p->symTable.symbols.size, sizeof(SymbolTableEntry),compare_visibility);
-
+        // the global symbols must come after local symbols
+        qsort(p->symTable.symbols.data, p->symTable.symbols.size,
+                sizeof(SymbolTableEntry),compare_visibility);
         //get the index of the last local var
         for(int i = p->symTable.symbols.size - 1; i >= 0; i--){
             SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
@@ -403,262 +507,139 @@ bool write_elf(const char* input_file, const char* output_file, Program* p){
             }
         }
     }
+    ctx.section_headers[ctx.indices[SEC_SYMTAB]].info = sym_table_info;
 
-
-    ElfSectionHeader symbol_table= {0};
-    symbol_table.type = ELF_SECTION_LSYMTABLE;
-    symbol_table.name = symbol_table_st_index;
-    symbol_table.addralign = 8;
-    symbol_table.link = section_index + 1; //symbol string table will follow 
-    symbol_table.info = sym_table_info; // one plus index of last local symbol 
-    symbol_table.entsize = sizeof(ElfSymbolEntry);
-    symbol_table.addralign = 8;
-    //sections plus all symbols plus the file and null header
-    symbol_table.size = ((section_count + p->symTable.symbols.size) + 2) * symbol_table.entsize; 
-    symbol_table.offset = offset;
-    offset += symbol_table.size;
-    fwrite(&symbol_table, sizeof(symbol_table), 1, output_stream);
-
-    ElfSectionHeader symbol_str_table = {0};
-    symbol_str_table.type = ELF_SECTION_STRING_TABLE;
-    symbol_str_table.name = symbol_string_table_st_index;
-    symbol_str_table.addralign = 1; 
-
-
-    uint8_t padding[8] = {0};
-    int symbol_table_padding = 0;
-    int text_reloca_padding = 0;
-    int info_reloca_padding = 0;
-
-
-    while(offset % symbol_table.addralign != 0){
-        offset++;
-        symbol_table_padding++;
-    }
-    symbol_str_table.offset = offset;
-
-    symbol_str_table.size = strlen(input_file) + 1 + 1;
+    // get size of symbol string table and size of symbol table
+    uint64_t symbol_str_table_size = scratch_buffer_offset();
+    uint64_t symbol_table_size = ctx.symbol_count * sizeof(ElfSymbolEntry);
     for(int i = 0; i < p->symTable.symbols.size; i++){
         SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
-        symbol_str_table.size += strlen(e.name) + 1;
+        symbol_str_table_size += strlen(e.name) + 1;
+        symbol_table_size += sizeof(ElfSymbolEntry);
+    }
+    ctx.section_headers[ctx.indices[SEC_SYMTAB]].size = symbol_table_size;
+    ctx.section_headers[ctx.indices[SEC_STRTAB]].size = symbol_str_table_size;
+
+    // now we must resolve offsets
+    uint64_t offset = head.section_header_size 
+        * head.section_header_entries + head.header_size;
+    uint64_t curr_offset = offset;
+    //write null header
+    fwrite(&ctx.section_headers[0], sizeof(ElfSectionHeader), 1, output_stream);
+
+    for(int i = 1; i < ctx.section_header_cnt; i++){
+        ElfSectionHeader* sh = &ctx.section_headers[i];
+        if(offset % sh->addralign != 0)
+            offset += (sh->addralign - (offset % sh->addralign)) % sh->addralign;
+        sh->offset = offset;
+        fwrite(sh, sizeof(ElfSectionHeader), 1, output_stream);
+
+        if(sh->type != ELF_SECTION_NOBITS)
+            offset += sh->size;
     }
 
-    offset += symbol_str_table.size;
-    fwrite(&symbol_str_table, sizeof(symbol_str_table), 1, output_stream);
-
-
-    if(has_text_reloca){
-        while(offset % 8 != 0){
-            offset++;
-            text_reloca_padding++;
+    //write all the data
+    for(int i = 1; i < ctx.section_header_cnt; i++){
+        ElfSectionHeader* sh = &ctx.section_headers[i];
+        while(curr_offset % sh->addralign != 0){
+            fputc(0, output_stream);
+            curr_offset++;
         }
-
-        ElfSectionHeader text_reloc = {0};
-        text_reloc.name = text_reloca_st_index;
-        text_reloc.type = ELF_SECTION_RELAENTRY;
-        text_reloc.offset = offset;
-        text_reloc.link = symbol_table.link - 1; //points to the symbol table
-        text_reloc.info = 1; // points to the text section?
-        text_reloc.addralign = 8;
-        text_reloc.entsize = sizeof(ElfRelocatableEntry);
-        text_reloc.size = text_reloc.entsize * num_text_reloca_entries;
-
-        offset += text_reloc.size;
-        fwrite(&text_reloc, sizeof(text_reloc), 1, output_stream);
-    }
-
-
-    if(p->flags.debugSymbols){
-        while(offset % 8 != 0){
-            offset++;
-            info_reloca_padding++;
-        }
-
-        //write debug info reloc
-        ElfSectionHeader info_reloc = {0};
-        info_reloc.name = all_debug_info.rela_info_name_offset;
-        info_reloc.type = ELF_SECTION_RELAENTRY;
-        info_reloc.offset = offset;
-        info_reloc.link = symbol_table.link - 1; //points to the symbol table
-        info_reloc.info = all_debug_info.debug_info_index;// points to the debug info section
-        info_reloc.addralign = 8;
-        info_reloc.entsize = sizeof(ElfRelocatableEntry);
-        info_reloc.size = info_reloc.entsize * 2;
-
-        offset += info_reloc.size;
-        fwrite(&info_reloc, sizeof(info_reloc), 1, output_stream);
-
-        //write debug lines reloc
-        ElfSectionHeader line_reloc = {0};
-        line_reloc.name = all_debug_info.rela_line_name_offset;
-        line_reloc.type = ELF_SECTION_RELAENTRY;
-        line_reloc.offset = offset;
-        line_reloc.link = symbol_table.link - 1; //points to the symbol table
-        line_reloc.info = all_debug_info.debug_lines_index;// points to the debug line section
-        line_reloc.addralign = 8;
-        line_reloc.entsize = sizeof(ElfRelocatableEntry);
-        line_reloc.size = line_reloc.entsize;
-
-        offset += line_reloc.size;
-        fwrite(&line_reloc, sizeof(line_reloc), 1, output_stream);
-    }
-
-
-    fwrite(p->text.data, 1, p->text.size, output_stream);
-    if(data_offset != 0) fwrite(p->data.data,1,p->data.size, output_stream);
-    if(p->flags.debugSymbols){
-        DWARF_WRITE_DEBUG_INFO(all_debug_info, output_stream);
-        DWARF_FREE_DEBUG_INFO(all_debug_info);
-    }
-
-    fwrite(section_string_table,1, section_st.size, output_stream);
-    fwrite(padding, 1, symbol_table_padding, output_stream);
-
-
-    //setup the symbol string table
-    scratch_buffer_clear();
-
-    //first symbol is always null
-    scratch_buffer_append_char(0);
-    ElfSymbolEntry file_sym = {0};
-    fwrite(&file_sym, sizeof(file_sym), 1, output_stream);
-
-    //add the file name
-    scratch_buffer_append_str((char*)input_file);
-
-
-    file_sym.name = 1;
-    file_sym.section_index = 0xfff1;
-    file_sym.info = SB_LOCAL + SB_FILE;
-
-
-    //write the file 
-    fwrite(&file_sym, sizeof(file_sym), 1, output_stream);
-
-
-    
-    ElfSymbolEntry temp  = {0};
-    temp.name = 0;
-    temp.section_index = 1;
-    temp.info = SB_SECTION + SB_LOCAL;
-
-    //write text entry 
-    fwrite(&temp, sizeof(temp), 1, output_stream);
-
-
-    int shidx = 2;
-    //write data entry
-    if(data_offset != 0){
-        ElfSymbolEntry d = {0};
-        d.section_index = shidx++;
-        d.info = SB_SECTION + SB_LOCAL;
-        fwrite(&d, sizeof(d), 1, output_stream);
-    }
-
-    //write data entry 
-    if(p->bss.size > 0){
-        ElfSymbolEntry b = {0};
-        //if there is a data section it goes right after it 
-        b.section_index = shidx++;
-        b.info = SB_SECTION + SB_LOCAL;
-        fwrite(&b, sizeof(b), 1, output_stream);
-    }
-
-    if(p->flags.debugSymbols){
-        //write the symbol table entries for debug_info, debug_abbrev, and debug_lines
-        ElfSymbolEntry dinfo = {0};
-        dinfo.section_index = shidx++;
-        dinfo.info = SB_SECTION + SB_LOCAL;
-        fwrite(&dinfo, sizeof(dinfo), 1, output_stream);
-        dinfo.section_index = shidx++;
-        fwrite(&dinfo, sizeof(dinfo), 1, output_stream);
-        dinfo.section_index = shidx++;
-        fwrite(&dinfo, sizeof(dinfo), 1, output_stream);
-    }
-
-    for(int i = 0; i < p->symTable.symbols.size; i++){
-        memset(&temp, 0, sizeof(ElfSymbolEntry));
-        SymbolTableEntry* e = &array_list_get(p->symTable.symbols, SymbolTableEntry, i);
-        temp.name = scratch_buffer_offset();
-        
-        temp.section_index = e->section;
-        //if there is no data section the bss section will come right after the text
-        if(e->section == SECTION_BSS && data_offset == 0){
-            temp.section_index = 2;    
-            e->section = 2;
-        } 
-
-        temp.value = e->section_offset;
-        temp.info =  (e->visibility == VISIBILITY_GLOBAL) ? SB_GLOBAL : SB_LOCAL; 
-        fwrite(&temp, sizeof(temp), 1,output_stream);
-        scratch_buffer_append_str(e->name);
-    }
-
-    char* sym_strt_str = scratch_buffer_get_data(0);
-    fwrite(sym_strt_str,1, scratch_buffer_offset(), output_stream);
-
-    if(has_text_reloca){
-        fwrite(padding,1, text_reloca_padding, output_stream);
-
-        //for pc relative symbols 
-        //there index into the elf symbol table 
-        //will be calculated using our symbol table index 
-        //plus all the entries that come before our symbols (null, text, file, bss, etc)
-        int pc_sym_index = 3;
-        if(data_offset != 0) pc_sym_index++;
-        if(p->bss.size > 0) pc_sym_index++;
-        if(p->flags.debugSymbols) pc_sym_index += DWARF_SECTION_COUNT;
-
-        for(int i = 0; i < p->symTable.symbols.size; i++){
-            SymbolTableEntry e = array_list_get(p->symTable.symbols, SymbolTableEntry, i);
-            for(int j = 0; j < e.instances.size; j++){
-                SymbolInstance instance = array_list_get(e.instances, SymbolInstance, j);
-
-                //relative addresses in the text section can be resolved by the assembler
-                if(instance.is_relative && e.section == SECTION_TEXT) continue;
-
-                ElfRelocatableEntry reloc_e = {0};
-
-                if(instance.is_relative){
-                    reloc_e.offset = instance.offset;
-                    reloc_e.addend = instance.addend;
-                    reloc_e.info = ((uint64_t)(pc_sym_index + i) << 32)| RELOC_PC32;
-                } else{
-                    //assume 32 for now 
-                    reloc_e.offset = instance.offset;
-                    reloc_e.addend = e.section_offset + instance.addend;
-                    reloc_e.info = ((uint64_t)(e.section + 1) << 32)| RELOC_32S;
+        switch (ctx.ids[i]) {
+            case SEC_NULL:
+            case SEC_BSS:
+                break;
+            case SEC_TEXT:
+                fwrite(p->text.data, 1, p->text.size, output_stream);
+                break;
+            case SEC_DATA:
+                fwrite(p->data.data, 1, p->data.size, output_stream);
+                break;
+            case SEC_DEBUG_INFO:
+                fwrite(all_debug_info.debug_info_data, 1,
+                        all_debug_info.debug_info_size, output_stream);
+                free(all_debug_info.debug_info_data);
+                break;
+            case SEC_DEBUG_LINE:
+                fwrite(all_debug_info.debug_lines_data, 1,
+                        all_debug_info.debug_lines_size, output_stream);
+                free(all_debug_info.debug_lines_data);
+                break;
+            case SEC_DEBUG_ABBREV:
+                fwrite(all_debug_info.debug_abbrev_data, 1,
+                        all_debug_info.debug_abbrev_size, output_stream);
+                free(all_debug_info.debug_abbrev_data);
+                break;
+            case SEC_SHRSTRTAB:
+                fwrite(ctx.sh_str_table,1, ctx.strtable_size, output_stream);
+                break;
+            case SEC_SYMTAB:{
+                //write the symbols for the file name and section headers first
+                fwrite(ctx.symbols, sizeof(ElfSymbolEntry), ctx.symbol_count, output_stream);
+                uint64_t name_offset = scratch_buffer_offset();
+                for(int i = 0; i < p->symTable.symbols.size; i++){
+                    SymbolTableEntry* e =
+                        &array_list_get(p->symTable.symbols, SymbolTableEntry, i);
+                    ElfSymbolEntry symbol = {
+                        .name = name_offset,
+                        .info = (e->visibility == VISIBILITY_GLOBAL) ? SB_GLOBAL : SB_LOCAL,
+                        .other = 0,
+                        .section_index = ctx.indices[e->section],
+                        .value = e->section_offset,
+                        .size = 0,
+                    };
+                    fwrite(&symbol, sizeof(symbol), 1,output_stream);
+                    name_offset += strlen(e->name) + 1;
                 }
-                fwrite(&reloc_e, sizeof(reloc_e), 1, output_stream);
+                break;
+            }
+            case SEC_STRTAB:
+                //write the symbols names for the file name and section headers first
+                fwrite(scratch_buffer_get_data(0),1,scratch_buffer_offset(), output_stream);
+                //write the names of the user defined symbols
+                for(int i = 0; i < p->symTable.symbols.size; i++){
+                    SymbolTableEntry e =
+                        array_list_get(p->symTable.symbols, SymbolTableEntry, i);
+                    while(*e.name != 0)
+                        fputc(*e.name++, output_stream);
+                    fputc(0, output_stream);
+                }
+                break;
+            case SEC_RELA_TEXT:
+                elf_write_rela_text(&ctx, p, output_stream);
+                break;
+            case SEC_RELA_DEBUG_INFO: {
+                ElfRelocatableEntry low_pc = {
+                    .info   = ((uint64_t)(ctx.indices[SEC_TEXT] + 1) << 32) | RELOC_64,
+                    .offset = all_debug_info.info_low_pc_offset,
+                    .addend = 0,
+                };
+                fwrite(&low_pc, sizeof(ElfRelocatableEntry), 1, output_stream);
+                
+                //write the high pc
+                // high pc will come right after
+                low_pc.offset += 8;
+                low_pc.addend = p->text.size;
+                fwrite(&low_pc, sizeof(ElfRelocatableEntry), 1, output_stream);
+                break;
+            }
+            case SEC_RELA_DEBUG_LINE: {
+                ElfRelocatableEntry low_pc = {
+                    .info   = ((uint64_t)(ctx.indices[SEC_TEXT] + 1) << 32) | RELOC_64,
+                    .offset = all_debug_info.lines_pc_offset,
+                    .addend = 0,
+                };
+                fwrite(&low_pc, sizeof(ElfRelocatableEntry), 1, output_stream);
+                break;
             }
         }
-    }
-
-    if(p->flags.debugSymbols){
-        fwrite(padding,1,info_reloca_padding, output_stream);
-        // point to start of text section
-        ElfRelocatableEntry reloc_low_pc;
-        reloc_low_pc.info = ((uint64_t)(SECTION_TEXT + 1) << 32) | RELOC_64;
-        reloc_low_pc.offset = all_debug_info.info_low_pc_offset;
-        reloc_low_pc.addend = 0;
-        fwrite(&reloc_low_pc, sizeof(ElfRelocatableEntry), 1, output_stream);
-
-        // high pc will come right after
-        reloc_low_pc.offset += 8;
-        //use text.size instead of p->text.size because p->text.size has been padded
-        reloc_low_pc.addend = text.size;
-        fwrite(&reloc_low_pc, sizeof(ElfRelocatableEntry), 1, output_stream);
-
-        //write reloca lines section
-        // point to start of text section
-        reloc_low_pc.offset = all_debug_info.lines_pc_offset;
-        reloc_low_pc.addend = 0;
-        fwrite(&reloc_low_pc, sizeof(ElfRelocatableEntry), 1, output_stream);
+        if(sh->type != ELF_SECTION_NOBITS)
+            curr_offset += sh->size;
     }
     fclose(output_stream);
+    free(ctx.section_headers);
     return true;
 }
-
 
 #define PE_X86_64 0x8664
 
