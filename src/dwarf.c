@@ -110,6 +110,7 @@ void buffer_append_sleb128(Buffer* buff, int64_t value){
 
 #define LINE_BASE -5
 #define LINE_RANGE 14
+#define MAX_LINE_INC (LINE_BASE + LINE_RANGE - 1)
 
 #define DWARF_LNCT_PATH 0x1 
 #define DWARF_FORM_STRING 0x8 
@@ -179,8 +180,10 @@ static void dwarf_emit_line_header(DwarfDebugInfo* debug_info, uint32_t text_siz
            line = i.line;
            buffer_append_sleb128(&line_info_buffer, i.line - 1);
         }
-        buffer_append_byte(&line_info_buffer, DW_LNS_advance_pc);
-        buffer_append_uleb128(&line_info_buffer, i.offset);
+        if(i.offset != 0){
+            buffer_append_byte(&line_info_buffer, DW_LNS_advance_pc);
+            buffer_append_uleb128(&line_info_buffer, i.offset);
+        }
         buffer_append_byte(&line_info_buffer, DW_LNS_copy);
     }
 
@@ -188,14 +191,22 @@ static void dwarf_emit_line_header(DwarfDebugInfo* debug_info, uint32_t text_siz
 
     for(int i = 1; i < line_info_list.size; i++){
         LineInfo li = array_list_get(line_info_list, LineInfo, i);
-        buffer_append_byte(&line_info_buffer, DW_LNS_advance_pc);
-        buffer_append_uleb128(&line_info_buffer, li.offset - last_offset);
+        uint64_t pc_inc = li.offset - last_offset;
+        int64_t line_inc = li.line - line;
         last_offset = li.offset;
-
-        buffer_append_byte(&line_info_buffer, DW_LNS_advance_line);
-        buffer_append_sleb128(&line_info_buffer, li.line - line);
-        buffer_append_byte(&line_info_buffer, DW_LNS_copy);
         line = li.line;
+
+        uint16_t opcode = (line_inc - LINE_BASE) + (LINE_RANGE * pc_inc) + DWARF_OPCODE_BASE;
+        if(opcode > 255 || line_inc > MAX_LINE_INC || line_inc < LINE_BASE){
+            buffer_append_byte(&line_info_buffer, DW_LNS_advance_pc);
+            buffer_append_uleb128(&line_info_buffer, pc_inc);
+
+            buffer_append_byte(&line_info_buffer, DW_LNS_advance_line);
+            buffer_append_sleb128(&line_info_buffer, line_inc);
+            buffer_append_byte(&line_info_buffer, DW_LNS_copy);
+        } else{
+            buffer_append_byte(&line_info_buffer, opcode);
+        }
     }
 
     //advance the pc one last time to finish the last instruction
