@@ -1,5 +1,6 @@
 #include "dwarf.h"
 #include "util.h"
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,6 +29,7 @@ static void buffer_create(Buffer* buff, size_t bytes){
 }
 
 static void buffer_realloc(Buffer* buff){
+    assert(buff->capacity > 0);
     buff->capacity *= 2;
     buff->data = realloc(buff->data, buff->capacity);
     if(buff->data == NULL) fatal_error("Failed to alloc memory\n");
@@ -128,7 +130,7 @@ static void dwarf_emit_line_header(DwarfDebugInfo* debug_info, uint32_t text_siz
     buffer_append_word(&line_info_buffer, DWARF_VERSION);
     buffer_append_byte(&line_info_buffer, 8); //address size
     buffer_append_byte(&line_info_buffer, 0); //segment size
-    uint8_t* header_len_ptr = line_info_buffer.data + line_info_buffer.size;
+    uint32_t header_len_size = line_info_buffer.size;
     buffer_append_dword(&line_info_buffer, 0); //header len
     uint32_t buffer_size = line_info_buffer.size;
     buffer_append_byte(&line_info_buffer, 1); //min instruction len
@@ -157,7 +159,7 @@ static void dwarf_emit_line_header(DwarfDebugInfo* debug_info, uint32_t text_siz
     buffer_append_str(&line_info_buffer, (char*)file_name);
 
     uint32_t header_len = line_info_buffer.size - buffer_size;
-    memcpy(header_len_ptr, &header_len, 4);
+    memcpy(line_info_buffer.data + header_len_size, &header_len, 4);
 
     buffer_append_byte(&line_info_buffer, DW_LNS_set_file);
     buffer_append_byte(&line_info_buffer, 0);
