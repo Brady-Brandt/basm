@@ -1907,6 +1907,9 @@ static bool parse_instruction(Parser* p, TokenType prefix){
         parser_expect_consume_token(p, TOK_NEW_LINE);
         return false;
     } 
+
+    if(program.flags.debugSymbols)
+        dwarf_add_line_info(instr_line, program.text.size);
     
     if(prefix == TOK_LOCK){
         if(!(instruction->flags & FLAG_LOCK)){
@@ -1952,8 +1955,6 @@ static bool parse_instruction(Parser* p, TokenType prefix){
         section_add_data(&program.text, &REPNE, 1);
     }
 
-    if(program.flags.debugSymbols)
-        dwarf_add_line_info(instr_line, program.text.size);
 
     emit_instruction(p, instruction, operands);
     parser_expect_consume_token(p, TOK_NEW_LINE);
